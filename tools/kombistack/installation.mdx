@@ -1,0 +1,509 @@
+---
+title: KombiStack installation
+description: Complete installation guide for all deployment methods
+---
+
+# Installation
+
+Install KombiStack using Docker Compose, Docker, binary, or from source.
+
+## Prerequisites
+
+<CardGroup cols={3}>
+  <Card title="Docker" icon="docker">
+    Docker Engine 24.0+
+  </Card>
+  <Card title="System resources" icon="microchip">
+    2GB RAM, 5GB disk
+  </Card>
+  <Card title="Network" icon="network-wired">
+    Ports 5260, 5261, 5263
+  </Card>
+</CardGroup>
+
+## Installation methods
+
+<Tabs>
+  <Tab title="Docker Compose (Recommended)">
+    **Best for:** Production deployments, full stack setup
+    
+    <Steps>
+      <Step title="Clone repository">
+        ```bash
+        git clone https://github.com/KombiverseLabs/KombiStack
+        cd KombiStack
+        ```
+      </Step>
+
+      <Step title="Configure environment">
+        ```bash
+        # Optional: Create local config (gitignored)
+        cp .env.example .env
+        
+        # Edit configuration
+        nano .env
+        ```
+        
+        **Key variables:**
+        ```env
+        # PocketBase Admin
+        POCKETBASE_ADMIN_EMAIL=admin@kombistack.local
+        POCKETBASE_ADMIN_PASSWORD=changeme
+        
+        # API Configuration
+        API_PORT=5260
+        GRPC_PORT=5263
+        
+        # Frontend
+        FRONTEND_PORT=5261
+        KOMBISTACK_API_URL=http://kombistack:5260
+        ```
+      </Step>
+
+      <Step title="Start services">
+        ```bash
+        # Start main stack (API + UI)
+        docker compose up -d --build
+        
+        # Optional: Start documentation
+        docker compose -f docker-compose.docs.yml up -d --build
+        
+        # Optional: Start marketing website
+        docker compose -f docker-compose.website.yml up -d --build
+        ```
+      </Step>
+
+      <Step title="Verify installation">
+        ```bash
+        # Check service status
+        docker compose ps
+        
+        # View logs
+        docker compose logs -f
+        
+        # Test API
+        curl http://localhost:5260/api/v1/health
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="Docker (Core only)">
+    **Best for:** Minimal setup, API-only deployments
+    
+    ```bash
+    # Run KombiStack Core
+    docker run -d \
+      --name kombistack \
+      -p 5260:5260 \
+      -p 5263:5263 \
+      -v kombistack-data:/app/pb_data \
+      ghcr.io/kombiverselabs/kombistack:latest
+    
+    # Check logs
+    docker logs -f kombistack
+    
+    # Access PocketBase Admin
+    open http://localhost:5260/_/
+    ```
+    
+    <Note>
+      This runs only the Go binary. For the web UI, deploy the frontend separately or use Docker Compose.
+    </Note>
+  </Tab>
+
+  <Tab title="Binary (Linux/macOS)">
+    **Best for:** Native performance, custom deployments
+    
+    <Steps>
+      <Step title="Download binary">
+        ```bash
+        # One-line install
+        curl -fsSL https://raw.githubusercontent.com/KombiverseLabs/KombiStack/main/install.sh | sh
+        
+        # Or download manually from releases
+        wget https://github.com/KombiverseLabs/KombiStack/releases/latest/download/kombistack-linux-amd64
+        chmod +x kombistack-linux-amd64
+        sudo mv kombistack-linux-amd64 /usr/local/bin/kombistack
+        ```
+      </Step>
+
+      <Step title="Start the server">
+        ```bash
+        # Start KombiStack Core
+        kombistack serve
+        
+        # Or with custom config
+        kombistack serve --port 5260 --grpc-port 5263
+        ```
+      </Step>
+
+      <Step title="Install frontend (optional)">
+        ```bash
+        # Clone repository
+        git clone https://github.com/KombiverseLabs/KombiStack
+        cd KombiStack/app
+        
+        # Install dependencies
+        bun install
+        
+        # Build for production
+        bun run build
+        
+        # Start frontend
+        node build
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+
+  <Tab title="From source">
+    **Best for:** Development, custom modifications
+    
+    <Steps>
+      <Step title="Install prerequisites">
+        - **Go 1.24+** for backend
+        - **Bun 1.1+** for frontend
+        - **OpenTofu 1.6+** (optional, for testing)
+      </Step>
+
+      <Step title="Clone and build backend">
+        ```bash
+        git clone https://github.com/KombiverseLabs/KombiStack
+        cd KombiStack
+        
+        # Install Go dependencies
+        go mod download
+        
+        # Build binary
+        go build -o kombistack ./cmd/kombistack
+        
+        # Run
+        ./kombistack serve
+        ```
+      </Step>
+
+      <Step title="Build and run frontend">
+        ```bash
+        cd app
+        
+        # Install dependencies
+        bun install
+        
+        # Development mode
+        bun run dev
+        
+        # Or build for production
+        bun run build
+        node build
+        ```
+      </Step>
+    </Steps>
+  </Tab>
+</Tabs>
+
+## Service ports
+
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Core API | 5260 | HTTP | REST API + PocketBase Admin |
+| Frontend | 5261 | HTTP | SvelteKit Dashboard |
+| Docs | 5262 | HTTP | MkDocs Documentation (optional) |
+| gRPC | 5263 | gRPC | Agent communication (mTLS) |
+| Website | 5264 | HTTP | Marketing site (optional) |
+
+## Post-installation setup
+
+<Steps>
+  <Step title="Access the dashboard">
+    Open [http://localhost:5261](http://localhost:5261)
+  </Step>
+
+  <Step title="Create admin account">
+    On first launch, you'll be prompted to create an admin account:
+    
+    - Email: `admin@kombistack.local`
+    - Password: Choose a strong password (min 8 characters)
+  </Step>
+
+  <Step title="Configure SSH wallet">
+    Generate SSH keys for server access:
+    
+    1. Navigate to **Wallet** in the sidebar
+    2. Click **Generate SSH Key Pair**
+    3. Download the public key
+    4. Add to your servers: `~/.ssh/authorized_keys`
+  </Step>
+
+  <Step title="Optional: Configure Headscale">
+    For VPN mesh networking:
+    
+    ```bash
+    # Headscale is auto-deployed with first stack
+    # Or configure manually in Settings > VPN
+    ```
+  </Step>
+</Steps>
+
+## DevContainer setup
+
+For development with VSCode:
+
+<Steps>
+  <Step title="Open in VSCode">
+    ```bash
+    code .
+    ```
+  </Step>
+
+  <Step title="Reopen in container">
+    - Press `Cmd/Ctrl + Shift + P`
+    - Select "Dev Containers: Reopen in Container"
+  </Step>
+
+  <Step title="Start developing">
+    ```bash
+    # Backend (alias: kb)
+    go run cmd/kombistack/main.go
+    
+    # Frontend (alias: web)
+    cd app && bun run dev
+    ```
+  </Step>
+</Steps>
+
+## Deployment platforms
+
+### Coolify
+
+KombiStack is configured for Coolify deployment:
+
+**Environments:**
+- **Test:** Auto-deploy from `develop` branch
+- **Production:** Manual deploy from `main` branch
+
+See [.coolify/README.md](https://github.com/KombiverseLabs/KombiStack/blob/main/.coolify/README.md) for setup.
+
+### Kubernetes
+
+```yaml
+# kombistack-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kombistack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kombistack
+  template:
+    metadata:
+      labels:
+        app: kombistack
+    spec:
+      containers:
+      - name: kombistack
+        image: ghcr.io/kombiverselabs/kombistack:latest
+        ports:
+        - containerPort: 5260
+        - containerPort: 5263
+        volumeMounts:
+        - name: data
+          mountPath: /app/pb_data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: kombistack-pvc
+```
+
+### Docker Swarm
+
+```yaml
+# docker-stack.yml
+version: '3.8'
+services:
+  kombistack:
+    image: ghcr.io/kombiverselabs/kombistack:latest
+    ports:
+      - "5260:5260"
+      - "5263:5263"
+    volumes:
+      - kombistack-data:/app/pb_data
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+volumes:
+  kombistack-data:
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port conflicts">
+    **Symptoms:** Services fail to start with "address already in use"
+    
+    **Solutions:**
+    1. Check what's using the port:
+       ```bash
+       # Linux/macOS
+       lsof -i :5260
+       
+       # Windows
+       netstat -ano | findstr :5260
+       ```
+    
+    2. Change ports in `docker-compose.yml` or `.env`:
+       ```yaml
+       ports:
+         - "5360:5260"  # Use 5360 instead
+       ```
+  </Accordion>
+
+  <Accordion title="Permission errors">
+    **Symptoms:** "Permission denied" when accessing volumes
+    
+    **Solutions:**
+    ```bash
+    # Linux: Fix volume permissions
+    sudo chown -R $USER:$USER ./pb_data
+    
+    # Or run with user ID
+    docker compose run --user $(id -u):$(id -g) kombistack
+    ```
+  </Accordion>
+
+  <Accordion title="Frontend can't connect to API">
+    **Symptoms:** UI shows "Failed to connect to API"
+    
+    **Solutions:**
+    1. Check API is running:
+       ```bash
+       curl http://localhost:5260/api/v1/health
+       ```
+    
+    2. Verify `KOMBISTACK_API_URL` in frontend:
+       ```env
+       # In app/.env
+       KOMBISTACK_API_URL=http://localhost:5260
+       ```
+    
+    3. Check Docker network:
+       ```bash
+       docker network inspect kombistack_default
+       ```
+  </Accordion>
+
+  <Accordion title="Database migration errors">
+    **Symptoms:** "Migration failed" on startup
+    
+    **Solutions:**
+    ```bash
+    # Backup existing database
+    cp pb_data/data.db pb_data/data.db.backup
+    
+    # Reset database (WARNING: deletes all data)
+    rm pb_data/data.db
+    docker compose restart kombistack
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Upgrading
+
+<Tabs>
+  <Tab title="Docker Compose">
+    ```bash
+    # Pull latest images
+    docker compose pull
+    
+    # Restart services
+    docker compose up -d --build
+    
+    # Check logs
+    docker compose logs -f
+    ```
+  </Tab>
+
+  <Tab title="Binary">
+    ```bash
+    # Download latest release
+    curl -fsSL https://raw.githubusercontent.com/KombiverseLabs/KombiStack/main/install.sh | sh
+    
+    # Restart service
+    sudo systemctl restart kombistack
+    ```
+  </Tab>
+
+  <Tab title="From source">
+    ```bash
+    # Pull latest code
+    git pull origin main
+    
+    # Rebuild backend
+    go build -o kombistack ./cmd/kombistack
+    
+    # Rebuild frontend
+    cd app && bun install && bun run build
+    
+    # Restart services
+    ./kombistack serve &
+    cd app && node build
+    ```
+  </Tab>
+</Tabs>
+
+## Uninstallation
+
+<Warning>
+  This will delete all data including stacks, configurations, and SSH keys.
+</Warning>
+
+```bash
+# Stop and remove containers
+docker compose down
+
+# Remove volumes (deletes all data)
+docker compose down -v
+
+# Remove images
+docker rmi ghcr.io/kombiverselabs/kombistack:latest
+
+# Remove cloned repository
+cd .. && rm -rf KombiStack
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start guide"
+    icon="play"
+    href="/tools/kombistack/quickstart"
+  >
+    Deploy your first stack
+  </Card>
+  <Card
+    title="Architecture"
+    icon="sitemap"
+    href="/tools/kombistack/architecture"
+  >
+    Understand the system design
+  </Card>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/tools/kombistack/configuration"
+  >
+    Configure KombiStack
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api/kombistack/overview"
+  >
+    Explore the REST API
+  </Card>
+</CardGroup>
