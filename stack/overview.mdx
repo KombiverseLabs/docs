@@ -1,0 +1,231 @@
+---
+title: kombify Stack overview
+description: Hybrid infrastructure control plane for homelabs and cloud
+icon: server
+---
+
+# kombify Stack
+
+kombify Stack is an open-source infrastructure control plane that manages your homelab nodes through a unified spec-driven workflow.
+
+<Card title="What is kombify Stack?" icon="circle-info">
+  kombify Stack orchestrates your infrastructure by reading a single `kombination.yaml` file, validating it with CUE schemas, and deploying it using OpenTofu. It manages both local servers and cloud VPS through lightweight gRPC agents.
+</Card>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Spec-driven" icon="file-code">
+    Define your infrastructure in YAML, let Stack handle the rest
+  </Card>
+  <Card title="Agent-based" icon="robot">
+    Lightweight agents connect nodes to the control plane
+  </Card>
+  <Card title="Multi-engine" icon="gears">
+    Support for Proxmox, Docker, and cloud providers
+  </Card>
+  <Card title="Open source" icon="code-branch">
+    MIT licensed core with optional enterprise features
+  </Card>
+</CardGroup>
+
+## How it works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     kombify Stack Core                       │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  REST API   │  │ gRPC Server │  │  Unifier    │         │
+│  │  (5260)     │  │   (5263)    │  │   Engine    │         │
+│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
+│         │                │                │                 │
+│         └────────────────┴────────────────┘                 │
+│                          │                                  │
+│                 ┌───────┴───────┐                           │
+│                 │  PocketBase   │                           │
+│                 │  (SQLite/WAL) │                           │
+│                 └───────────────┘                           │
+└─────────────────────────────────────────────────────────────┘
+                    │                   │
+        ┌───────────┴───────┐   ┌──────┴──────┐
+        │                   │   │             │
+   ┌────▼────┐         ┌────▼────┐  ┌────────────┐
+   │ Agent 1 │         │ Agent 2 │  │  OpenTofu  │
+   │ (Node)  │         │ (Node)  │  │   Runner   │
+   └─────────┘         └─────────┘  └────────────┘
+```
+
+## Core principles
+
+### 1. Spec-driven flow
+
+```
+kombination.yaml  →  Unifier  →  OpenTofu  →  Infrastructure
+    (Intent)         (CUE)       (IaC)         (Reality)
+```
+
+User intent is never automatically modified. All transformations create separate artifacts.
+
+### 2. Single-stack architecture
+
+**1 kombify Stack = 1 Homelab**
+
+- One instance manages exactly one homelab
+- A homelab can include multiple physical servers (nodes)
+- Multi-homelab scenarios require multiple instances
+
+### 3. Interface-first design
+
+Business logic changes begin with `pkg/core` interfaces. Implementations follow the contracts.
+
+## Architecture
+
+### Service ports
+
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Core API | 5260 | HTTP | REST API + embedded PocketBase Admin |
+| App (UI) | 5261 | HTTP | SvelteKit Dashboard |
+| gRPC | 5263 | gRPC/mTLS | Agent communication |
+
+### Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.24+ | Core services and agents |
+| **Frontend** | SvelteKit 2.x | Modern reactive UI |
+| **Database** | PocketBase (SQLite) | Embedded state management |
+| **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
+| **Validation** | CUE 0.15+ | Type-safe configuration |
+| **Networking** | gRPC + mTLS | Secure agent communication |
+
+## Unifier engine
+
+The Unifier is the heart of kombify Stack — it transforms your high-level intent into validated, deployable infrastructure code.
+
+### Three-stage pipeline
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│  Intent-Spec    │────▶│ Requirements-   │────▶│  Unified-Spec   │
+│                 │     │     Spec        │     │                 │
+│ User goals &    │     │ CPU, RAM,       │     │ Final validated │
+│ high-level      │     │ storage,        │     │ configuration   │
+│ constraints     │     │ network layout  │     │ for rollout     │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+```
+
+### Responsibilities
+
+1. **Validate** all three spec stages with CUE before rollout
+2. **Select** appropriate StackKits for the requested intent
+3. **Perform** service placement on worker nodes
+4. **Generate** `kombination.yaml` as canonical user spec
+5. **Produce** output artifacts for downstream tools
+
+## Worker system
+
+### Agent registration flow
+
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│   1. Generate    │────▶│   2. Register    │────▶│   3. Ready       │
+│   mTLS Certs     │     │   via gRPC       │     │   for Tasks      │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+```
+
+1. **Generate** mTLS credentials from kombify Stack CA
+2. **Register** via gRPC, announcing capabilities and resources
+3. **Heartbeat** every ~30 seconds
+4. **Execute** commands via bidirectional CommandStream
+
+### Worker capabilities
+
+- Online/offline status and heartbeat timestamps
+- Resource usage and capacity
+- Supported features (virtualization, GPU, storage type)
+
+## Quick links
+
+<CardGroup cols={3}>
+  <Card title="Quick start" icon="rocket" href="/stack/quickstart">
+    Get started in 5 minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/stack/install/docker">
+    Install with Docker
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/stack/configuration">
+    Configure your instance
+  </Card>
+  <Card title="Agents" icon="robot" href="/stack/agents">
+    Set up worker agents
+  </Card>
+  <Card title="Unifier" icon="wand-magic-sparkles" href="/stack/unifier">
+    Learn about the Unifier
+  </Card>
+  <Card title="Troubleshooting" icon="wrench" href="/stack/troubleshooting">
+    Fix common issues
+  </Card>
+</CardGroup>
+
+## Use cases
+
+<AccordionGroup>
+  <Accordion title="Homelab automation" icon="house">
+    Deploy and manage your entire homelab with one config file. Stack handles service placement, networking, and updates.
+  </Accordion>
+
+  <Accordion title="Hybrid infrastructure" icon="cloud">
+    Combine local servers with cloud VPS seamlessly. Stack treats all nodes equally, whether they're in your basement or in AWS.
+  </Accordion>
+
+  <Accordion title="Multi-node orchestration" icon="network-wired">
+    Manage multiple physical servers as one logical unit. Stack distributes services based on resources and constraints.
+  </Accordion>
+
+  <Accordion title="GitOps workflows" icon="code-branch">
+    Store your `kombination.yaml` in Git and deploy automatically. Stack integrates with CI/CD pipelines.
+  </Accordion>
+</AccordionGroup>
+
+## License
+
+kombify Stack is dual-licensed:
+
+- **MIT License** - Core functionality
+- **AGPL-3.0 License** - Network-exposed features
+
+See the [LICENSE](https://github.com/soulcreek/KombiStack/blob/main/LICENSE) file for details.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start"
+    icon="play"
+    href="/stack/quickstart"
+  >
+    Deploy your first stack
+  </Card>
+  <Card
+    title="Installation guide"
+    icon="download"
+    href="/stack/install/docker"
+  >
+    Install kombify Stack
+  </Card>
+  <Card
+    title="Configuration"
+    icon="sliders"
+    href="/stack/configuration"
+  >
+    Configure for production
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api-reference/stack/overview"
+  >
+    Explore the API
+  </Card>
+</CardGroup>

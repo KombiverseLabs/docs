@@ -1,155 +1,234 @@
 ---
-title: Quick start
-description: Get KombiSphere running in 5 minutes with Docker Compose
+title: Quick start (SaaS)
+description: Get started with kombify Sphere in 5 minutes
 ---
 
-# Quick start
+# Quick start with kombify Sphere
 
-Get the entire KombiSphere ecosystem running locally in under 5 minutes.
+Get your first homelab running in under 5 minutes using the managed kombify Sphere platform.
 
 ## Prerequisites
 
 <CardGroup cols={2}>
-  <Card title="Docker" icon="docker">
-    Docker Engine 24.0+ with Compose v2.20+
+  <Card title="A server" icon="server">
+    Any Linux server (VPS, old PC, Raspberry Pi)
   </Card>
-  <Card title="System resources" icon="microchip">
-    4GB RAM, 10GB disk space
+  <Card title="SSH access" icon="terminal">
+    SSH access to your server
   </Card>
 </CardGroup>
 
-## Installation
+## Step 1: Create an account
 
 <Steps>
-  <Step title="Clone the repository">
-    ```bash
-    git clone https://github.com/KombiverseLabs/KombiStack
-    cd KombiStack
-    ```
+  <Step title="Sign up">
+    Go to [app.kombisphere.io](https://app.kombisphere.io) and create a free account.
   </Step>
 
-  <Step title="Start the services">
-    ```bash
-    docker compose up -d
-    ```
-    
-    This starts:
-    - **KombiStack Core** (API + PocketBase) on port 5260
-    - **KombiStack UI** (SvelteKit) on port 5261
-    - **KombiSim** (optional) on port 5270
+  <Step title="Verify email">
+    Check your email and verify your account.
   </Step>
 
-  <Step title="Access the dashboard">
-    Open your browser to [http://localhost:5261](http://localhost:5261)
-    
-    Default credentials:
-    - Email: `admin@kombistack.local`
-    - Password: `admin123` (change immediately!)
-  </Step>
-
-  <Step title="Create your first stack">
-    Use the wizard to define your infrastructure:
-    
-    1. Choose a StackKit (e.g., `base-homelab`)
-    2. Configure your nodes (IP addresses, SSH credentials)
-    3. Select services (Traefik, Dokploy, etc.)
-    4. Review and deploy
+  <Step title="Access dashboard">
+    You'll be redirected to the kombify Sphere dashboard.
   </Step>
 </Steps>
 
-## Verify installation
+## Step 2: Launch kombify Stack
 
-<CodeGroup>
-```bash Health check
-curl http://localhost:5260/api/v1/health
-```
+<Steps>
+  <Step title="Open tool launcher">
+    Click **"Launch Stack"** in the dashboard.
+  </Step>
 
-```bash List stacks
-curl http://localhost:5260/api/v1/stacks
-```
+  <Step title="Choose deployment">
+    Select **"Managed"** to use Sphere's hosted Stack instance.
+    
+    <Note>
+      You can also choose **"Self-hosted"** to run Stack on your own infrastructure.
+    </Note>
+  </Step>
 
-```bash Check PocketBase
-curl http://localhost:5260/_/
-```
-</CodeGroup>
+  <Step title="Access Stack">
+    You'll be automatically logged in via SSO.
+  </Step>
+</Steps>
 
-## Service ports
+## Step 3: Create your first stack
 
-| Service | Port | Description |
-|---------|------|-------------|
-| Core API | 5260 | REST API + PocketBase Admin |
-| Frontend | 5261 | SvelteKit Dashboard |
-| gRPC | 5263 | Agent communication (mTLS) |
-| KombiSim | 5270 | Simulation API (optional) |
-| KombiSim UI | 5271 | Simulation Dashboard (optional) |
+<Steps>
+  <Step title="Start wizard">
+    Click **"New Homelab"** and select **"Easy Wizard"**.
+  </Step>
+
+  <Step title="Answer questions">
+    The wizard will ask:
+    - What do you want to build? (e.g., "Photo Cloud")
+    - How many users? (e.g., "4 (Family)")
+    - Where should it run? (e.g., "Local Server")
+    - Do you have a domain? (optional)
+  </Step>
+
+  <Step title="Review configuration">
+    The wizard generates a `kombination.yaml` file:
+    
+    ```yaml
+    stackkit: base-homelab
+    version: "1.0.0"
+    
+    meta:
+      name: "My Photo Cloud"
+    
+    nodes:
+      - name: main-server
+        type: local
+        connection:
+          host: 192.168.1.100
+    
+    services:
+      - traefik
+      - uptime-kuma
+      - immich
+    ```
+  </Step>
+</Steps>
+
+## Step 4: Simulate (optional)
+
+<Steps>
+  <Step title="Start simulation">
+    Click **"Simulate"** to test your config in a virtual environment.
+  </Step>
+
+  <Step title="Test services">
+    Access the simulated services:
+    - Traefik: `http://localhost:8080`
+    - Immich: `http://localhost:2283`
+    - Uptime Kuma: `http://localhost:3001`
+  </Step>
+
+  <Step title="SSH into simulation">
+    ```bash
+    ssh -p 2222 root@localhost
+    # Password: kombisim
+    ```
+  </Step>
+
+  <Step title="Stop simulation">
+    When satisfied, click **"Stop Simulation"**.
+  </Step>
+</Steps>
+
+## Step 5: Deploy to real hardware
+
+<Steps>
+  <Step title="Install agent">
+    Copy the agent installation command from the dashboard:
+    
+    ```bash
+    curl -sSL https://install.kombify.io/agent | sudo sh -s -- \
+      --token YOUR_UNIQUE_TOKEN \
+      --server https://api.kombisphere.io
+    ```
+    
+    Run this on your server.
+  </Step>
+
+  <Step title="Wait for connection">
+    The dashboard will show **"Agent Connected"** when ready.
+  </Step>
+
+  <Step title="Deploy">
+    Click **"Apply"** to start the deployment.
+    
+    You'll see real-time progress:
+    ```
+    ✅ Validating configuration...
+    ✅ Connecting to node: main-server
+    ✅ Installing Docker services...
+       ├─ traefik: running
+       ├─ uptime-kuma: running
+       └─ immich: running
+    ✅ Deployment complete!
+    ```
+  </Step>
+</Steps>
+
+## Step 6: Access your services
+
+Your services are now running! Access them at:
+
+| Service | URL | Purpose |
+|---------|-----|---------|
+| **Traefik Dashboard** | `http://your-server:8080` | Reverse proxy status |
+| **Uptime Kuma** | `http://your-server:3001` | Service monitoring |
+| **Immich** | `http://your-server:2283` | Photo management |
+
+<Note>
+  If you configured a domain, services will be available at `service.yourdomain.com` with automatic SSL.
+</Note>
 
 ## Next steps
 
 <CardGroup cols={2}>
   <Card
-    title="Understand the architecture"
-    icon="sitemap"
-    href="/ecosystem"
+    title="Add more services"
+    icon="plus"
+    href="/sphere/stacks"
   >
-    Learn how KombiStack, KombiSim, and StackKits work together
+    Extend your homelab with more services
   </Card>
   <Card
-    title="Deploy your first stack"
-    icon="rocket"
-    href="/tools/kombistack/quickstart"
+    title="Set up a domain"
+    icon="globe"
+    href="/sphere/dashboard"
   >
-    Follow the detailed KombiStack quickstart guide
-  </Card>
-  <Card
-    title="Simulate before deploying"
-    icon="flask"
-    href="/tools/kombisim/quickstart"
-  >
-    Test your configuration with KombiSim
+    Configure DNS and SSL certificates
   </Card>
   <Card
     title="Explore StackKits"
     icon="boxes-stacked"
-    href="/tools/stackkits/available-kits"
+    href="/stackkits/overview"
   >
     Browse available infrastructure blueprints
+  </Card>
+  <Card
+    title="Join community"
+    icon="discord"
+    href="https://discord.gg/kombify"
+  >
+    Get help and share your setup
   </Card>
 </CardGroup>
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="Port conflicts">
-    If ports are already in use, modify `docker-compose.yml`:
+  <Accordion title="Agent not connecting">
+    Check the agent status on your server:
     
-    ```yaml
-    services:
-      kombistack:
-        ports:
-          - "5260:5260"  # Change to 5360:5260 if needed
+    ```bash
+    sudo systemctl status kombify-agent
+    sudo journalctl -u kombify-agent -f
     ```
   </Accordion>
 
-  <Accordion title="Permission errors">
-    Ensure Docker has proper permissions:
+  <Accordion title="Container not starting">
+    Check Docker logs:
     
     ```bash
-    # Linux: Add user to docker group
-    sudo usermod -aG docker $USER
-    newgrp docker
+    docker logs traefik
+    docker logs immich
     ```
   </Accordion>
 
-  <Accordion title="Services not starting">
-    Check logs for errors:
-    
-    ```bash
-    docker compose logs kombistack
-    docker compose logs app
-    ```
+  <Accordion title="Can't access services">
+    - Check firewall rules: `sudo ufw status`
+    - Verify ports are open: `sudo netstat -tlnp | grep -E "80|443|2283"`
+    - Check Docker network: `docker network ls`
   </Accordion>
 </AccordionGroup>
 
-<Note>
-  For production deployments, see the [Production checklist](/guides/deployment/production-checklist).
-</Note>
+<Info>
+  Need help? Join our [Discord community](https://discord.gg/kombify) or email [support@kombify.dev](mailto:support@kombify.dev).
+</Info>

@@ -1,80 +1,98 @@
 ---
-title: Introduction
-description: Welcome to KombiSphere - the hybrid infrastructure platform for homelabs and self-hosted deployments
+title: What is kombify?
+description: The spec-driven infrastructure platform for homelabs and hybrid cloud
 ---
 
-# Welcome to KombiSphere
+# What is kombify?
 
-KombiSphere is a **hybrid infrastructure platform** that unifies cloud and home infrastructure into a single logical universe. Define your entire infrastructure in one spec file, simulate it before deployment, and manage everything through a unified control plane.
+kombify is a **spec-driven infrastructure platform** that lets you define, simulate, and deploy your entire homelab in one YAML file. No more juggling docker-compose files, Terraform configs, and manual SSH sessions — just describe what you want, and kombify handles the rest.
 
 <CardGroup cols={2}>
   <Card
-    title="Quick start"
+    title="Quick start (SaaS)"
     icon="rocket"
     href="/quickstart"
   >
-    Get up and running in 5 minutes with Docker Compose
+    Get started with kombify Sphere in 5 minutes
+  </Card>
+  <Card
+    title="Self-host"
+    icon="server"
+    href="/quickstart-selfhosted"
+  >
+    Run kombify Stack on your own infrastructure
   </Card>
   <Card
     title="Architecture"
     icon="sitemap"
-    href="/ecosystem"
+    href="/concepts/architecture"
   >
-    Understand the KombiSphere ecosystem and components
+    Understand how kombify works
   </Card>
   <Card
-    title="Open core tools"
-    icon="box-open"
-    href="/tools/kombistack/overview"
+    title="Community"
+    icon="users"
+    href="/community"
   >
-    Explore KombiStack, KombiSim, and StackKits
-  </Card>
-  <Card
-    title="SaaS platform"
-    icon="cloud"
-    href="/saas/cloud/overview"
-  >
-    Learn about the managed KombiSphere service
+    Join the kombify community
   </Card>
 </CardGroup>
 
-## What is KombiSphere?
+## The kombify family
 
-KombiSphere combines three powerful open-source tools with a SaaS management layer:
+kombify is a suite of tools that work together to simplify infrastructure management:
 
 <AccordionGroup>
-  <Accordion title="KombiStack - Hybrid control plane" icon="layer-group">
-    The core orchestration engine that manages your infrastructure. Define your desired state in `kombination.yaml`, and KombiStack handles validation, provisioning, and deployment using OpenTofu.
+  <Accordion title="kombify Stack - Hybrid control plane" icon="server">
+    The orchestration engine that manages your infrastructure. Define your desired state in `kombination.yaml`, and Stack handles validation, provisioning, and deployment.
     
     **Key features:**
-    - Spec-driven architecture
-    - CUE validation engine
+    - Spec-driven architecture with CUE validation
     - Multi-node management via gRPC agents
+    - OpenTofu integration for IaC
     - Embedded PocketBase for state management
+    
+    **License:** MIT + AGPL-3.0 (Open Source)
   </Accordion>
 
-  <Accordion title="KombiSim - Simulation engine" icon="flask">
-    Test your infrastructure configurations before deploying to real hardware. KombiSim creates lightweight Docker-based "VMs" that simulate your entire homelab environment.
+  <Accordion title="kombify Sim - Simulation engine" icon="flask">
+    Test your infrastructure before deploying to real hardware. Sim creates lightweight Docker containers that simulate your entire homelab.
     
     **Key features:**
     - Docker-based simulation nodes
     - Real SSH access to simulated servers
     - Pre-built templates for common setups
     - Full REST API for automation
+    
+    **License:** MIT (Open Source)
   </Accordion>
 
-  <Accordion title="StackKits - IaC blueprints" icon="boxes-stacked">
-    Declarative infrastructure blueprints with CUE validation and OpenTofu execution. StackKits provide battle-tested configurations for common homelab scenarios.
+  <Accordion title="kombify StackKits - IaC blueprints" icon="boxes-stacked">
+    Pre-validated infrastructure blueprints with CUE schemas. StackKits provide battle-tested configurations for common homelab scenarios.
     
     **Key features:**
     - CUE schema validation
-    - Multi-OS support (Ubuntu, Debian)
-    - Simple and advanced deployment modes
-    - Extensible variant system
+    - Built-in blueprints (base-homelab, ha-homelab, modern-homelab)
+    - Extensible and customizable
+    - Community-contributed kits
+    
+    **License:** MIT (Open Source)
+  </Accordion>
+
+  <Accordion title="kombify Sphere - SaaS platform" icon="cloud">
+    The managed platform that brings everything together. Sphere provides SSO, billing, team management, and a unified dashboard.
+    
+    **Key features:**
+    - Single Sign-On with Zitadel
+    - Subscription management with Stripe
+    - Tool launcher for Stack, Sim, and more
+    - Team collaboration features
+    
+    **License:** Proprietary (SaaS)
   </Accordion>
 </AccordionGroup>
 
-## Why KombiSphere?
+## Why kombify?
 
 <CardGroup cols={3}>
   <Card title="Spec-driven" icon="file-code">
@@ -90,25 +108,65 @@ KombiSphere combines three powerful open-source tools with a SaaS management lay
     CUE validation catches errors before deployment
   </Card>
   <Card title="Open core" icon="box-open">
-    Core tools are MIT/AGPL licensed and self-hostable
+    Core tools are open source and self-hostable
   </Card>
   <Card title="Production ready" icon="rocket">
     Battle-tested with OpenTofu and proven patterns
   </Card>
 </CardGroup>
 
+## How it works
+
+```yaml kombination.yaml
+# This is all you write
+stack:
+  name: my-homelab
+  domain: home.local
+
+nodes:
+  - hostname: proxmox-1
+    type: proxmox
+    role: hypervisor
+
+services:
+  - traefik      # Reverse proxy
+  - authelia     # SSO
+  - homepage     # Dashboard
+  - immich       # Photos
+```
+
+**What kombify does:**
+1. **Validates** your config with CUE schemas
+2. **Simulates** the setup in Docker (optional)
+3. **Generates** OpenTofu/Terraform code
+4. **Deploys** to your infrastructure
+5. **Manages** ongoing state and updates
+
 ## Deployment options
 
-Choose the deployment model that fits your needs:
-
 <Tabs>
-  <Tab title="Self-hosted (Open core)">
-    Use KombiStack, KombiSim, and StackKits directly without any SaaS components.
+  <Tab title="SaaS (Recommended)">
+    Use kombify Sphere for the easiest experience.
     
     ```bash
-    # Clone and run
-    git clone https://github.com/KombiverseLabs/KombiStack
-    cd KombiStack
+    # Sign up at app.kombisphere.io
+    # Launch tools from the dashboard
+    # No infrastructure to manage
+    ```
+    
+    **Best for:**
+    - Getting started quickly
+    - Teams and collaboration
+    - Managed updates and support
+    - Enterprise SSO
+  </Tab>
+
+  <Tab title="Self-hosted">
+    Run kombify Stack on your own infrastructure.
+    
+    ```bash
+    # Docker Compose
+    curl -O https://raw.githubusercontent.com/soulcreek/KombiStack/main/docker-compose.yml
     docker compose up -d
     ```
     
@@ -119,31 +177,14 @@ Choose the deployment model that fits your needs:
     - Custom modifications
   </Tab>
 
-  <Tab title="Managed SaaS">
-    Use the fully managed KombiSphere platform with enterprise features.
-    
-    ```bash
-    # Sign up at kombisphere.io
-    # Launch tools from the dashboard
-    # No infrastructure to manage
-    ```
-    
-    **Best for:**
-    - Teams and organizations
-    - Enterprise SSO requirements
-    - Managed updates and support
-    - Multi-tenant collaboration
-  </Tab>
-
   <Tab title="Hybrid">
-    Self-host the core tools, use SaaS for management and collaboration.
+    Self-host the core tools, use Sphere for management.
     
     ```bash
-    # Run core tools locally
+    # Run Stack locally
     docker compose up -d
     
-    # Connect to KombiSphere for management
-    # Get enterprise features without hosting complexity
+    # Connect to Sphere for SSO and collaboration
     ```
     
     **Best for:**
@@ -153,16 +194,32 @@ Choose the deployment model that fits your needs:
   </Tab>
 </Tabs>
 
+## Use cases
+
+<CardGroup cols={2}>
+  <Card title="Homelab automation" icon="house">
+    Deploy and manage your entire homelab with one config file
+  </Card>
+  <Card title="Hybrid infrastructure" icon="cloud">
+    Combine local servers with cloud VPS seamlessly
+  </Card>
+  <Card title="Learning platform" icon="graduation-cap">
+    Simulate infrastructure before deploying to real hardware
+  </Card>
+  <Card title="Team collaboration" icon="users">
+    Share and collaborate on infrastructure configs
+  </Card>
+</CardGroup>
+
 ## Tech stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Backend** | Go 1.24+ | Core services and agents |
-| **Frontend** | SvelteKit 5 | Modern reactive UI |
+| **Frontend** | SvelteKit 2.x | Modern reactive UI |
 | **Database** | PocketBase (SQLite) | Embedded state management |
 | **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
-| **Validation** | CUE 0.9+ | Type-safe configuration |
-| **Networking** | Headscale | Self-hosted VPN mesh |
+| **Validation** | CUE 0.15+ | Type-safe configuration |
 | **API gateway** | Kong OSS | Unified API entry point |
 | **Auth** | Zitadel | Enterprise OIDC provider |
 
@@ -170,30 +227,30 @@ Choose the deployment model that fits your needs:
 
 <CardGroup cols={2}>
   <Card
-    title="Quick start guide"
+    title="Quick start (SaaS)"
     icon="play"
     href="/quickstart"
   >
-    Deploy your first stack in 5 minutes
+    Get started with kombify Sphere
   </Card>
   <Card
-    title="Understand the ecosystem"
-    icon="diagram-project"
-    href="/ecosystem"
+    title="Self-host guide"
+    icon="server"
+    href="/quickstart-selfhosted"
   >
-    Learn how all components work together
+    Run kombify Stack yourself
   </Card>
   <Card
-    title="Explore KombiStack"
-    icon="layer-group"
-    href="/tools/kombistack/overview"
+    title="Core concepts"
+    icon="book"
+    href="/concepts/spec-driven"
   >
-    Deep dive into the control plane
+    Learn about spec-driven infrastructure
   </Card>
   <Card
-    title="Join the community"
-    icon="users"
-    href="https://discord.gg/kombisphere"
+    title="Join Discord"
+    icon="discord"
+    href="https://discord.gg/kombify"
   >
     Get help and share your setups
   </Card>

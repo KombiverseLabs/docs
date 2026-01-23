@@ -1,0 +1,196 @@
+---
+title: Spec-driven infrastructure
+description: Define your intent in YAML, let the system handle implementation
+---
+
+# Spec-driven infrastructure
+
+**Spec-driven infrastructure** is the core principle behind kombify — you describe *what* you want, not *how* it should be implemented.
+
+## The concept
+
+```yaml kombination.yaml
+# This is all you write
+stack:
+  name: my-homelab
+  domain: home.local
+
+nodes:
+  - hostname: proxmox-1
+    type: proxmox
+    role: hypervisor
+
+services:
+  - traefik      # Reverse proxy
+  - authelia     # SSO
+  - homepage     # Dashboard
+  - immich       # Photos
+```
+
+**The result:**
+- OpenTofu/Terraform code is automatically generated
+- Containers are deployed with correct networks
+- SSL certificates are configured
+- Routing rules are set up
+
+## Why spec-driven?
+
+### 1. Reduced complexity
+
+**Traditional approach:**
+- 50+ lines of docker-compose.yml
+- 100+ lines of Traefik configuration
+- Manual DNS entries
+- SSL certificate management
+
+**With kombify:**
+- 15 lines of kombination.yaml
+- Everything else is derived
+
+### 2. Consistency
+
+Every change goes through the same validation process:
+1. CUE schema validation
+2. Dependency check
+3. Dry-run (optional)
+4. Apply
+
+### 3. Reproducibility
+
+Your `kombination.yaml` is the **single source of truth**:
+- Version-controllable
+- Shareable with the community
+- Recoverable after disaster
+
+## The Unifier engine
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                        UNIFIER ENGINE                          │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  kombination.yaml                                               │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │   Parse    │ ← YAML → Go structs                            │
+│  └─────┬──────┘                                                │
+│        ▼                                                        │
+│  ┌────────────┐     ┌────────────────┐                         │
+│  │  Validate  │────▶│  CUE Schemas   │                         │
+│  │            │     │  (StackKits)   │                         │
+│  └─────┬──────┘     └────────────────┘                         │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │  Resolve   │ ← Defaults, Dependencies, Secrets              │
+│  └─────┬──────┘                                                │
+│        ▼                                                        │
+│  ┌────────────┐     ┌────────────────┐                         │
+│  │  Generate  │────▶│  OpenTofu HCL  │                         │
+│  │            │     │  + tfvars.json │                         │
+│  └─────┬──────┘     └────────────────┘                         │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │   Apply    │ ← tofu plan → tofu apply                       │
+│  └────────────┘                                                │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## Example: Traefik + Authelia
+
+### Traditional (docker-compose.yml)
+
+```yaml
+# 80+ lines for two services...
+services:
+  traefik:
+    image: traefik:v3.0
+    command:
+      - "--api.dashboard=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+      - "--certificatesresolvers.letsencrypt.acme.email=..."
+      - "--certificatesresolvers.letsencrypt.acme.storage=..."
+      # ... 20 more lines
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.rule=Host(`traefik.home.local`)"
+      # ... 15 more lines
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./traefik/acme.json:/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      - proxy
+
+  authelia:
+    image: authelia/authelia:latest
+    volumes:
+      - ./authelia/configuration.yml:/config/configuration.yml
+      - ./authelia/users.yml:/config/users.yml
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authelia.rule=Host(`auth.home.local`)"
+      # ... 20 more lines for middleware
+```
+
+**Plus:** `authelia/configuration.yml` (100+ lines), `traefik/traefik.yml`, etc.
+
+### With kombify (kombination.yaml)
+
+```yaml
+stack:
+  domain: home.local
+  email: admin@home.local
+
+services:
+  - traefik
+  - authelia
+
+auth:
+  provider: authelia
+  users:
+    - username: admin
+      # Password in secrets
+```
+
+**That's it.** The Unifier:
+- Generates the complete docker-compose.yml
+- Configures Traefik middleware for Authelia
+- Sets up SSL with Let's Encrypt
+- Links everything correctly
+
+## When to use spec-driven?
+
+### ✅ Ideal for:
+
+- **New homelabs** — Quick start without config marathon
+- **Reproducible setups** — Disaster recovery, multi-site
+- **Learning** — Understand best practices through generated configs
+- **Teams** — Unified standards
+
+### ⚠️ Less suitable for:
+
+- **Highly custom setups** — When every service is unique
+- **Legacy migration** — Existing configs need conversion
+- **Bleeding edge** — Newest features sometimes need manual config
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Deploy your first spec-driven stack
+  </Card>
+  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits-explained">
+    Learn about CUE schemas
+  </Card>
+  <Card title="Unifier engine" icon="wand-magic-sparkles" href="/concepts/unifier">
+    Deep dive into the engine
+  </Card>
+  <Card title="kombination.yaml reference" icon="book" href="/stack/configuration">
+    All configuration options
+  </Card>
+</CardGroup>

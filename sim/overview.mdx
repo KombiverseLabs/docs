@@ -1,0 +1,161 @@
+---
+title: kombify Sim overview
+description: Infrastructure simulation engine for testing before deployment
+icon: flask
+---
+
+# kombify Sim
+
+kombify Sim is an infrastructure simulation engine that lets you test homelab configurations before deploying to real hardware using lightweight Docker containers.
+
+<Card title="What is kombify Sim?" icon="circle-info">
+  kombify Sim creates Docker-based "virtual servers" that simulate your entire homelab environment. You can SSH into them, test configurations, and validate your setup before touching real hardware.
+</Card>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="Docker simulation" icon="docker">
+    Lightweight "VMs" with Docker containers
+  </Card>
+  <Card title="Real SSH access" icon="terminal">
+    SSH into simulated nodes (ports 2222-2322)
+  </Card>
+  <Card title="Simulation groups" icon="layer-group">
+    Organize nodes into logical simulations
+  </Card>
+  <Card title="Template library" icon="book">
+    Pre-built templates for common setups
+  </Card>
+</CardGroup>
+
+## How it works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                        kombify Sim                           │
+│  ┌─────────────────┐         ┌─────────────────┐           │
+│  │    Web UI       │────────▶│    REST API     │           │
+│  │   (SvelteKit)   │         │      (Go)       │           │
+│  │   Port: 5271    │         │   /api/v1/*     │           │
+│  └─────────────────┘         └────────┬────────┘           │
+│                                       │                     │
+│                          ┌────────────▼────────────┐        │
+│                          │   Node Engine           │        │
+│                          │   (Docker Backend)      │        │
+│                          └────────────┬────────────┘        │
+│                                       │                     │
+│                          ┌────────────▼────────────┐        │
+│                          │   Docker Daemon         │        │
+│                          │   (Containers as VMs)   │        │
+│                          └─────────────────────────┘        │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Built-in templates
+
+| Template | Nodes | Description |
+|----------|-------|-------------|
+| `single-node` | 1 | Minimal single server |
+| `homelab-basic` | 2 | Web server + Database |
+| `homelab-advanced` | 5 | Full homelab stack |
+| `hybrid-setup` | 5 | VPS + Local combined |
+| `ha-setup` | 5 | Load balancer + HA |
+
+## Service ports
+
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Backend API | 5270 | HTTP | REST API |
+| Frontend | 5271 | HTTP | SvelteKit Dashboard |
+| SSH (Nodes) | 2222-2322 | SSH | Container SSH access |
+
+## Quick example
+
+```bash
+# Create a simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "test-lab",
+    "description": "Testing my homelab setup"
+  }'
+
+# Add a node
+curl -X POST http://localhost:5270/api/v1/nodes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "web-server",
+    "simulation_id": "sim-uuid",
+    "type": "vps",
+    "os": "ubuntu-22.04"
+  }'
+
+# SSH into the node
+ssh -p 2222 root@localhost
+# Password: kombisim
+```
+
+## Use cases
+
+<AccordionGroup>
+  <Accordion title="Pre-deployment testing" icon="vial">
+    Test your `kombination.yaml` in a safe environment before deploying to real hardware.
+  </Accordion>
+
+  <Accordion title="Learning platform" icon="graduation-cap">
+    Learn infrastructure concepts without risking your production setup.
+  </Accordion>
+
+  <Accordion title="CI/CD integration" icon="code-branch">
+    Validate infrastructure changes in your CI pipeline before merging.
+  </Accordion>
+
+  <Accordion title="Documentation" icon="book">
+    Create reproducible examples for documentation and tutorials.
+  </Accordion>
+</AccordionGroup>
+
+## Quick links
+
+<CardGroup cols={3}>
+  <Card title="Quick start" icon="rocket" href="/sim/quickstart">
+    Get started in 5 minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/sim/install/docker">
+    Install with Docker
+  </Card>
+  <Card title="Templates" icon="book" href="/sim/templates">
+    Browse templates
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/sim/ssh">
+    Connect to nodes
+  </Card>
+  <Card title="Configuration" icon="sliders" href="/sim/configuration">
+    Configure Sim
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/sim/overview">
+    Explore the API
+  </Card>
+</CardGroup>
+
+## License
+
+kombify Sim is licensed under the **MIT License**.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="play" href="/sim/quickstart">
+    Create your first simulation
+  </Card>
+  <Card title="Templates" icon="book" href="/sim/templates">
+    Explore built-in templates
+  </Card>
+  <Card title="Integration" icon="plug" href="/stack/overview">
+    Use with kombify Stack
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/sim/overview">
+    Explore the API
+  </Card>
+</CardGroup>
