@@ -10,11 +10,7 @@
   "colors": {
     "primary": "#6366F1",
     "light": "#818CF8",
-    "dark": "#4F46E5",
-    "anchors": {
-      "from": "#4F46E5",
-      "to": "#6366F1"
-    }
+    "dark": "#4F46E5"
   },
   "modeToggle": {
     "default": "dark",
@@ -298,7 +294,6 @@
             "api/stackkits/validate",
             "api/stackkits/generate"
           ]
-        }
       ]
     }
   ],
