@@ -1,0 +1,45 @@
+---
+title: Self-hosting on Kubernetes
+description: Deploy KombiSphere on Kubernetes
+---
+
+# Self-hosting on Kubernetes
+
+Deploy KombiSphere on Kubernetes for production.
+
+## Helm chart
+
+```bash
+# Add repository
+helm repo add kombisphere https://charts.kombisphere.io
+
+# Install
+helm install kombisphere kombisphere/kombisphere \
+  --namespace kombisphere \
+  --create-namespace
+```
+
+## Manual deployment
+
+```yaml
+# kombistack-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kombistack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kombistack
+  template:
+    metadata:
+      labels:
+        app: kombistack
+    spec:
+      containers:
+      - name: kombistack
+        image: ghcr.io/kombiverselabs/kombistack:latest
+        ports:
+        - containerPort: 5260
+```
