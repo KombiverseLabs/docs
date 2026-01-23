@@ -1,0 +1,16 @@
+{
+	"servers": {
+		"mintlify": {
+			"type": "stdio",
+			"command": "npx",
+			"args": [
+				"-y",
+				"@mintlify/mcp-server"
+			],
+			"env": {
+				"MINTLIFY_API_KEY": "mint_PZeaENHj5kbmzjLXpjXhyS",
+				"MINTLIFY_PROJECT_ID": "6970db25e5c3dab2b5596acc"
+			}
+		}
+	}
+}
