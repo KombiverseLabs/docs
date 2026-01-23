@@ -1,0 +1,576 @@
+---
+title: Security
+description: How kombify keeps your infrastructure secure
+---
+
+# Security
+
+kombify is designed with security as a core principle. This page explains our security model and best practices.
+
+## Security architecture
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                        SECURITY LAYERS                          │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Layer 1: Authentication                                        │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • Zitadel OIDC (OAuth 2.0 + OpenID Connect)            │  │
+│  │  • JWT tokens with short expiry                         │  │
+│  │  • Multi-factor authentication (MFA)                    │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Layer 2: Authorization                                         │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • Role-based access control (RBAC)                     │  │
+│  │  • Least privilege principle                            │  │
+│  │  • Resource-level permissions                           │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Layer 3: Communication                                         │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • mTLS for agent communication                         │  │
+│  │  • TLS 1.3 for all HTTP traffic                        │  │
+│  │  • Certificate pinning                                  │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Layer 4: Data Protection                                       │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • Encrypted at rest (SQLite encryption)               │  │
+│  │  • Encrypted in transit (TLS)                          │  │
+│  │  • Secret management (Doppler, Vault)                  │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+│  Layer 5: Audit & Monitoring                                    │
+│  ┌──────────────────────────────────────────────────────────┐  │
+│  │  • Comprehensive audit logs                             │  │
+│  │  • Real-time alerting                                   │  │
+│  │  • Anomaly detection                                    │  │
+│  └──────────────────────────────────────────────────────────┘  │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## Authentication
+
+### Zitadel OIDC
+
+kombify Sphere uses Zitadel for enterprise-grade authentication:
+
+<CardGroup cols={2}>
+  <Card title="OAuth 2.0" icon="key">
+    Industry-standard authorization
+  </Card>
+  <Card title="OpenID Connect" icon="id-card">
+    Identity layer on top of OAuth
+  </Card>
+  <Card title="MFA support" icon="shield-check">
+    TOTP, WebAuthn, SMS
+  </Card>
+  <Card title="SSO" icon="users">
+    Single Sign-On across tools
+  </Card>
+</CardGroup>
+
+### JWT tokens
+
+```json
+{
+  "sub": "user-123",
+  "iss": "https://auth.kombisphere.io",
+  "aud": "kombify-stack",
+  "exp": 1640000000,
+  "iat": 1639996400,
+  "roles": ["admin"],
+  "team": "engineering"
+}
+```
+
+**Security features:**
+- Short expiry (15 minutes)
+- Refresh tokens (7 days)
+- Automatic rotation
+- Revocation support
+
+### Local authentication
+
+For self-hosted Stack without Sphere:
+
+```yaml
+# Local user database
+users:
+  - username: admin
+    password_hash: $2a$10$...
+    roles: [admin]
+```
+
+**Best practices:**
+- Use bcrypt for password hashing
+- Enforce strong passwords
+- Enable MFA when possible
+- Rotate credentials regularly
+
+## Authorization
+
+### Role-based access control (RBAC)
+
+Three built-in roles:
+
+| Role | Permissions | Use case |
+|------|-------------|----------|
+| **User** | View stacks, deploy to assigned nodes | Team members |
+| **Manager** | Create/edit stacks, manage team | Team leads |
+| **Admin** | Full access, manage users | Administrators |
+
+### Custom roles
+
+Define custom roles:
+
+```yaml
+roles:
+  - name: developer
+    permissions:
+      - stacks:read
+      - stacks:deploy
+      - nodes:read
+  
+  - name: operator
+    permissions:
+      - stacks:read
+      - stacks:deploy
+      - nodes:read
+      - nodes:manage
+      - monitoring:read
+```
+
+### Resource-level permissions
+
+Control access to specific resources:
+
+```yaml
+# User can only access specific stacks
+users:
+  - username: john
+    roles: [user]
+    resources:
+      stacks: [homelab-prod, homelab-dev]
+      nodes: [node-1, node-2]
+```
+
+## Communication security
+
+### mTLS for agents
+
+Agent communication uses mutual TLS:
+
+<Steps>
+  <Step title="Certificate generation">
+    ```bash
+    # Stack generates certificates
+    kombify agent cert generate --name node-1
+    ```
+  </Step>
+
+  <Step title="Agent installation">
+    ```bash
+    # Agent receives certificate during installation
+    curl -sSL https://install.kombify.io/agent | sudo sh -s -- \
+      --token YOUR_TOKEN \
+      --cert /path/to/cert.pem \
+      --key /path/to/key.pem
+    ```
+  </Step>
+
+  <Step title="Verification">
+    Both Stack and agent verify each other's certificates.
+  </Step>
+</Steps>
+
+**Benefits:**
+- Prevents man-in-the-middle attacks
+- Ensures agent authenticity
+- Encrypts all communication
+
+### TLS 1.3
+
+All HTTP traffic uses TLS 1.3:
+
+```nginx
+# Automatic configuration
+ssl_protocols TLSv1.3;
+ssl_ciphers 'TLS_AES_128_GCM_SHA256:TLS_AES_256_GCM_SHA384';
+ssl_prefer_server_ciphers off;
+```
+
+### Certificate management
+
+Automatic certificate management with Let's Encrypt:
+
+```yaml
+ssl:
+  provider: letsencrypt
+  email: admin@yourdomain.com
+  domains:
+    - stack.yourdomain.com
+    - sim.yourdomain.com
+```
+
+## Data protection
+
+### Encryption at rest
+
+PocketBase database is encrypted:
+
+```bash
+# Enable encryption
+KOMBISTACK_DB_ENCRYPTION_KEY=$(openssl rand -base64 32)
+```
+
+### Encryption in transit
+
+All data in transit is encrypted with TLS 1.3.
+
+### Secret management
+
+#### Option 1: Doppler
+
+```yaml
+secrets:
+  provider: doppler
+  project: kombify
+  config: production
+```
+
+#### Option 2: HashiCorp Vault
+
+```yaml
+secrets:
+  provider: vault
+  address: https://vault.yourdomain.com
+  token: ${VAULT_TOKEN}
+```
+
+#### Option 3: Environment variables
+
+```bash
+# .env file (encrypted at rest)
+AUTHELIA_JWT_SECRET=your-secret
+DATABASE_PASSWORD=your-password
+```
+
+### Sensitive data handling
+
+kombify never logs sensitive data:
+
+```go
+// Redacted in logs
+log.Info("Deploying service", 
+    "service", "authelia",
+    "jwt_secret", "[REDACTED]")
+```
+
+## Network security
+
+### Firewall rules
+
+Recommended firewall configuration:
+
+```bash
+# Allow only necessary ports
+ufw allow 22/tcp    # SSH
+ufw allow 80/tcp    # HTTP
+ufw allow 443/tcp   # HTTPS
+ufw allow 5263/tcp  # gRPC (from Stack only)
+ufw enable
+```
+
+### Network isolation
+
+Isolate services with Docker networks:
+
+```yaml
+networks:
+  public:
+    # Internet-facing services
+  
+  internal:
+    # Backend services
+    internal: true
+  
+  database:
+    # Database only
+    internal: true
+
+services:
+  traefik:
+    networks: [public, internal]
+  
+  authelia:
+    networks: [internal]
+  
+  postgres:
+    networks: [database]
+```
+
+### VPN access
+
+For remote access, use VPN instead of exposing ports:
+
+```yaml
+# Recommended: WireGuard
+services:
+  wireguard:
+    image: linuxserver/wireguard
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "51820:51820/udp"
+```
+
+## Audit logging
+
+### What is logged
+
+kombify logs all security-relevant events:
+
+- User authentication (success/failure)
+- Authorization decisions
+- Configuration changes
+- Deployments
+- Agent connections
+- API access
+
+### Log format
+
+```json
+{
+  "timestamp": "2024-01-15T10:30:00Z",
+  "level": "info",
+  "event": "user.login",
+  "user": "admin@example.com",
+  "ip": "192.168.1.100",
+  "success": true,
+  "mfa": true
+}
+```
+
+### Log retention
+
+Configure log retention:
+
+```yaml
+logging:
+  retention: 90d  # Keep logs for 90 days
+  storage: /var/log/kombify
+  rotation: daily
+```
+
+### SIEM integration
+
+Export logs to SIEM systems:
+
+```yaml
+logging:
+  outputs:
+    - type: syslog
+      address: siem.yourdomain.com:514
+    
+    - type: elasticsearch
+      address: https://elastic.yourdomain.com
+      index: kombify-logs
+```
+
+## Vulnerability management
+
+### Dependency scanning
+
+kombify uses automated dependency scanning:
+
+- **Dependabot** — GitHub dependency updates
+- **Snyk** — Vulnerability scanning
+- **Trivy** — Container image scanning
+
+### Security updates
+
+We release security updates promptly:
+
+1. **Critical** — Within 24 hours
+2. **High** — Within 7 days
+3. **Medium** — Within 30 days
+4. **Low** — Next regular release
+
+### CVE tracking
+
+Track CVEs affecting kombify:
+
+- [GitHub Security Advisories](https://github.com/soulcreek/KombiStack/security/advisories)
+- [Security mailing list](mailto:security@kombify.dev)
+
+## Compliance
+
+### Standards
+
+kombify follows industry standards:
+
+<CardGroup cols={2}>
+  <Card title="OWASP Top 10" icon="shield">
+    Web application security
+  </Card>
+  <Card title="CIS Benchmarks" icon="check">
+    Configuration best practices
+  </Card>
+  <Card title="NIST" icon="building">
+    Cybersecurity framework
+  </Card>
+  <Card title="SOC 2" icon="certificate">
+    Service organization controls
+  </Card>
+</CardGroup>
+
+### Data privacy
+
+- **GDPR compliant** — For EU users
+- **CCPA compliant** — For California users
+- **Data minimization** — Collect only necessary data
+- **Right to deletion** — Users can delete their data
+
+## Best practices
+
+### For administrators
+
+<AccordionGroup>
+  <Accordion title="Use strong authentication">
+    - Enable MFA for all users
+    - Use SSO with Zitadel
+    - Rotate credentials regularly
+    - Use strong, unique passwords
+  </Accordion>
+
+  <Accordion title="Apply least privilege">
+    - Grant minimum necessary permissions
+    - Use custom roles when needed
+    - Review permissions regularly
+    - Audit user access
+  </Accordion>
+
+  <Accordion title="Keep software updated">
+    - Enable automatic updates
+    - Subscribe to security advisories
+    - Test updates in staging first
+    - Have a rollback plan
+  </Accordion>
+
+  <Accordion title="Monitor and audit">
+    - Enable audit logging
+    - Set up alerts for suspicious activity
+    - Review logs regularly
+    - Integrate with SIEM
+  </Accordion>
+
+  <Accordion title="Secure the network">
+    - Use firewall rules
+    - Isolate services with networks
+    - Use VPN for remote access
+    - Enable mTLS for agents
+  </Accordion>
+</AccordionGroup>
+
+### For developers
+
+<AccordionGroup>
+  <Accordion title="Secure coding practices">
+    - Validate all inputs
+    - Use parameterized queries
+    - Avoid hardcoded secrets
+    - Follow OWASP guidelines
+  </Accordion>
+
+  <Accordion title="Secret management">
+    - Never commit secrets to Git
+    - Use secret management tools
+    - Rotate secrets regularly
+    - Use environment variables
+  </Accordion>
+
+  <Accordion title="Dependency management">
+    - Keep dependencies updated
+    - Scan for vulnerabilities
+    - Use trusted sources
+    - Pin versions
+  </Accordion>
+</AccordionGroup>
+
+## Incident response
+
+### Reporting security issues
+
+**DO NOT** open public GitHub issues for security vulnerabilities.
+
+Instead:
+1. Email [security@kombify.dev](mailto:security@kombify.dev)
+2. Include detailed description
+3. Provide steps to reproduce
+4. Allow time for fix before disclosure
+
+### Response timeline
+
+1. **Acknowledgment** — Within 24 hours
+2. **Assessment** — Within 3 days
+3. **Fix development** — Depends on severity
+4. **Release** — As soon as possible
+5. **Disclosure** — After fix is deployed
+
+### Bug bounty
+
+We offer rewards for security vulnerabilities:
+
+| Severity | Reward |
+|----------|--------|
+| Critical | $500-$2000 |
+| High | $200-$500 |
+| Medium | $50-$200 |
+| Low | Recognition |
+
+## Security checklist
+
+Use this checklist for production deployments:
+
+- [ ] Enable HTTPS with valid certificates
+- [ ] Configure firewall rules
+- [ ] Enable MFA for all users
+- [ ] Use strong passwords
+- [ ] Enable audit logging
+- [ ] Set up monitoring and alerts
+- [ ] Configure secret management
+- [ ] Enable automatic updates
+- [ ] Backup encryption keys
+- [ ] Document incident response plan
+- [ ] Review user permissions
+- [ ] Enable mTLS for agents
+- [ ] Isolate services with networks
+- [ ] Configure log retention
+- [ ] Test disaster recovery
+
+## Resources
+
+<CardGroup cols={2}>
+  <Card title="Security policy" icon="file-shield" href="https://github.com/soulcreek/KombiStack/security/policy">
+    Our security policy
+  </Card>
+  <Card title="Report vulnerability" icon="bug" href="mailto:security@kombify.dev">
+    Report security issues
+  </Card>
+  <Card title="Security advisories" icon="bell" href="https://github.com/soulcreek/KombiStack/security/advisories">
+    View advisories
+  </Card>
+  <Card title="Zitadel integration" icon="key" href="/integrations/zitadel">
+    Set up SSO
+  </Card>
+</CardGroup>
+
+## Questions?
+
+For security questions:
+- **Email:** [security@kombify.dev](mailto:security@kombify.dev)
+- **PGP Key:** [Download](https://kombify.dev/security.asc)
