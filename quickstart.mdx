@@ -1,80 +1,155 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quick start
+description: Get KombiSphere running in 5 minutes with Docker Compose
 ---
 
-## Get started in three steps
+# Quick start
 
-Get your documentation site running locally and make your first customization.
+Get the entire KombiSphere ecosystem running locally in under 5 minutes.
 
-### Step 1: Set up your local environment
+## Prerequisites
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
+<CardGroup cols={2}>
+  <Card title="Docker" icon="docker">
+    Docker Engine 24.0+ with Compose v2.20+
+  </Card>
+  <Card title="System resources" icon="microchip">
+    4GB RAM, 10GB disk space
+  </Card>
+</CardGroup>
+
+## Installation
+
+<Steps>
+  <Step title="Clone the repository">
+    ```bash
+    git clone https://github.com/KombiverseLabs/KombiStack
+    cd KombiStack
+    ```
+  </Step>
+
+  <Step title="Start the services">
+    ```bash
+    docker compose up -d
+    ```
     
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
+    This starts:
+    - **KombiStack Core** (API + PocketBase) on port 5260
+    - **KombiStack UI** (SvelteKit) on port 5261
+    - **KombiSim** (optional) on port 5270
+  </Step>
+
+  <Step title="Access the dashboard">
+    Open your browser to [http://localhost:5261](http://localhost:5261)
     
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+    Default credentials:
+    - Email: `admin@kombistack.local`
+    - Password: `admin123` (change immediately!)
+  </Step>
 
-### Step 2: Deploy your changes
-
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
+  <Step title="Create your first stack">
+    Use the wizard to define your infrastructure:
     
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+    1. Choose a StackKit (e.g., `base-homelab`)
+    2. Configure your nodes (IP addresses, SSH credentials)
+    3. Select services (Traefik, Dokploy, etc.)
+    4. Review and deploy
+  </Step>
+</Steps>
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Verify installation
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+<CodeGroup>
+```bash Health check
+curl http://localhost:5260/api/v1/health
+```
 
-### Step 3: Go live
+```bash List stacks
+curl http://localhost:5260/api/v1/stacks
+```
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+```bash Check PocketBase
+curl http://localhost:5260/_/
+```
+</CodeGroup>
+
+## Service ports
+
+| Service | Port | Description |
+|---------|------|-------------|
+| Core API | 5260 | REST API + PocketBase Admin |
+| Frontend | 5261 | SvelteKit Dashboard |
+| gRPC | 5263 | Agent communication (mTLS) |
+| KombiSim | 5270 | Simulation API (optional) |
+| KombiSim UI | 5271 | Simulation Dashboard (optional) |
 
 ## Next steps
 
-Now that you have your docs running, explore these key features:
-
 <CardGroup cols={2}>
-
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
-
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
-
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card
+    title="Understand the architecture"
+    icon="sitemap"
+    href="/ecosystem"
+  >
+    Learn how KombiStack, KombiSim, and StackKits work together
+  </Card>
+  <Card
+    title="Deploy your first stack"
+    icon="rocket"
+    href="/tools/kombistack/quickstart"
+  >
+    Follow the detailed KombiStack quickstart guide
+  </Card>
+  <Card
+    title="Simulate before deploying"
+    icon="flask"
+    href="/tools/kombisim/quickstart"
+  >
+    Test your configuration with KombiSim
+  </Card>
+  <Card
+    title="Explore StackKits"
+    icon="boxes-stacked"
+    href="/tools/stackkits/available-kits"
+  >
+    Browse available infrastructure blueprints
+  </Card>
 </CardGroup>
 
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port conflicts">
+    If ports are already in use, modify `docker-compose.yml`:
+    
+    ```yaml
+    services:
+      kombistack:
+        ports:
+          - "5260:5260"  # Change to 5360:5260 if needed
+    ```
+  </Accordion>
+
+  <Accordion title="Permission errors">
+    Ensure Docker has proper permissions:
+    
+    ```bash
+    # Linux: Add user to docker group
+    sudo usermod -aG docker $USER
+    newgrp docker
+    ```
+  </Accordion>
+
+  <Accordion title="Services not starting">
+    Check logs for errors:
+    
+    ```bash
+    docker compose logs kombistack
+    docker compose logs app
+    ```
+  </Accordion>
+</AccordionGroup>
+
 <Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
+  For production deployments, see the [Production checklist](/guides/deployment/production-checklist).
 </Note>

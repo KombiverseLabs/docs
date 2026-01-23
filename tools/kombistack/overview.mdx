@@ -1,0 +1,355 @@
+---
+title: KombiStack overview
+description: The hybrid infrastructure control plane that unifies cloud and home servers
+---
+
+# KombiStack
+
+KombiStack is a **hybrid cloud control plane** that unifies cloud and home infrastructure using a spec-driven architecture. Define your desired state in a `kombination.yaml` file, and KombiStack handles validation, provisioning, and deployment.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start"
+    icon="rocket"
+    href="/tools/kombistack/quickstart"
+  >
+    Deploy your first stack in 5 minutes
+  </Card>
+  <Card
+    title="Architecture"
+    icon="sitemap"
+    href="/tools/kombistack/architecture"
+  >
+    Understand the system design
+  </Card>
+  <Card
+    title="Configuration"
+    icon="gear"
+    href="/tools/kombistack/configuration"
+  >
+    Configure KombiStack for your needs
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api/kombistack/overview"
+  >
+    Explore the REST API
+  </Card>
+</CardGroup>
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="Spec-driven architecture" icon="file-code">
+    Define your entire infrastructure in one `kombination.yaml` file. The Unifier Engine validates and resolves your configuration into executable OpenTofu code.
+    
+    ```yaml
+    version: "1.0"
+    name: my-homelab
+    kit: base-homelab
+    
+    nodes:
+      - name: server-1
+        ssh:
+          host: 192.168.1.100
+          user: admin
+    
+    services:
+      - name: traefik
+      - name: dokploy
+    ```
+  </Accordion>
+
+  <Accordion title="CUE validation engine" icon="shield-check">
+    Constraint-based validation catches errors before deployment:
+    
+    - Type checking
+    - Required field validation
+    - Dependency resolution
+    - Policy enforcement
+    - Smart defaults
+  </Accordion>
+
+  <Accordion title="Multi-node management" icon="network-wired">
+    Manage unlimited servers across multiple locations via gRPC agents:
+    
+    - Secure mTLS communication
+    - Real-time status updates
+    - Command dispatch and execution
+    - Health monitoring
+  </Accordion>
+
+  <Accordion title="Embedded PocketBase" icon="database">
+    Zero-dependency deployment with embedded SQLite database:
+    
+    - User authentication
+    - Stack state management
+    - Agent registration
+    - Job queue
+    - Audit logs
+  </Accordion>
+
+  <Accordion title="OpenTofu powered" icon="cube">
+    Infrastructure as Code with the open-source Terraform alternative:
+    
+    - Full Terraform provider ecosystem
+    - State management
+    - Plan and apply workflow
+    - Drift detection (Advanced mode)
+  </Accordion>
+
+  <Accordion title="Headscale VPN" icon="shield-halved">
+    Self-hosted Tailscale control plane for secure mesh networking:
+    
+    - WireGuard-based encryption
+    - NAT traversal
+    - Zero-trust security
+    - No cloud dependency
+  </Accordion>
+</AccordionGroup>
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        KombiStack System                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌─────────────┐     ┌───────────────────────────────────────┐  │
+│  │  SvelteKit  │     │       KombiStack Core (Go Binary)     │  │
+│  │   Frontend  │────▶│  ┌──────────┐ ┌───────────┐ ┌──────────┐ │  │
+│  │   :5261     │     │  │PocketBase│ │  Unifier  │ │ gRPC Srv │ │  │
+│  └─────────────┘     │  │  (embed) │ │  Engine  │ │  :5263   │ │  │
+│                       │  └──────────┘ └───────────┘ └──────────┘ │  │
+│                       │             :5260 (REST + Admin)        │  │
+│                       └─────────────────┬─────────────────────┘  │
+│                                      │                            │
+│                                      ▼                            │
+│                            ┌─────────────────┐                   │
+│                            │    OpenTofu     │                   │
+│                            │   IaC Engine    │                   │
+│                            └────────┬────────┘                   │
+│                                      │                            │
+│         ┌───────────────────┼───────────────────┐                │
+│         ▼                   ▼                   ▼                │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐        │
+│  │   Hetzner   │     │   Docker    │     │ Home Server │        │
+│  │    Cloud    │     │  Provider   │     │   (Local)   │        │
+│  └─────────────┘     └─────────────┘     └─────────────┘        │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.24+ | Core services and business logic |
+| **Frontend** | SvelteKit 5 + Bun | Reactive UI with Runes |
+| **Database** | PocketBase (SQLite) | Embedded state management |
+| **Auth** | PocketBase | Built-in authentication |
+| **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
+| **Validation** | CUE 0.9+ | Type-safe configuration |
+| **Orchestration** | Terramate 0.6+ | Multi-stack management (Advanced mode) |
+| **Agent protocol** | gRPC + mTLS | Secure node communication |
+| **VPN** | Headscale | Self-hosted mesh networking |
+
+## Service ports
+
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Core API | 5260 | HTTP | REST API + PocketBase Admin |
+| Frontend | 5261 | HTTP | SvelteKit Dashboard |
+| Docs | 5262 | HTTP | MkDocs Documentation (optional) |
+| gRPC | 5263 | gRPC | Agent communication (mTLS) |
+| Website | 5264 | HTTP | Marketing site (optional) |
+
+## Deployment model
+
+KombiStack follows a **single binary + separate frontend** model:
+
+<Tabs>
+  <Tab title="Core binary">
+    **What:** Single Go binary with embedded PocketBase
+    
+    **Contains:**
+    - REST API server
+    - gRPC server for agents
+    - Unifier Engine (CUE validation)
+    - OpenTofu runner
+    - Job queue
+    - PocketBase (embedded SQLite)
+    
+    **Deployment:**
+    ```bash
+    ./kombistack serve
+    ```
+  </Tab>
+
+  <Tab title="Frontend">
+    **What:** Separate SvelteKit application
+    
+    **Contains:**
+    - Web UI dashboard
+    - Wizard interfaces
+    - Real-time updates
+    - API client
+    
+    **Deployment:**
+    ```bash
+    cd app && bun run build
+    node build
+    ```
+  </Tab>
+
+  <Tab title="Docker Compose">
+    **What:** Both services in containers
+    
+    ```yaml
+    services:
+      kombistack:
+        image: ghcr.io/kombiverselabs/kombistack:latest
+        ports:
+          - "5260:5260"
+          - "5263:5263"
+      
+      app:
+        image: ghcr.io/kombiverselabs/kombistack-ui:latest
+        ports:
+          - "5261:5261"
+        environment:
+          - KOMBISTACK_API_URL=http://kombistack:5260
+    ```
+  </Tab>
+</Tabs>
+
+## Philosophy: 1 KombiStack = 1 Homelab
+
+<Warning>
+  A single KombiStack instance manages **exactly one homelab**. This is a core design principle.
+</Warning>
+
+**What this means:**
+- **1 KombiStack instance** = 1 homelab (the entire setup)
+- **1 Stack** = The configuration of the homelab (only ONE stack per instance)
+- **X Nodes** = Multiple servers/devices within the homelab (1-20 typical)
+- **1 StackKit + Add-ons** = The chosen configuration template
+
+**Why this design?**
+
+<CardGroup cols={2}>
+  <Card title="Simplicity" icon="lightbulb">
+    No complex multi-tenant logic or namespace isolation
+  </Card>
+  <Card title="Consistency" icon="check">
+    Clear ownership and state management
+  </Card>
+  <Card title="Security" icon="lock">
+    Isolated credentials, secrets, and configurations
+  </Card>
+  <Card title="Optimized" icon="gauge">
+    Designed for typical homelab sizes (1-20 nodes)
+  </Card>
+</CardGroup>
+
+**Multi-homelab scenarios** require multiple KombiStack instances (e.g., one per location or team).
+
+## Use cases
+
+<Tabs>
+  <Tab title="Single-server homelab">
+    Perfect for beginners with one server:
+    
+    ```yaml
+    kit: base-homelab
+    nodes:
+      - name: homelab-server
+    services:
+      - traefik
+      - dokploy
+      - portainer
+    ```
+  </Tab>
+
+  <Tab title="Multi-node homelab">
+    Distribute services across multiple servers:
+    
+    ```yaml
+    kit: modern-homelab
+    nodes:
+      - name: proxy-server
+      - name: app-server-1
+      - name: app-server-2
+      - name: storage-server
+    ```
+  </Tab>
+
+  <Tab title="Hybrid cloud + local">
+    Combine VPS and local servers:
+    
+    ```yaml
+    nodes:
+      - name: vps-web
+        provider: hetzner
+      - name: local-storage
+        provider: local
+    ```
+  </Tab>
+
+  <Tab title="High availability">
+    Kubernetes cluster with HA:
+    
+    ```yaml
+    kit: ha-homelab
+    nodes:
+      - name: k8s-control-1
+      - name: k8s-control-2
+      - name: k8s-control-3
+      - name: k8s-worker-1
+      - name: k8s-worker-2
+    ```
+  </Tab>
+</Tabs>
+
+## License
+
+KombiStack uses a **dual-scope** licensing approach:
+
+- **Historical code:** MIT License
+- **New server-side code:** AGPL-3.0-or-later
+
+See the [licensing documentation](https://github.com/KombiverseLabs/KombiStack/blob/main/docs/LICENSES.md) for details.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start guide"
+    icon="play"
+    href="/tools/kombistack/quickstart"
+  >
+    Deploy your first stack
+  </Card>
+  <Card
+    title="Architecture deep dive"
+    icon="sitemap"
+    href="/tools/kombistack/architecture"
+  >
+    Understand the system design
+  </Card>
+  <Card
+    title="Configuration reference"
+    icon="gear"
+    href="/tools/kombistack/configuration"
+  >
+    Configure KombiStack
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api/kombistack/overview"
+  >
+    Explore the REST API
+  </Card>
+</CardGroup>

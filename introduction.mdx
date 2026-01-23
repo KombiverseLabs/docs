@@ -1,0 +1,200 @@
+---
+title: Introduction
+description: Welcome to KombiSphere - the hybrid infrastructure platform for homelabs and self-hosted deployments
+---
+
+# Welcome to KombiSphere
+
+KombiSphere is a **hybrid infrastructure platform** that unifies cloud and home infrastructure into a single logical universe. Define your entire infrastructure in one spec file, simulate it before deployment, and manage everything through a unified control plane.
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start"
+    icon="rocket"
+    href="/quickstart"
+  >
+    Get up and running in 5 minutes with Docker Compose
+  </Card>
+  <Card
+    title="Architecture"
+    icon="sitemap"
+    href="/ecosystem"
+  >
+    Understand the KombiSphere ecosystem and components
+  </Card>
+  <Card
+    title="Open core tools"
+    icon="box-open"
+    href="/tools/kombistack/overview"
+  >
+    Explore KombiStack, KombiSim, and StackKits
+  </Card>
+  <Card
+    title="SaaS platform"
+    icon="cloud"
+    href="/saas/cloud/overview"
+  >
+    Learn about the managed KombiSphere service
+  </Card>
+</CardGroup>
+
+## What is KombiSphere?
+
+KombiSphere combines three powerful open-source tools with a SaaS management layer:
+
+<AccordionGroup>
+  <Accordion title="KombiStack - Hybrid control plane" icon="layer-group">
+    The core orchestration engine that manages your infrastructure. Define your desired state in `kombination.yaml`, and KombiStack handles validation, provisioning, and deployment using OpenTofu.
+    
+    **Key features:**
+    - Spec-driven architecture
+    - CUE validation engine
+    - Multi-node management via gRPC agents
+    - Embedded PocketBase for state management
+  </Accordion>
+
+  <Accordion title="KombiSim - Simulation engine" icon="flask">
+    Test your infrastructure configurations before deploying to real hardware. KombiSim creates lightweight Docker-based "VMs" that simulate your entire homelab environment.
+    
+    **Key features:**
+    - Docker-based simulation nodes
+    - Real SSH access to simulated servers
+    - Pre-built templates for common setups
+    - Full REST API for automation
+  </Accordion>
+
+  <Accordion title="StackKits - IaC blueprints" icon="boxes-stacked">
+    Declarative infrastructure blueprints with CUE validation and OpenTofu execution. StackKits provide battle-tested configurations for common homelab scenarios.
+    
+    **Key features:**
+    - CUE schema validation
+    - Multi-OS support (Ubuntu, Debian)
+    - Simple and advanced deployment modes
+    - Extensible variant system
+  </Accordion>
+</AccordionGroup>
+
+## Why KombiSphere?
+
+<CardGroup cols={3}>
+  <Card title="Spec-driven" icon="file-code">
+    Define your entire infrastructure in one `kombination.yaml` file
+  </Card>
+  <Card title="Simulation first" icon="flask">
+    Test configurations before deploying to real hardware
+  </Card>
+  <Card title="Hybrid ready" icon="cloud-arrow-up">
+    Manage both home servers and cloud VPS seamlessly
+  </Card>
+  <Card title="Type-safe" icon="shield-check">
+    CUE validation catches errors before deployment
+  </Card>
+  <Card title="Open core" icon="box-open">
+    Core tools are MIT/AGPL licensed and self-hostable
+  </Card>
+  <Card title="Production ready" icon="rocket">
+    Battle-tested with OpenTofu and proven patterns
+  </Card>
+</CardGroup>
+
+## Deployment options
+
+Choose the deployment model that fits your needs:
+
+<Tabs>
+  <Tab title="Self-hosted (Open core)">
+    Use KombiStack, KombiSim, and StackKits directly without any SaaS components.
+    
+    ```bash
+    # Clone and run
+    git clone https://github.com/KombiverseLabs/KombiStack
+    cd KombiStack
+    docker compose up -d
+    ```
+    
+    **Best for:**
+    - Privacy-conscious users
+    - Full control over data
+    - No subscription costs
+    - Custom modifications
+  </Tab>
+
+  <Tab title="Managed SaaS">
+    Use the fully managed KombiSphere platform with enterprise features.
+    
+    ```bash
+    # Sign up at kombisphere.io
+    # Launch tools from the dashboard
+    # No infrastructure to manage
+    ```
+    
+    **Best for:**
+    - Teams and organizations
+    - Enterprise SSO requirements
+    - Managed updates and support
+    - Multi-tenant collaboration
+  </Tab>
+
+  <Tab title="Hybrid">
+    Self-host the core tools, use SaaS for management and collaboration.
+    
+    ```bash
+    # Run core tools locally
+    docker compose up -d
+    
+    # Connect to KombiSphere for management
+    # Get enterprise features without hosting complexity
+    ```
+    
+    **Best for:**
+    - Data sovereignty requirements
+    - Hybrid cloud/on-prem setups
+    - Gradual migration to SaaS
+  </Tab>
+</Tabs>
+
+## Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.24+ | Core services and agents |
+| **Frontend** | SvelteKit 5 | Modern reactive UI |
+| **Database** | PocketBase (SQLite) | Embedded state management |
+| **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
+| **Validation** | CUE 0.9+ | Type-safe configuration |
+| **Networking** | Headscale | Self-hosted VPN mesh |
+| **API gateway** | Kong OSS | Unified API entry point |
+| **Auth** | Zitadel | Enterprise OIDC provider |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Quick start guide"
+    icon="play"
+    href="/quickstart"
+  >
+    Deploy your first stack in 5 minutes
+  </Card>
+  <Card
+    title="Understand the ecosystem"
+    icon="diagram-project"
+    href="/ecosystem"
+  >
+    Learn how all components work together
+  </Card>
+  <Card
+    title="Explore KombiStack"
+    icon="layer-group"
+    href="/tools/kombistack/overview"
+  >
+    Deep dive into the control plane
+  </Card>
+  <Card
+    title="Join the community"
+    icon="users"
+    href="https://discord.gg/kombisphere"
+  >
+    Get help and share your setups
+  </Card>
+</CardGroup>

@@ -1,0 +1,453 @@
+---
+title: StackKits system
+description: Understand how StackKits provide battle-tested infrastructure blueprints
+---
+
+# StackKits system
+
+StackKits are **declarative infrastructure blueprints** that combine CUE validation with OpenTofu execution. They provide the "recipes" that KombiStack uses to provision your infrastructure.
+
+## What is a StackKit?
+
+A StackKit is a complete infrastructure template that includes:
+
+- **CUE schemas** for validation
+- **OpenTofu templates** for provisioning
+- **Service definitions** for applications
+- **OS variants** for different distributions
+- **Default configurations** for quick starts
+
+Think of StackKits as "infrastructure recipes" - battle-tested configurations for common homelab scenarios.
+
+## Available StackKits
+
+<CardGroup cols={3}>
+  <Card title="base-homelab" icon="server">
+    **Single server, local only**
+    
+    - 1 node
+    - Docker + Dokploy
+    - Simple or advanced mode
+    - Perfect for beginners
+  </Card>
+  
+  <Card title="modern-homelab" icon="network-wired">
+    **Multi-node Docker + Coolify**
+    
+    - 2+ nodes
+    - Docker Swarm
+    - Coolify PaaS
+    - Production-ready
+  </Card>
+  
+  <Card title="ha-homelab" icon="shield-check">
+    **Kubernetes high availability**
+    
+    - 3+ nodes
+    - k3s cluster
+    - HA control plane
+    - Enterprise-grade
+  </Card>
+</CardGroup>
+
+## 3-layer architecture
+
+StackKits use a strict 3-layer architecture for maximum reusability:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  LAYER 3: STACKKITS (stackkits/)                            │
+│  Use-case specific configurations with services             │
+│  • base-homelab: Single-node Docker + Dokploy               │
+│  • modern-homelab: Multi-node Docker + Coolify              │
+│  • ha-homelab: Kubernetes (k3s) + HA                        │
+├─────────────────────────────────────────────────────────────┤
+│  LAYER 2: PLATFORMS (platforms/)                            │
+│  Container orchestration layer                              │
+│  • docker/: Docker + Traefik                                │
+│  • kubernetes/: K3s + Ingress                               │
+├─────────────────────────────────────────────────────────────┤
+│  LAYER 1: CORE (base/)                                      │
+│  Shared foundation applied to ALL deployments               │
+│  • Bootstrap, Security, Network, Observability              │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Layer 1: Core
+
+Shared foundation applied to **all** deployments:
+
+```cue base/stackkit.cue
+package base
+
+#BaseStackKit: {
+    // Security hardening
+    security: {
+        ssh: {
+            disable_password_auth: true
+            port: *22 | int
+        }
+        firewall: {
+            enabled: true
+            default_policy: "deny"
+        }
+    }
+    
+    // Network configuration
+    network: {
+        ipv4: bool
+        ipv6: *false | bool
+    }
+    
+    // Observability
+    observability: {
+        metrics: bool
+        logs: bool
+    }
+}
+```
+
+### Layer 2: Platforms
+
+Container orchestration layer:
+
+<Tabs>
+  <Tab title="Docker platform">
+    ```cue platforms/docker/platform.cue
+    package docker
+    
+    #DockerPlatform: {
+        runtime: "docker"
+        version: string | *"24.0"
+        
+        services: {
+            traefik: #TraefikService
+            // ...
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Kubernetes platform">
+    ```cue platforms/kubernetes/platform.cue
+    package kubernetes
+    
+    #K8sPlatform: {
+        runtime: "k3s"
+        version: string | *"v1.28"
+        
+        control_plane: {
+            nodes: >=1
+            ha: bool
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Layer 3: StackKits
+
+Use-case specific configurations:
+
+```cue base-homelab/stackfile.cue
+package base_homelab
+
+import "github.com/kombihq/stackkits/base"
+import "github.com/kombihq/stackkits/platforms/docker"
+
+#BaseHomelabKit: base.#BaseStackKit & docker.#DockerPlatform & {
+    metadata: {
+        name: "base-homelab"
+        version: "1.0.0"
+    }
+    
+    nodes: [#MainNode]
+    
+    services: [
+        #TraefikService,
+        #DokployService,
+    ]
+}
+```
+
+## StackKit structure
+
+Each StackKit contains:
+
+```
+base-homelab/
+├── stackkit.yaml           # Metadata
+├── stackfile.cue           # CUE schema
+├── services.cue            # Service definitions
+├── default-spec.yaml       # CLI template
+├── templates/
+│   ├── simple/             # OpenTofu-only
+│   │   └── main.tf
+│   └── advanced/           # Terramate + OpenTofu
+│       ├── globals.tm.hcl
+│       └── stacks/
+└── variants/
+    ├── os/                 # Ubuntu, Debian
+    └── compute/            # High, standard, low
+```
+
+### stackkit.yaml - Metadata
+
+```yaml stackkit.yaml
+apiVersion: stackkit/v1
+kind: StackKit
+metadata:
+  name: base-homelab
+  version: "1.0.0"
+  description: "Single-server homelab with Docker and Dokploy"
+  
+modes:
+  simple:
+    description: "Single OpenTofu file"
+    template: templates/simple/
+  
+  advanced:
+    description: "Terramate-orchestrated"
+    template: templates/advanced/
+    
+requirements:
+  min_nodes: 1
+  max_nodes: 1
+  platforms: [docker]
+```
+
+### default-spec.yaml - CLI template
+
+Ready-to-use template for CLI users:
+
+```yaml default-spec.yaml
+version: "1.0"
+stack:
+  name: my-homelab
+  kit: base-homelab
+  variant: os/ubuntu-24
+
+nodes:
+  - name: homelab-server
+    ip: 192.168.1.100  # ⚠️ CUSTOMIZE
+    ssh:
+      user: admin      # ⚠️ CUSTOMIZE
+
+services:
+  - name: traefik
+    type: reverse-proxy
+  - name: dokploy
+    type: deployment-platform
+```
+
+## Variants
+
+StackKits support variants for different operating systems and compute tiers:
+
+### OS variants
+
+<Tabs>
+  <Tab title="Ubuntu 24.04">
+    ```cue variants/os/ubuntu-24.cue
+    #Ubuntu24Variant: {
+        os: {
+            distribution: "ubuntu"
+            version: "24.04"
+            codename: "noble"
+        }
+        packages: {
+            docker: "docker-ce"
+            python: "python3.12"
+        }
+    }
+    ```
+  </Tab>
+
+  <Tab title="Debian 12">
+    ```cue variants/os/debian-12.cue
+    #Debian12Variant: {
+        os: {
+            distribution: "debian"
+            version: "12"
+            codename: "bookworm"
+        }
+        packages: {
+            docker: "docker.io"
+            python: "python3.11"
+        }
+    }
+    ```
+  </Tab>
+</Tabs>
+
+### Compute variants
+
+```cue variants/compute/compute.cue
+#ComputeVariant: {
+    tier: "high" | "standard" | "low"
+    
+    if tier == "high" {
+        resources: {
+            cpu_cores: >=8
+            memory_gb: >=16
+        }
+    }
+    
+    if tier == "standard" {
+        resources: {
+            cpu_cores: >=4
+            memory_gb: >=8
+        }
+    }
+    
+    if tier == "low" {
+        resources: {
+            cpu_cores: >=2
+            memory_gb: >=4
+        }
+    }
+}
+```
+
+## Deployment modes
+
+StackKits support two deployment modes:
+
+<Tabs>
+  <Tab title="Simple mode">
+    **When:** ≤3 workers, straightforward setup
+    
+    **Template:** Single `main.tf` file
+    
+    ```hcl templates/simple/main.tf
+    terraform {
+      required_providers {
+        docker = {
+          source  = "kreuzwerker/docker"
+          version = "~> 3.0"
+        }
+      }
+    }
+    
+    # Bootstrap system
+    resource "null_resource" "bootstrap" {
+      provisioner "remote-exec" {
+        inline = [
+          "apt-get update",
+          "apt-get install -y docker.io"
+        ]
+      }
+    }
+    
+    # Deploy services
+    resource "docker_container" "traefik" {
+      name  = "traefik"
+      image = "traefik:3.0"
+      # ...
+    }
+    ```
+  </Tab>
+
+  <Tab title="Advanced mode">
+    **When:** >3 workers, complex multi-node
+    
+    **Template:** Terramate-orchestrated stacks
+    
+    ```hcl templates/advanced/terramate.tm.hcl
+    globals {
+      stack_name = tm.stack.name
+      environment = "production"
+    }
+    
+    stack {
+      name        = "network"
+      description = "Network infrastructure"
+      after       = []
+    }
+    
+    stack {
+      name        = "services"
+      description = "Application services"
+      after       = ["network"]
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Creating custom StackKits
+
+You can create your own StackKits for specific use cases:
+
+<Steps>
+  <Step title="Define metadata">
+    ```yaml stackkit.yaml
+    apiVersion: stackkit/v1
+    kind: StackKit
+    metadata:
+      name: my-custom-kit
+      version: "1.0.0"
+    ```
+  </Step>
+
+  <Step title="Create CUE schema">
+    ```cue stackfile.cue
+    package my_custom_kit
+    
+    import "github.com/kombihq/stackkits/base"
+    
+    #MyCustomKit: base.#BaseStackKit & {
+        // Your schema
+    }
+    ```
+  </Step>
+
+  <Step title="Add OpenTofu templates">
+    ```hcl templates/simple/main.tf
+    # Your infrastructure code
+    ```
+  </Step>
+
+  <Step title="Test with KombiStack">
+    ```bash
+    stackkit validate ./my-custom-kit
+    stackkit apply ./my-custom-kit/default-spec.yaml
+    ```
+  </Step>
+</Steps>
+
+<Info>
+  For detailed instructions, see [Creating StackKits](/tools/stackkits/creating-stackkits).
+</Info>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Browse available StackKits"
+    icon="boxes-stacked"
+    href="/tools/stackkits/available-kits"
+  >
+    Explore pre-built infrastructure blueprints
+  </Card>
+  <Card
+    title="Create custom StackKits"
+    icon="hammer"
+    href="/tools/stackkits/creating-stackkits"
+  >
+    Build your own infrastructure templates
+  </Card>
+  <Card
+    title="StackKits CLI reference"
+    icon="terminal"
+    href="/tools/stackkits/cli-reference"
+  >
+    Command-line tool documentation
+  </Card>
+  <Card
+    title="KombiStack integration"
+    icon="layer-group"
+    href="/tools/kombistack/architecture"
+  >
+    How KombiStack uses StackKits
+  </Card>
+</CardGroup>
