@@ -1,0 +1,71 @@
+---
+title: StackKits quickstart
+description: Deploy your first StackKit in 5 minutes
+---
+
+# Quick start
+
+Deploy infrastructure using StackKits in under 5 minutes.
+
+## Prerequisites
+
+- KombiStack installed
+- SSH access to target server
+- Basic understanding of YAML
+
+## Deploy a StackKit
+
+<Steps>
+  <Step title="Choose a StackKit">
+    ```bash
+    # List available StackKits
+    stackkit list
+    
+    # View StackKit details
+    stackkit info base-homelab
+    ```
+  </Step>
+
+  <Step title="Create configuration">
+    ```yaml
+    # kombination.yaml
+    version: "1.0"
+    name: my-homelab
+    kit: base-homelab
+    variant: os/ubuntu-24
+    
+    nodes:
+      - name: server-1
+        ssh:
+          host: 192.168.1.100
+          user: admin
+    
+    services:
+      - name: traefik
+      - name: dokploy
+    ```
+  </Step>
+
+  <Step title="Validate">
+    ```bash
+    stackkit validate kombination.yaml
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    ```bash
+    stackkit apply kombination.yaml
+    ```
+  </Step>
+</Steps>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Available kits" icon="boxes-stacked" href="/tools/stackkits/available-kits">
+    Browse all StackKits
+  </Card>
+  <Card title="Create custom" icon="hammer" href="/tools/stackkits/creating-stackkits">
+    Build your own
+  </Card>
+</CardGroup>
