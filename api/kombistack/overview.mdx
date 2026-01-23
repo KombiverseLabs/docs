@@ -13,7 +13,20 @@ KombiStack provides a comprehensive REST API for managing infrastructure stacks,
 
 ## API endpoints
 
-<CardGroup cols={2}>\n  <Card title=\"Stacks\" icon=\"layer-group\" href=\"/api/kombistack/stacks\">\n    Create and manage infrastructure stacks\n  </Card>\n  <Card title=\"Workers\" icon=\"server\" href=\"/api/kombistack/workers\">\n    Manage nodes and agents\n  </Card>\n  <Card title=\"Jobs\" icon=\"list-check\" href=\"/api/kombistack/jobs\">\n    Track deployment jobs and status\n  </Card>\n  <Card title=\"Unifier\" icon=\"wand-magic-sparkles\" href=\"/api/kombistack/unifier\">\n    Validate and unify configurations\n  </Card>\n</CardGroup>
+<CardGroup cols={2}>
+  <Card title="Stacks" icon="layer-group" href="/api/kombistack/stacks">
+    Create and manage infrastructure stacks
+  </Card>
+  <Card title="Workers" icon="server" href="/api/kombistack/workers">
+    Manage nodes and agents
+  </Card>
+  <Card title="Jobs" icon="list-check" href="/api/kombistack/jobs">
+    Track deployment jobs and status
+  </Card>
+  <Card title="Unifier" icon="wand-magic-sparkles" href="/api/kombistack/unifier">
+    Validate and unify configurations
+  </Card>
+</CardGroup>
 
 ## Quick start
 
@@ -23,9 +36,9 @@ KombiStack provides a comprehensive REST API for managing infrastructure stacks,
 # Login to get JWT token
 curl -X POST http://localhost:5260/api/collections/users/auth-with-password \
   -H "Content-Type: application/json" \
-  -d '{\
-    "identity": "admin@kombistack.local",\
-    "password": "your-password"\
+  -d '{
+    "identity": "admin@kombistack.local",
+    "password": "your-password"
   }'
 
 # Use token in subsequent requests
@@ -57,4 +70,11 @@ curl -X POST http://localhost:5260/api/v1/stacks \
 
 ## Next steps
 
-<CardGroup cols={2}>\n  <Card title=\"Stacks API\" icon=\"layer-group\" href=\"/api/kombistack/stacks\">\n    Stack management endpoints\n  </Card>\n  <Card title=\"Workers API\" icon=\"server\" href=\"/api/kombistack/workers\">\n    Node and agent management\n  </Card>\n</CardGroup>
+<CardGroup cols={2}>
+  <Card title="Stacks API" icon="layer-group" href="/api/kombistack/stacks">
+    Stack management endpoints
+  </Card>
+  <Card title="Workers API" icon="server" href="/api/kombistack/workers">
+    Node and agent management
+  </Card>
+</CardGroup>
