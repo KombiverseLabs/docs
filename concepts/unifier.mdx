@@ -1,0 +1,580 @@
+---
+title: The Unifier engine
+description: How kombify transforms your spec into deployable infrastructure
+---
+
+# The Unifier engine
+
+The **Unifier** is the core engine that transforms your `kombination.yaml` specification into deployable infrastructure code.
+
+## What is the Unifier?
+
+The Unifier is a multi-stage processing pipeline that:
+1. **Parses** your YAML configuration
+2. **Validates** against CUE schemas
+3. **Resolves** dependencies and defaults
+4. **Generates** OpenTofu/Terraform code
+5. **Orchestrates** deployment
+
+Think of it as a compiler for infrastructure — you write high-level intent, it produces low-level implementation.
+
+## Architecture
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                        UNIFIER PIPELINE                         │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  kombination.yaml                                               │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │   PARSER   │ ← YAML → Go structs                            │
+│  └─────┬──────┘                                                │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐     ┌────────────────┐                         │
+│  │ VALIDATOR  │────▶│  CUE Schemas   │                         │
+│  │            │     │  (StackKits)   │                         │
+│  └─────┬──────┘     └────────────────┘                         │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │  RESOLVER  │ ← Defaults, Dependencies, Secrets              │
+│  └─────┬──────┘                                                │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐     ┌────────────────┐                         │
+│  │ GENERATOR  │────▶│  OpenTofu HCL  │                         │
+│  │            │     │  + tfvars.json │                         │
+│  └─────┬──────┘     └────────────────┘                         │
+│        │                                                        │
+│        ▼                                                        │
+│  ┌────────────┐                                                │
+│  │ORCHESTRATOR│ ← tofu plan → tofu apply                       │
+│  └────────────┘                                                │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## Stage 1: Parser
+
+Converts YAML to Go structs.
+
+### Input
+
+```yaml kombination.yaml
+stack:
+  name: my-homelab
+  domain: home.local
+
+services:
+  - traefik
+  - authelia
+```
+
+### Output
+
+```go
+type Config struct {
+    Stack struct {
+        Name   string
+        Domain string
+    }
+    Services []string
+}
+```
+
+### Error handling
+
+```
+❌ YAML syntax error at line 5:
+   Expected string, got number
+```
+
+## Stage 2: Validator
+
+Validates configuration against CUE schemas from StackKits.
+
+### CUE schema
+
+```cue
+#Stack: {
+    name:   string & =~"^[a-z0-9-]+$"
+    domain: string & =~"^[a-z0-9.-]+$"
+}
+
+#Service: "traefik" | "authelia" | "homepage" | ...
+```
+
+### Validation checks
+
+<AccordionGroup>
+  <Accordion title="Type checking">
+    Ensures values match expected types:
+    
+    ```yaml
+    # ❌ Invalid
+    stack:
+      name: 123  # Expected string
+    
+    # ✅ Valid
+    stack:
+      name: "my-homelab"
+    ```
+  </Accordion>
+
+  <Accordion title="Constraint validation">
+    Enforces rules and patterns:
+    
+    ```yaml
+    # ❌ Invalid
+    stack:
+      name: "My Homelab!"  # Contains spaces and special chars
+    
+    # ✅ Valid
+    stack:
+      name: "my-homelab"
+    ```
+  </Accordion>
+
+  <Accordion title="Dependency checking">
+    Verifies service dependencies:
+    
+    ```yaml
+    # ❌ Invalid
+    services:
+      - authelia  # Requires traefik
+    
+    # ✅ Valid
+    services:
+      - traefik
+      - authelia
+    ```
+  </Accordion>
+
+  <Accordion title="Conflict detection">
+    Identifies port and resource conflicts:
+    
+    ```yaml
+    # ❌ Invalid
+    services:
+      - traefik:
+          ports: [80, 443]
+      - nginx:
+          ports: [80]  # Port 80 already used
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Validation output
+
+```
+✓ YAML syntax valid
+✓ Schema validation passed
+✓ Dependencies satisfied
+✓ No port conflicts
+✓ No resource conflicts
+```
+
+## Stage 3: Resolver
+
+Resolves defaults, dependencies, and secrets.
+
+### Default resolution
+
+```yaml
+# Input
+services:
+  - traefik
+
+# After resolution
+services:
+  - name: traefik
+    image: traefik:v3.0
+    ports: [80, 443]
+    environment:
+      TRAEFIK_API_DASHBOARD: "true"
+      TRAEFIK_ENTRYPOINTS_WEB_ADDRESS: ":80"
+      TRAEFIK_ENTRYPOINTS_WEBSECURE_ADDRESS: ":443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+```
+
+### Dependency resolution
+
+```yaml
+# Input
+services:
+  - authelia
+
+# After resolution (traefik added automatically)
+services:
+  - traefik  # Added as dependency
+  - authelia
+```
+
+### Secret injection
+
+```yaml
+# Input
+services:
+  - authelia:
+      jwt_secret: ${AUTHELIA_JWT_SECRET}
+
+# After resolution
+services:
+  - authelia:
+      jwt_secret: "actual-secret-from-vault"
+```
+
+### Network resolution
+
+```yaml
+# Input
+services:
+  - traefik
+  - authelia
+
+# After resolution
+networks:
+  proxy:
+    driver: bridge
+    
+services:
+  - traefik:
+      networks: [proxy]
+  - authelia:
+      networks: [proxy]
+```
+
+## Stage 4: Generator
+
+Generates OpenTofu/Terraform code.
+
+### Docker Compose generation
+
+```yaml
+# Generated docker-compose.yml
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - TRAEFIK_API_DASHBOARD=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - traefik-acme:/acme
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    driver: bridge
+
+volumes:
+  traefik-acme:
+```
+
+### OpenTofu generation
+
+```hcl
+# Generated main.tf
+resource "docker_container" "traefik" {
+  name  = "traefik"
+  image = "traefik:v3.0"
+  
+  ports {
+    internal = 80
+    external = 80
+  }
+  
+  ports {
+    internal = 443
+    external = 443
+  }
+  
+  volumes {
+    host_path      = "/var/run/docker.sock"
+    container_path = "/var/run/docker.sock"
+    read_only      = true
+  }
+  
+  networks_advanced {
+    name = docker_network.proxy.name
+  }
+}
+
+resource "docker_network" "proxy" {
+  name   = "proxy"
+  driver = "bridge"
+}
+```
+
+### Configuration files
+
+```yaml
+# Generated traefik/traefik.yml
+api:
+  dashboard: true
+
+entryPoints:
+  web:
+    address: ":80"
+  websecure:
+    address: ":443"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      email: admin@home.local
+      storage: /acme/acme.json
+      httpChallenge:
+        entryPoint: web
+```
+
+## Stage 5: Orchestrator
+
+Executes the deployment.
+
+### Execution flow
+
+<Steps>
+  <Step title="Plan">
+    ```bash
+    tofu plan -out=plan.tfplan
+    ```
+    
+    Shows what will be created/changed/destroyed.
+  </Step>
+
+  <Step title="Apply">
+    ```bash
+    tofu apply plan.tfplan
+    ```
+    
+    Executes the changes.
+  </Step>
+
+  <Step title="Verify">
+    Checks that services are running:
+    
+    ```
+    ✓ traefik: running
+    ✓ authelia: running
+    ```
+  </Step>
+
+  <Step title="Update state">
+    Saves deployment state to PocketBase.
+  </Step>
+</Steps>
+
+### Rollback on failure
+
+If deployment fails:
+
+```
+❌ authelia: failed to start
+↩️  Rolling back changes...
+✓ Rollback complete
+```
+
+## Advanced features
+
+### Dry-run mode
+
+Test without deploying:
+
+```bash
+kombify apply --dry-run
+```
+
+Output:
+```
+Would create:
+  - docker_container.traefik
+  - docker_container.authelia
+  - docker_network.proxy
+
+No changes applied (dry-run mode)
+```
+
+### Diff mode
+
+See what changed:
+
+```bash
+kombify diff
+```
+
+Output:
+```diff
+services:
+  traefik:
+-   image: traefik:v2.10
++   image: traefik:v3.0
+```
+
+### Incremental updates
+
+Only update changed services:
+
+```yaml
+# Changed only authelia config
+services:
+  - traefik  # Unchanged, skipped
+  - authelia # Changed, updated
+```
+
+### Parallel execution
+
+Deploy multiple services in parallel:
+
+```
+Deploying 5 services...
+├─ traefik: ✓ (2s)
+├─ authelia: ✓ (3s)
+├─ homepage: ✓ (2s)
+├─ uptime-kuma: ✓ (4s)
+└─ immich: ✓ (5s)
+
+Total: 5s (parallel)
+```
+
+## Customization
+
+### Custom generators
+
+Add custom code generators:
+
+```go
+type CustomGenerator struct{}
+
+func (g *CustomGenerator) Generate(config *Config) (string, error) {
+    // Your custom logic
+    return generatedCode, nil
+}
+
+// Register
+unifier.RegisterGenerator("custom", &CustomGenerator{})
+```
+
+### Custom validators
+
+Add custom validation rules:
+
+```cue
+#CustomValidation: {
+    // Your custom CUE schema
+}
+```
+
+### Hooks
+
+Execute custom code at different stages:
+
+```yaml
+hooks:
+  pre_validate:
+    - ./scripts/check-prerequisites.sh
+  
+  post_generate:
+    - ./scripts/customize-config.sh
+  
+  pre_deploy:
+    - ./scripts/backup.sh
+  
+  post_deploy:
+    - ./scripts/verify.sh
+```
+
+## Performance
+
+### Optimization techniques
+
+<CardGroup cols={2}>
+  <Card title="Caching" icon="database">
+    Cache validation results and generated code
+  </Card>
+  <Card title="Parallel processing" icon="bolt">
+    Process independent services in parallel
+  </Card>
+  <Card title="Incremental updates" icon="arrows-rotate">
+    Only regenerate changed components
+  </Card>
+  <Card title="Lazy loading" icon="hourglass">
+    Load StackKits on demand
+  </Card>
+</CardGroup>
+
+### Benchmarks
+
+| Operation | Time | Notes |
+|-----------|------|-------|
+| Parse | <10ms | YAML → Go structs |
+| Validate | 50-100ms | CUE validation |
+| Resolve | 100-200ms | Dependency resolution |
+| Generate | 200-500ms | Code generation |
+| **Total** | **~500ms** | For typical homelab |
+
+## Debugging
+
+### Enable debug mode
+
+```bash
+KOMBISTACK_LOG_LEVEL=debug kombify apply
+```
+
+### View intermediate output
+
+```bash
+# View parsed config
+kombify debug parse
+
+# View resolved config
+kombify debug resolve
+
+# View generated code
+kombify debug generate
+```
+
+### Trace execution
+
+```bash
+kombify apply --trace
+```
+
+Output:
+```
+[TRACE] Parser: parsing kombination.yaml
+[TRACE] Validator: loading StackKit base-homelab
+[TRACE] Validator: validating services
+[TRACE] Resolver: resolving defaults
+[TRACE] Generator: generating docker-compose.yml
+[TRACE] Orchestrator: executing tofu apply
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Spec-driven infrastructure" icon="file-code" href="/concepts/spec-driven">
+    Learn the core concept
+  </Card>
+  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits-explained">
+    Understand validation schemas
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    See the big picture
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Try it yourself
+  </Card>
+</CardGroup>
