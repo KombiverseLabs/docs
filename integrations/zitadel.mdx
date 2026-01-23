@@ -1,0 +1,259 @@
+---
+title: Zitadel integration
+description: Configure Zitadel as your SSO provider for kombify
+---
+
+# Zitadel integration
+
+Integrate Zitadel as your Single Sign-On (SSO) provider for kombify Sphere and Stack.
+
+## Overview
+
+Zitadel is an open-source identity and access management platform that provides:
+- OAuth 2.0 and OpenID Connect (OIDC)
+- Multi-factor authentication (MFA)
+- User management
+- Role-based access control (RBAC)
+
+kombify Sphere uses Zitadel by default for enterprise SSO.
+
+## Prerequisites
+
+<CardGroup cols={2}>
+  <Card title="Zitadel instance" icon="server">
+    Self-hosted or cloud instance
+  </Card>
+  <Card title="Admin access" icon="key">
+    Access to Zitadel admin console
+  </Card>
+</CardGroup>
+
+## Setup for kombify Sphere
+
+### Step 1: Create OIDC application
+
+<Steps>
+  <Step title="Access Zitadel console">
+    Log in to your Zitadel instance at `https://your-zitadel.com`
+  </Step>
+
+  <Step title="Create new project">
+    Navigate to **Projects** → **Create New Project**
+    
+    - Name: `kombify Sphere`
+    - Description: `SSO for kombify platform`
+  </Step>
+
+  <Step title="Add application">
+    In your project, click **New Application**:
+    
+    - Name: `kombify-sphere`
+    - Type: **Web**
+    - Authentication method: **PKCE**
+  </Step>
+
+  <Step title="Configure redirect URIs">
+    Add these redirect URIs:
+    
+    ```
+    https://app.kombisphere.io/auth/callback
+    https://app.kombisphere.io/auth/refresh
+    ```
+    
+    For self-hosted:
+    ```
+    https://your-sphere-domain.com/auth/callback
+    https://your-sphere-domain.com/auth/refresh
+    ```
+  </Step>
+
+  <Step title="Save credentials">
+    Copy these values:
+    - **Client ID**
+    - **Client Secret** (if not using PKCE)
+    - **Issuer URL**
+  </Step>
+</Steps>
+
+### Step 2: Configure kombify Sphere
+
+<Tabs>
+  <Tab title="SaaS (Managed)">
+    Contact support to configure your Zitadel instance:
+    
+    ```
+    support@kombify.dev
+    ```
+    
+    Provide:
+    - Zitadel issuer URL
+    - Client ID
+    - Client secret (encrypted)
+  </Tab>
+
+  <Tab title="Self-hosted">
+    Update your `.env` file:
+    
+    ```bash .env
+    # Zitadel OIDC
+    ZITADEL_ISSUER=https://your-zitadel.com
+    ZITADEL_CLIENT_ID=your-client-id
+    ZITADEL_CLIENT_SECRET=your-client-secret
+    
+    # Callback URL
+    ZITADEL_REDIRECT_URI=https://your-sphere.com/auth/callback
+    ```
+    
+    Restart Sphere:
+    ```bash
+    docker compose restart sphere
+    ```
+  </Tab>
+</Tabs>
+
+## Setup for kombify Stack (self-hosted)
+
+### Step 1: Create separate OIDC application
+
+Follow the same process as above, but use:
+- Name: `kombify-stack`
+- Redirect URIs:
+  ```
+  http://localhost:5261/auth/callback
+  https://your-stack-domain.com/auth/callback
+  ```
+
+### Step 2: Configure Stack
+
+Update Stack's `.env`:
+
+```bash .env
+# Enable OIDC
+KOMBISTACK_AUTH_PROVIDER=zitadel
+
+# Zitadel configuration
+ZITADEL_ISSUER=https://your-zitadel.com
+ZITADEL_CLIENT_ID=your-stack-client-id
+ZITADEL_CLIENT_SECRET=your-stack-client-secret
+ZITADEL_REDIRECT_URI=http://localhost:5261/auth/callback
+```
+
+Restart Stack:
+```bash
+docker compose restart kombistack
+```
+
+## User management
+
+### Create users in Zitadel
+
+<Steps>
+  <Step title="Add user">
+    In Zitadel console: **Users** → **Create New User**
+  </Step>
+
+  <Step title="Assign to project">
+    Navigate to your kombify project → **Authorizations** → **Add User**
+  </Step>
+
+  <Step title="Assign roles">
+    Available roles:
+    - `kombify.admin` — Full access
+    - `kombify.manager` — Team management
+    - `kombify.user` — Basic access
+  </Step>
+</Steps>
+
+### Map roles to kombify
+
+In your kombify configuration:
+
+```yaml
+auth:
+  provider: zitadel
+  role_mapping:
+    kombify.admin: admin
+    kombify.manager: manager
+    kombify.user: user
+```
+
+## Advanced configuration
+
+### Custom claims
+
+Add custom claims in Zitadel:
+
+```json
+{
+  "kombify_team": "engineering",
+  "kombify_tier": "enterprise"
+}
+```
+
+Access in kombify:
+
+```yaml
+auth:
+  custom_claims:
+    - kombify_team
+    - kombify_tier
+```
+
+### Multi-factor authentication
+
+Enable MFA in Zitadel:
+
+1. **Organization Settings** → **Login Policy**
+2. Enable **Multi-Factor Authentication**
+3. Choose methods: TOTP, WebAuthn, SMS
+
+Users will be prompted for MFA on first login.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Invalid redirect URI">
+    Ensure the redirect URI in Zitadel exactly matches your configuration:
+    
+    ```bash
+    # Check current configuration
+    echo $ZITADEL_REDIRECT_URI
+    
+    # Must match Zitadel console
+    ```
+  </Accordion>
+
+  <Accordion title="Token validation failed">
+    Verify issuer URL is correct:
+    
+    ```bash
+    curl https://your-zitadel.com/.well-known/openid-configuration
+    ```
+    
+    Check that `issuer` field matches your `ZITADEL_ISSUER`.
+  </Accordion>
+
+  <Accordion title="User not authorized">
+    Ensure user is:
+    1. Added to the kombify project in Zitadel
+    2. Assigned appropriate roles
+    3. Account is active (not locked)
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Coolify integration" icon="ship" href="/integrations/coolify">
+    Deploy kombify with Coolify
+  </Card>
+  <Card title="Proxmox integration" icon="server" href="/integrations/proxmox">
+    Manage Proxmox VMs
+  </Card>
+  <Card title="Security concepts" icon="shield" href="/concepts/security">
+    Learn about kombify security
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Get started with kombify
+  </Card>
+</CardGroup>
