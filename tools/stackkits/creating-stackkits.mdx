@@ -1,0 +1,50 @@
+---
+title: Creating StackKits
+description: Build custom infrastructure blueprints
+---
+
+# Creating StackKits
+
+Build custom StackKits for your specific use cases.
+
+## Structure
+
+```
+my-stackkit/
+├── stackkit.yaml           # Metadata
+├── stackfile.cue           # CUE schema
+├── services.cue            # Service definitions
+├── default-spec.yaml       # CLI template
+├── templates/
+│   ├── simple/             # OpenTofu-only
+│   │   └── main.tf
+│   └── advanced/           # Terramate + OpenTofu
+│       ├── globals.tm.hcl
+│       └── stacks/
+└── variants/
+    ├── os/                 # Ubuntu, Debian
+    └── compute/            # High, standard, low
+```
+
+## Example
+
+```yaml
+# stackkit.yaml
+apiVersion: stackkit/v1
+kind: StackKit
+metadata:
+  name: my-custom-kit
+  version: "1.0.0"
+  description: "Custom infrastructure blueprint"
+
+modes:
+  simple:
+    description: "Single OpenTofu file"
+    template: templates/simple/
+```
+
+## Next steps
+
+<Card title="CLI reference" icon="terminal" href="/tools/stackkits/cli-reference">
+  StackKit command-line tool
+</Card>
