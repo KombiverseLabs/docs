@@ -1,40 +1,60 @@
 ---
 title: KombiStack API overview
-description: REST API for infrastructure management
+description: REST API reference for KombiStack control plane
 ---
 
 # KombiStack API
 
-REST API for managing infrastructure stacks.
+KombiStack provides a comprehensive REST API for managing infrastructure stacks, nodes, and deployments.
 
-## Base URL
+**Base URL:** `http://localhost:5260/api/v1`
 
-```
-http://localhost:5260/api/v1
-```
+**Authentication:** PocketBase JWT tokens or API keys
 
-## Authentication
+## API endpoints
+
+<CardGroup cols={2}>\n  <Card title=\"Stacks\" icon=\"layer-group\" href=\"/api/kombistack/stacks\">\n    Create and manage infrastructure stacks\n  </Card>\n  <Card title=\"Workers\" icon=\"server\" href=\"/api/kombistack/workers\">\n    Manage nodes and agents\n  </Card>\n  <Card title=\"Jobs\" icon=\"list-check\" href=\"/api/kombistack/jobs\">\n    Track deployment jobs and status\n  </Card>\n  <Card title=\"Unifier\" icon=\"wand-magic-sparkles\" href=\"/api/kombistack/unifier\">\n    Validate and unify configurations\n  </Card>\n</CardGroup>
+
+## Quick start
+
+### Authentication
 
 ```bash
-# PocketBase auth
+# Login to get JWT token
 curl -X POST http://localhost:5260/api/collections/users/auth-with-password \
-  -d '{"identity": "admin@example.com", "password": "password"}'
+  -H "Content-Type: application/json" \
+  -d '{\
+    "identity": "admin@kombistack.local",\
+    "password": "your-password"\
+  }'
 
-# Use token
+# Use token in subsequent requests
+export TOKEN="your-jwt-token"
 curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:5260/api/v1/stacks
 ```
 
-## Endpoints
+### Create a stack
 
-<CardGroup cols={2}>
-  <Card title="Stacks" icon="layer-group" href="/api/kombistack/stacks">
-    Manage infrastructure stacks
-  </Card>
-  <Card title="Workers" icon="server" href="/api/kombistack/workers">
-    Manage worker nodes
-  </Card>
-  <Card title="Jobs" icon="list-check" href="/api/kombistack/jobs">
-    Track deployment jobs
-  </Card>
-</CardGroup>
+```bash
+curl -X POST http://localhost:5260/api/v1/stacks \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @kombination.yaml
+```
+
+## API structure
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/api/v1/health` | GET | Health check |
+| `/api/v1/stacks` | GET, POST | List/create stacks |
+| `/api/v1/stacks/{id}` | GET, PUT, DELETE | Manage specific stack |
+| `/api/v1/workers` | GET, POST | List/register workers |
+| `/api/v1/jobs` | GET | List jobs |
+| `/api/v1/unifier/validate` | POST | Validate configuration |
+| `/api/v1/unifier/execute` | POST | Execute unifier pipeline |
+
+## Next steps
+
+<CardGroup cols={2}>\n  <Card title=\"Stacks API\" icon=\"layer-group\" href=\"/api/kombistack/stacks\">\n    Stack management endpoints\n  </Card>\n  <Card title=\"Workers API\" icon=\"server\" href=\"/api/kombistack/workers\">\n    Node and agent management\n  </Card>\n</CardGroup>

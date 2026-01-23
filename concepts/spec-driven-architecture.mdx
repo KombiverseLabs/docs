@@ -257,26 +257,6 @@ KombiSphere supports two deployment modes based on infrastructure complexity:
   </Tab>
 </Tabs>
 
-## Philosophy: 1 KombiStack = 1 Homelab
-
-<Warning>
-  A single KombiStack instance manages **exactly one homelab**. This design choice ensures simplicity, consistency, and security.
-</Warning>
-
-**What this means:**
-- **1 KombiStack instance** = 1 homelab (the entire setup)
-- **1 Stack** = The configuration of the homelab (only ONE stack per instance)
-- **X Nodes** = Multiple servers/devices within the homelab
-- **1 StackKit + Add-ons** = The chosen configuration template
-
-**Why?**
-- Simplicity: No complex multi-tenant logic
-- Consistency: Clear ownership and state management
-- Security: Isolated credentials and secrets
-- Optimized: Designed for typical homelab sizes (1-20 nodes)
-
-**Multi-homelab scenarios** require multiple KombiStack instances.
-
 ## Next steps
 
 <CardGroup cols={2}>
