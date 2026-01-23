@@ -9,11 +9,7 @@
   "colors": {
     "primary": "#0D9373",
     "light": "#07C983",
-    "dark": "#0D9373",
-    "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
-    }
+    "dark": "#0D9373"
   },
   "topbarLinks": [
     {
@@ -190,25 +186,27 @@
       "href": "https://discord.gg/kombisphere"
     }
   ],
-  "navigation": [
-    {
-      "group": "Getting started",
-      "pages": [
-        "introduction",
-        "quickstart",
-        "ecosystem"
-      ]
-    },
-    {
-      "group": "Core concepts",
-      "pages": [
-        "concepts/spec-driven-architecture",
-        "concepts/hybrid-infrastructure",
-        "concepts/stackkits-system",
-        "concepts/simulation-first"
-      ]
-    }
-  ],
+  "navigation": {
+    "pages": [
+      {
+        "group": "Getting started",
+        "pages": [
+          "introduction",
+          "quickstart",
+          "ecosystem"
+        ]
+      },
+      {
+        "group": "Core concepts",
+        "pages": [
+          "concepts/spec-driven-architecture",
+          "concepts/hybrid-infrastructure",
+          "concepts/stackkits-system",
+          "concepts/simulation-first"
+        ]
+      }
+    ]
+  },
   "footerSocials": {
     "github": "https://github.com/KombiverseLabs",
     "twitter": "https://twitter.com/kombisphere"
