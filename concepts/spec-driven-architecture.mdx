@@ -1,0 +1,311 @@
+---
+title: Spec-driven architecture
+description: Understand how KombiSphere uses declarative specifications to manage infrastructure
+---
+
+# Spec-driven architecture
+
+KombiSphere follows a **spec-driven architecture** where you define your desired infrastructure state in a single specification file, and the system handles validation, resolution, and execution.
+
+## The kombination.yaml file
+
+At the heart of KombiSphere is the `kombination.yaml` file - your infrastructure's source of truth.
+
+```yaml kombination.yaml
+version: "1.0"
+name: my-homelab
+
+# StackKit selection
+kit: base-homelab
+variant: os/ubuntu-24
+
+# Infrastructure nodes
+nodes:
+  - name: homelab-server
+    type: main
+    provider: local
+    ssh:
+      host: 192.168.1.100
+      user: admin
+      key_path: ~/.ssh/id_ed25519
+
+# Services to deploy
+services:
+  - name: traefik
+    type: reverse-proxy
+    config:
+      domain: homelab.local
+  
+  - name: dokploy
+    type: deployment-platform
+    config:
+      admin_email: admin@homelab.local
+```
+
+## The unifier pipeline
+
+KombiSphere uses a multi-stage pipeline to transform user intent into executable infrastructure:
+
+<Steps>
+  <Step title="Pre-validation">
+    Schema validation ensures the spec file is syntactically correct.
+    
+    ```bash
+    # Validates YAML structure and required fields
+    POST /api/v1/unifier/validate
+    ```
+  </Step>
+
+  <Step title="StackKit resolution">
+    The system resolves which StackKit to use based on your configuration.
+    
+    For "Easy Wizard" users (no StackKit specified), the system auto-selects based on:
+    - Number of nodes
+    - Selected services
+    - Infrastructure requirements
+  </Step>
+
+  <Step title="Unification">
+    The Unifier Engine merges:
+    - User intent (`kombination.yaml`)
+    - StackKit defaults
+    - System policies
+    - Security constraints
+    
+    Output: `stack-spec.yaml` (standardized format)
+  </Step>
+
+  <Step title="IaC generation">
+    OpenTofu configuration is generated from the unified spec.
+    
+    **Simple mode:** Single `main.tf` file
+    
+    **Advanced mode:** Terramate-orchestrated stacks with drift detection
+  </Step>
+
+  <Step title="Execution">
+    Infrastructure is provisioned:
+    
+    ```bash
+    tofu init
+    tofu plan
+    tofu apply
+    ```
+  </Step>
+</Steps>
+
+## Two-file system
+
+KombiStack uses a clear separation between user intent and system output:
+
+| File | Purpose | Created by | Format |
+|------|---------|------------|--------|
+| `kombination.yaml` | User intent | User or UI Wizard | YAML |
+| `stack-spec.yaml` | Unified specification | Unifier Engine | YAML |
+
+<CodeGroup>
+```yaml kombination.yaml (User intent)
+version: "1.0"
+name: my-homelab
+kit: base-homelab
+
+nodes:
+  - name: server-1
+    type: main
+    ssh:
+      host: 192.168.1.100
+      user: admin
+
+services:
+  - name: traefik
+  - name: dokploy
+```
+
+```yaml stack-spec.yaml (Unifier output)
+version: "1.0"
+stack:
+  name: my-homelab
+  kit: base-homelab
+  variant: os/ubuntu-24
+  mode: simple
+
+nodes:
+  - name: server-1
+    type: main
+    provider: local
+    ip: 192.168.1.100
+    ssh:
+      user: admin
+      port: 22
+      key_path: /app/pb_data/wallet/id_ed25519
+    
+services:
+  - name: traefik
+    type: reverse-proxy
+    version: "3.0"
+    config:
+      domain: homelab.local
+      email: admin@homelab.local
+      
+  - name: dokploy
+    type: deployment-platform
+    version: "latest"
+    depends_on: [traefik]
+```
+</CodeGroup>
+
+<Note>
+  The `stack-spec.yaml` includes all defaults, resolved dependencies, and system-injected configurations. This is the file that StackKits consume.
+</Note>
+
+## Validation with CUE
+
+KombiSphere uses [CUE](https://cuelang.org/) for constraint-based validation:
+
+```cue StackKit schema example
+package base_homelab
+
+#BaseHomelabKit: {
+    metadata: {
+        name: "base-homelab"
+        version: string
+    }
+    
+    nodes: [...#Node]
+    nodes: {
+        // At least one main node required
+        [_]: type: "main" | "worker"
+    }
+    
+    services: [...#Service]
+    services: {
+        // Traefik is required for base-homelab
+        [_]: name: "traefik" | "dokploy" | "portainer"
+    }
+}
+
+#Node: {
+    name: string
+    type: "main" | "worker"
+    ssh: {
+        host: =~"^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$"
+        user: string
+        port: *22 | int
+    }
+}
+```
+
+**Benefits:**
+- Catch errors before deployment
+- Enforce best practices
+- Provide smart defaults
+- Enable IDE autocomplete
+
+## Deployment modes
+
+KombiSphere supports two deployment modes based on infrastructure complexity:
+
+<Tabs>
+  <Tab title="Simple mode">
+    **When:** ≤3 workers, straightforward setup
+    
+    **How:** Single OpenTofu file, direct `tofu apply`
+    
+    ```hcl main.tf
+    terraform {
+      required_providers {
+        docker = {
+          source  = "kreuzwerker/docker"
+          version = "~> 3.0"
+        }
+      }
+    }
+    
+    resource "docker_container" "traefik" {
+      name  = "traefik"
+      image = "traefik:3.0"
+      # ...
+    }
+    ```
+    
+    **Pros:** Simple, fast, easy to debug
+    
+    **Cons:** No drift detection, manual change management
+  </Tab>
+
+  <Tab title="Advanced mode">
+    **When:** >3 workers, complex multi-node setups
+    
+    **How:** Terramate-orchestrated stacks with drift detection
+    
+    ```hcl terramate.tm.hcl
+    globals {
+      stack_name = "my-homelab"
+      environment = "production"
+    }
+    
+    stack {
+      name        = "network"
+      description = "Network infrastructure"
+      after       = []
+    }
+    ```
+    
+    **Pros:** Drift detection, parallel execution, change sets
+    
+    **Cons:** More complex, requires Terramate knowledge
+  </Tab>
+</Tabs>
+
+## Philosophy: 1 KombiStack = 1 Homelab
+
+<Warning>
+  A single KombiStack instance manages **exactly one homelab**. This design choice ensures simplicity, consistency, and security.
+</Warning>
+
+**What this means:**
+- **1 KombiStack instance** = 1 homelab (the entire setup)
+- **1 Stack** = The configuration of the homelab (only ONE stack per instance)
+- **X Nodes** = Multiple servers/devices within the homelab
+- **1 StackKit + Add-ons** = The chosen configuration template
+
+**Why?**
+- Simplicity: No complex multi-tenant logic
+- Consistency: Clear ownership and state management
+- Security: Isolated credentials and secrets
+- Optimized: Designed for typical homelab sizes (1-20 nodes)
+
+**Multi-homelab scenarios** require multiple KombiStack instances.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Hybrid infrastructure"
+    icon="cloud-arrow-up"
+    href="/concepts/hybrid-infrastructure"
+  >
+    Learn how KombiSphere manages cloud and local resources
+  </Card>
+  <Card
+    title="StackKits system"
+    icon="boxes-stacked"
+    href="/concepts/stackkits-system"
+  >
+    Understand infrastructure blueprints
+  </Card>
+  <Card
+    title="Simulation first"
+    icon="flask"
+    href="/concepts/simulation-first"
+  >
+    Why simulate before deploying
+  </Card>
+  <Card
+    title="KombiStack deep dive"
+    icon="layer-group"
+    href="/tools/kombistack/architecture"
+  >
+    Explore the control plane architecture
+  </Card>
+</CardGroup>
