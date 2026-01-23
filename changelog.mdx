@@ -1,0 +1,217 @@
+---
+title: Changelog
+description: Latest updates and releases for kombify
+---
+
+# Changelog
+
+Track the latest features, improvements, and bug fixes across the kombify ecosystem.
+
+## [Unreleased]
+
+### Added
+- Initial documentation structure
+- Integration guides for Zitadel, Coolify, and Proxmox
+- Comprehensive concept pages
+
+## [0.3.0] - 2024-01-15
+
+### Added
+- **kombify Sim** — Simulation engine for testing configurations
+- Docker-based simulation nodes with SSH access
+- Pre-built templates for common homelab setups
+- REST API for simulation management
+
+### Changed
+- Improved Unifier engine performance (30% faster)
+- Updated OpenTofu integration to v1.6+
+- Enhanced error messages with actionable suggestions
+
+### Fixed
+- Agent connection stability issues
+- Memory leak in long-running deployments
+- SSL certificate renewal edge cases
+
+## [0.2.0] - 2023-12-01
+
+### Added
+- **kombify Sphere** — SaaS platform with SSO and billing
+- Zitadel integration for enterprise SSO
+- Stripe integration for subscription management
+- Team collaboration features
+- Tool launcher with unified dashboard
+
+### Changed
+- Migrated from SQLite to PocketBase for state management
+- Improved gRPC communication with mTLS
+- Updated SvelteKit to v2.x
+
+### Fixed
+- Race conditions in concurrent deployments
+- Docker network conflicts
+- Agent heartbeat timeout issues
+
+## [0.1.0] - 2023-10-15
+
+### Added
+- **kombify Stack** — Core orchestration engine
+- `kombination.yaml` spec-driven configuration
+- CUE validation with StackKits
+- OpenTofu code generation
+- gRPC agent communication
+- PocketBase integration for state management
+- SvelteKit dashboard
+
+### StackKits
+- `base-homelab` — Basic homelab setup
+- `ha-homelab` — High availability configuration
+- `modern-homelab` — Cutting-edge tools
+
+### Services
+- Traefik reverse proxy
+- Authelia SSO
+- Homepage dashboard
+- Uptime Kuma monitoring
+- Portainer management
+
+## Versioning
+
+kombify follows [Semantic Versioning](https://semver.org/):
+- **Major** (x.0.0) — Breaking changes
+- **Minor** (0.x.0) — New features, backward compatible
+- **Patch** (0.0.x) — Bug fixes
+
+## Component versions
+
+| Component | Current | Minimum |
+|-----------|---------|---------|
+| **kombify Stack** | 0.3.0 | - |
+| **kombify Sim** | 0.3.0 | - |
+| **kombify Sphere** | 0.2.0 | - |
+| **StackKits** | 1.0.0 | - |
+| **Go** | 1.24+ | 1.22 |
+| **OpenTofu** | 1.6+ | 1.6 |
+| **CUE** | 0.15+ | 0.15 |
+| **Docker** | 24.0+ | 20.10 |
+
+## Upgrade guides
+
+### 0.2.x → 0.3.x
+
+<Steps>
+  <Step title="Backup data">
+    ```bash
+    docker exec kombistack tar czf /backup/data.tar.gz /app/data
+    ```
+  </Step>
+
+  <Step title="Pull latest images">
+    ```bash
+    docker compose pull
+    ```
+  </Step>
+
+  <Step title="Restart services">
+    ```bash
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="Verify">
+    ```bash
+    curl http://localhost:5260/api/v1/health
+    ```
+  </Step>
+</Steps>
+
+### 0.1.x → 0.2.x
+
+<Warning>
+  This upgrade includes database migration from SQLite to PocketBase.
+</Warning>
+
+<Steps>
+  <Step title="Export existing data">
+    ```bash
+    kombify export --output backup.json
+    ```
+  </Step>
+
+  <Step title="Update to 0.2.x">
+    ```bash
+    docker compose pull
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="Import data">
+    ```bash
+    kombify import --input backup.json
+    ```
+  </Step>
+</Steps>
+
+## Breaking changes
+
+### 0.3.0
+- None
+
+### 0.2.0
+- **Database migration** — SQLite → PocketBase (requires data export/import)
+- **API changes** — `/api/stacks` → `/api/v1/stacks`
+- **Configuration** — `kombistack.yaml` → environment variables
+
+### 0.1.0
+- Initial release
+
+## Deprecations
+
+### Scheduled for removal in 0.4.0
+- Legacy API endpoints (`/api/stacks` without version)
+- SQLite direct access (use PocketBase API)
+
+## Roadmap
+
+### 0.4.0 (Q2 2024)
+- Kubernetes support
+- Multi-cloud providers (AWS, Azure, GCP)
+- Advanced monitoring with Prometheus
+- Custom StackKit marketplace
+
+### 0.5.0 (Q3 2024)
+- GitOps integration
+- Automated rollbacks
+- Cost optimization recommendations
+- AI-powered configuration suggestions
+
+### 1.0.0 (Q4 2024)
+- Production-ready release
+- Enterprise support
+- SLA guarantees
+- Advanced security features
+
+## Contributing
+
+Found a bug or have a feature request?
+
+<CardGroup cols={2}>
+  <Card title="Report a bug" icon="bug" href="https://github.com/soulcreek/KombiStack/issues">
+    Open an issue on GitHub
+  </Card>
+  <Card title="Request a feature" icon="lightbulb" href="https://github.com/soulcreek/KombiStack/discussions">
+    Start a discussion
+  </Card>
+  <Card title="Contributing guide" icon="code-pull-request" href="/contributing">
+    Learn how to contribute
+  </Card>
+  <Card title="Community" icon="discord" href="/community">
+    Join our Discord
+  </Card>
+</CardGroup>
+
+## Stay updated
+
+- **GitHub Releases:** [github.com/soulcreek/KombiStack/releases](https://github.com/soulcreek/KombiStack/releases)
+- **Discord:** [discord.gg/kombify](https://discord.gg/kombify)
+- **Newsletter:** [kombify.dev/newsletter](https://kombify.dev/newsletter)
+- **RSS Feed:** [kombify.dev/changelog.xml](https://kombify.dev/changelog.xml)
