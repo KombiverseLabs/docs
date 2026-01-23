@@ -8,33 +8,17 @@ description: Declarative infrastructure blueprints with CUE validation and OpenT
 StackKits are **declarative infrastructure blueprints** that combine CUE validation with OpenTofu execution. They provide battle-tested configurations for common homelab scenarios.
 
 <CardGroup cols={2}>
-  <Card
-    title="Quick start"
-    icon="rocket"
-    href="/tools/stackkits/quickstart"
-  >
+  <Card title="Quick start" icon="rocket" href="/tools/stackkits/quickstart">
     Deploy your first StackKit
   </Card>
-  <Card
-    title="Available StackKits"
-    icon="boxes-stacked"
-    href="/tools/stackkits/available-kits"
-  >
-    Browse infrastructure blueprints
+  <Card title="Available kits" icon="boxes-stacked" href="/tools/stackkits/available-kits">
+    Browse all StackKits
   </Card>
-  <Card
-    title="Create custom StackKits"
-    icon="hammer"
-    href="/tools/stackkits/creating-stackkits"
-  >
-    Build your own templates
+  <Card title="Create custom" icon="hammer" href="/tools/stackkits/creating-stackkits">
+    Build your own StackKit
   </Card>
-  <Card
-    title="CLI reference"
-    icon="terminal"
-    href="/tools/stackkits/cli-reference"
-  >
-    Command-line tool documentation
+  <Card title="CLI reference" icon="terminal" href="/tools/stackkits/cli-reference">
+    Command-line tool
   </Card>
 </CardGroup>
 
@@ -42,19 +26,27 @@ StackKits are **declarative infrastructure blueprints** that combine CUE validat
 
 A StackKit is a complete infrastructure template that includes:
 
-- **CUE schemas** for validation
+- **CUE schemas** for type-safe validation
 - **OpenTofu templates** for provisioning
 - **Service definitions** for applications
 - **OS variants** for different distributions
 - **Default configurations** for quick starts
 
-Think of StackKits as "infrastructure recipes" - battle-tested configurations for common homelab scenarios.
-
 ## Key features
 
 <AccordionGroup>
-  <Accordion title="Validated configuration" icon="shield-check">
-    CUE schemas catch errors before deployment:
+  <Accordion title="3-layer architecture" icon="layer-group">
+    StackKits use a strict 3-layer architecture:
+    
+    **Layer 1: Core** - Shared foundation (security, network, observability)
+    
+    **Layer 2: Platforms** - Container orchestration (Docker, Kubernetes)
+    
+    **Layer 3: StackKits** - Use-case specific configurations
+  </Accordion>
+
+  <Accordion title="CUE validation" icon="shield-check">
+    Constraint-based validation catches errors before deployment:
     
     ```cue
     #BaseHomelabKit: {
@@ -63,338 +55,60 @@ Think of StackKits as "infrastructure recipes" - battle-tested configurations fo
             // At least one main node required
             [_]: type: "main" | "worker"
         }
-        
-        services: [...#Service]
-        services: {
-            // Traefik is required
-            [_]: name: "traefik" | "dokploy" | "portainer"
-        }
     }
     ```
   </Accordion>
 
-  <Accordion title="IaC-first architecture" icon="cube">
-    OpenTofu as execution engine, not custom scripts:
+  <Accordion title="Multi-OS support" icon="ubuntu">
+    OS variants for different distributions:
     
-    - Full Terraform provider ecosystem
-    - State management
-    - Plan and apply workflow
-    - Drift detection (Advanced mode)
+    - Ubuntu 24.04, 22.04
+    - Debian 12, 11
+    - More coming soon
   </Accordion>
 
-  <Accordion title="Multi-OS support" icon="server">
-    Ubuntu, Debian, and more via variants:
+  <Accordion title="Deployment modes" icon="rocket">
+    **Simple mode:** Single OpenTofu file
     
-    ```yaml
-    variant: os/ubuntu-24  # Ubuntu 24.04
-    variant: os/debian-12  # Debian 12
-    ```
-  </Accordion>
-
-  <Accordion title="Standalone or integrated" icon="plug">
-    Use via CLI or with KombiStack Web UI:
-    
-    **Standalone:**
-    ```bash
-    stackkit init base-homelab
-    stackkit apply
-    ```
-    
-    **Integrated:**
-    ```yaml
-    # kombination.yaml
-    kit: base-homelab
-    ```
+    **Advanced mode:** Terramate-orchestrated stacks
   </Accordion>
 </AccordionGroup>
 
 ## Available StackKits
 
-| StackKit | Description | Nodes | Status |
-|----------|-------------|-------|--------|
-| **base-homelab** | Single server, local only | 1 | ✅ Available |
-| **modern-homelab** | Multi-node Docker + Dokploy | 2+ | 🚧 Schema Only |
-| **ha-homelab** | Docker Swarm HA Cluster | 3+ | 🚧 Schema Only |
-
-See [Available StackKits](/tools/stackkits/available-kits) for detailed information.
-
-## 3-layer architecture
-
-StackKits use a strict 3-layer architecture for maximum reusability:
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│  LAYER 3: STACKKITS (stackkits/)                            │
-│  Use-case specific configurations with services             │
-│  • base-homelab: Single-node Docker + Dokploy               │
-│  • modern-homelab: Multi-node Docker + Dokploy              │
-│  • ha-homelab: Docker Swarm HA (3+ Nodes)                   │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 2: PLATFORMS (platforms/)                            │
-│  Container orchestration layer                              │
-│  • docker/: Docker + Traefik + Swarm                        │
-├─────────────────────────────────────────────────────────────┤
-│  LAYER 1: CORE (base/)                                      │
-│  Shared foundation applied to ALL deployments               │
-│  • Bootstrap, Security, Network, Observability              │
-└─────────────────────────────────────────────────────────────┘
-```
-
-### Layer 1: Core
-
-Shared foundation applied to **all** deployments:
-
-```cue
-package base
-
-#BaseStackKit: {
-    // Security hardening
-    security: {
-        ssh: {
-            disable_password_auth: true
-            port: *22 | int
-        }
-        firewall: {
-            enabled: true
-            default_policy: "deny"
-        }
-    }
+<CardGroup cols={3}>
+  <Card title="base-homelab" icon="server">
+    **Single server, local only**
     
-    // Network configuration
-    network: {
-        ipv4: bool
-        ipv6: *false | bool
-    }
-}
-```
-
-### Layer 2: Platforms
-
-Container orchestration layer:
-
-```cue
-package docker
-
-#DockerPlatform: {
-    runtime: "docker"
-    version: string | *"24.0"
+    - 1 node
+    - Docker + Dokploy
+    - Perfect for beginners
+  </Card>
+  
+  <Card title="modern-homelab" icon="network-wired">
+    **Multi-node Docker + Coolify**
     
-    services: {
-        traefik: #TraefikService
-    }
-}
-```
-
-### Layer 3: StackKits
-
-Use-case specific configurations:
-
-```cue
-package base_homelab
-
-import "github.com/kombihq/stackkits/base"
-import "github.com/kombihq/stackkits/platforms/docker"
-
-#BaseHomelabKit: base.#BaseStackKit & docker.#DockerPlatform & {
-    metadata: {
-        name: "base-homelab"
-        version: "1.0.0"
-    }
+    - 2+ nodes
+    - Docker Swarm
+    - Production-ready
+  </Card>
+  
+  <Card title="ha-homelab" icon="shield-check">
+    **Kubernetes high availability**
     
-    nodes: [#MainNode]
-    services: [#TraefikService, #DokployService]
-}
-```
-
-## Deployment modes
-
-<Tabs>
-  <Tab title="Simple mode">
-    **When:** ≤3 workers, straightforward setup
-    
-    **How:** Single OpenTofu file, direct `tofu apply`
-    
-    ```hcl
-    terraform {
-      required_providers {
-        docker = {
-          source  = "kreuzwerker/docker"
-          version = "~> 3.0"
-        }
-      }
-    }
-    
-    resource "docker_container" "traefik" {
-      name  = "traefik"
-      image = "traefik:3.0"
-      # ...
-    }
-    ```
-    
-    **Pros:** Simple, fast, easy to debug
-  </Tab>
-
-  <Tab title="Advanced mode">
-    **When:** >3 workers, complex multi-node setups
-    
-    **How:** Terramate-orchestrated stacks with drift detection
-    
-    ```hcl
-    globals {
-      stack_name = tm.stack.name
-      environment = "production"
-    }
-    
-    stack {
-      name        = "network"
-      description = "Network infrastructure"
-      after       = []
-    }
-    ```
-    
-    **Pros:** Drift detection, parallel execution, change sets
-  </Tab>
-</Tabs>
-
-## StackKit structure
-
-Each StackKit contains:
-
-```
-base-homelab/
-├── stackkit.yaml           # Metadata
-├── stackfile.cue           # CUE schema
-├── services.cue            # Service definitions
-├── default-spec.yaml       # CLI template
-├── templates/
-│   ├── simple/             # OpenTofu-only
-│   │   └── main.tf
-│   └── advanced/           # Terramate + OpenTofu
-│       ├── globals.tm.hcl
-│       └── stacks/
-└── variants/
-    ├── os/                 # Ubuntu, Debian
-    └── compute/            # High, standard, low
-```
-
-## Usage
-
-### Standalone CLI
-
-```bash
-# Initialize from StackKit
-stackkit init base-homelab
-
-# Check prerequisites
-stackkit prepare
-
-# Generate OpenTofu files
-stackkit generate
-
-# Preview changes
-stackkit plan
-
-# Apply infrastructure
-stackkit apply
-```
-
-### With KombiStack
-
-```yaml
-# kombination.yaml
-version: "1.0"
-name: my-homelab
-kit: base-homelab
-variant: os/ubuntu-24
-
-nodes:
-  - name: server-1
-    type: main
-    ssh:
-      host: 192.168.1.100
-      user: admin
-
-services:
-  - name: traefik
-  - name: dokploy
-```
-
-KombiStack automatically:
-1. Validates via Unifier Pipeline
-2. Resolves StackKit (`base-homelab`)
-3. Applies OS variant (auto-detect)
-4. Generates `stack-spec.yaml`
-5. Provisions via OpenTofu
-
-## Variants
-
-StackKits support variants for different operating systems and compute tiers:
-
-### OS variants
-
-```yaml
-# Ubuntu 24.04
-variant: os/ubuntu-24
-
-# Debian 12
-variant: os/debian-12
-```
-
-### Compute variants
-
-```yaml
-# High performance
-variant: compute/high
-
-# Standard
-variant: compute/standard
-
-# Low resource
-variant: compute/low
-```
-
-## Tech stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Validation** | CUE 0.9+ | Type-safe configuration |
-| **Execution** | OpenTofu 1.6+ | Infrastructure provisioning |
-| **Orchestration** | Terramate 0.6+ | Multi-stack management (optional) |
-| **CLI** | Go 1.24+ | Command-line tool |
-
-## License
-
-MIT License - see [LICENSE](https://github.com/KombiverseLabs/StackKits/blob/main/LICENSE)
+    - 3+ nodes
+    - k3s cluster
+    - Enterprise-grade
+  </Card>
+</CardGroup>
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Quick start guide"
-    icon="play"
-    href="/tools/stackkits/quickstart"
-  >
+  <Card title="Quick start" icon="play" href="/tools/stackkits/quickstart">
     Deploy your first StackKit
   </Card>
-  <Card
-    title="Available StackKits"
-    icon="boxes-stacked"
-    href="/tools/stackkits/available-kits"
-  >
-    Browse infrastructure blueprints
-  </Card>
-  <Card
-    title="Create custom StackKits"
-    icon="hammer"
-    href="/tools/stackkits/creating-stackkits"
-  >
-    Build your own templates
-  </Card>
-  <Card
-    title="CLI reference"
-    icon="terminal"
-    href="/tools/stackkits/cli-reference"
-  >
-    Command-line documentation
+  <Card title="Available kits" icon="boxes-stacked" href="/tools/stackkits/available-kits">
+    Browse all StackKits
   </Card>
 </CardGroup>
