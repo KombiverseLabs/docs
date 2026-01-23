@@ -1,0 +1,234 @@
+---
+title: StackKits explained
+description: Pre-validated infrastructure blueprints with CUE schemas
+---
+
+# StackKits explained
+
+**StackKits** are pre-validated, battle-tested infrastructure blueprints that provide sane defaults for common homelab scenarios.
+
+## The problem
+
+You want to set up a homelab. You've heard of:
+- Traefik (or Caddy? or nginx?)
+- Authelia (or Authentik? or Keycloak?)
+- Portainer (or Dockge? or Coolify?)
+- Immich (or Photoprism?)
+
+**Questions:**
+- Which tools work well together?
+- How do I configure them correctly?
+- What are the best practices?
+- How do I avoid security issues?
+
+## The solution: StackKits
+
+A **StackKit** is a predefined, tested set of:
+- **Services** — Which tools are included
+- **Configuration** — How they work together
+- **Defaults** — Sensible default values
+- **Constraints** — What works together (and what doesn't)
+
+### Example: base-homelab
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                      BASE-HOMELAB STACKKIT                      │
+├────────────────────────────────────────────────────────────────┤
+│                                                                 │
+│  Included Services:                                             │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
+│  │ Traefik  │ │ Authelia │ │ Homepage │ │ Portainer Agent  │  │
+│  │ (Proxy)  │ │  (Auth)  │ │(Dashboard│ │  (Management)    │  │
+│  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘  │
+│                                                                 │
+│  Pre-configured:                                                │
+│  • Traefik routes all services                                 │
+│  • Authelia protects sensitive endpoints                       │
+│  • Homepage auto-discovers services                            │
+│  • SSL via Let's Encrypt                                       │
+│                                                                 │
+│  You configure:                                                 │
+│  • Your domain (home.local)                                    │
+│  • Your email (for SSL)                                        │
+│  • Your users (admin, family, etc.)                            │
+│                                                                 │
+└────────────────────────────────────────────────────────────────┘
+```
+
+## Available StackKits
+
+| StackKit | Target audience | Services | Focus |
+|----------|----------------|----------|-------|
+| **base-homelab** | Beginners | 4-6 | Simplicity |
+| **ha-homelab** | Advanced | 8-12 | High availability |
+| **modern-homelab** | Power users | 15+ | Cutting edge |
+| **media-stack** | Media server | 5-8 | Jellyfin, *arr |
+| **ai-stack** | AI enthusiasts | 3-5 | Ollama, WebUI |
+
+## How StackKits work
+
+### 1. CUE schema definition
+
+Each StackKit is defined in [CUE](https://cuelang.org/):
+
+```cue
+// base-homelab/stack.cue
+package base_homelab
+
+import "kombify.dev/base"
+
+#Stack: base.#Stack & {
+    services: {
+        traefik: #TraefikService
+        authelia: #AutheliaService
+        homepage: #HomepageService
+    }
+    
+    // Constraint: Authelia requires Traefik
+    if services.authelia != _|_ {
+        services.traefik: _
+    }
+}
+
+#TraefikService: base.#Service & {
+    image: "traefik:v3.0"
+    ports: [80, 443]
+    // ... more definitions
+}
+```
+
+### 2. Validation
+
+When you run `kombify validate`:
+
+```
+✓ YAML syntax valid
+✓ Required fields present
+✓ Service dependencies satisfied
+✓ Port conflicts: none
+✓ Network configuration: valid
+✓ SSL configuration: valid
+```
+
+### 3. Generation
+
+The Unifier generates from the StackKit:
+- `docker-compose.yml` with all services
+- `traefik/` configuration
+- `authelia/configuration.yml`
+- OpenTofu code (if infrastructure provisioning needed)
+
+## StackKit anatomy
+
+```
+stackkits/
+└── base-homelab/
+    ├── README.md           # Documentation
+    ├── stack.cue           # Main schema
+    ├── services/
+    │   ├── traefik.cue     # Traefik definition
+    │   ├── authelia.cue    # Authelia definition
+    │   └── homepage.cue    # Homepage definition
+    ├── defaults/
+    │   └── values.cue      # Default values
+    └── examples/
+        ├── minimal.yaml    # Minimal example
+        └── full.yaml       # All options
+```
+
+## Creating custom StackKits
+
+### 1. Fork an existing StackKit
+
+```bash
+kombify stackkit fork base-homelab my-custom-stack
+```
+
+### 2. Add/remove services
+
+```cue
+// my-custom-stack/stack.cue
+package my_custom_stack
+
+import "kombify.dev/base"
+import "kombify.dev/base-homelab"
+
+#Stack: base_homelab.#Stack & {
+    // Add Immich
+    services: immich: #ImmichService
+    
+    // Remove Homepage (optional)
+    services: homepage: _|_
+}
+```
+
+### 3. Test
+
+```bash
+kombify stackkit test my-custom-stack
+```
+
+### 4. Publish (optional)
+
+```bash
+kombify stackkit publish my-custom-stack
+```
+
+## StackKit vs Docker Compose template
+
+| Aspect | Docker Compose Template | StackKit |
+|--------|------------------------|----------|
+| **Format** | YAML | CUE + YAML |
+| **Validation** | None | Schema-based |
+| **Customization** | Copy & Paste | Inheritance |
+| **Defaults** | Hardcoded | Overridable |
+| **Dependencies** | Manual | Automatic |
+| **Updates** | Manual | `kombify update` |
+
+## FAQ
+
+### Can I add services not in the StackKit?
+
+Yes! StackKits are extensible:
+
+```yaml
+# kombination.yaml
+stackkit: base-homelab
+
+# Additional services
+services:
+  - jellyfin        # Not in base-homelab
+  - vaultwarden     # Not in base-homelab
+```
+
+### What happens with StackKit updates?
+
+```bash
+kombify stackkit update base-homelab
+# → Shows diff
+# → You decide what to adopt
+```
+
+### Can I combine multiple StackKits?
+
+Not recommended (conflicts). Instead:
+1. Choose one StackKit as base
+2. Add individual services
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Available StackKits" icon="book" href="/stackkits/builtin/base-homelab">
+    Browse all StackKits
+  </Card>
+  <Card title="CUE basics" icon="graduation-cap" href="/stackkits/writing-cue">
+    Learn CUE language
+  </Card>
+  <Card title="Create custom StackKit" icon="wrench" href="/stackkits/custom">
+    Step-by-step guide
+  </Card>
+  <Card title="StackKits overview" icon="boxes-stacked" href="/stackkits/overview">
+    Back to overview
+  </Card>
+</CardGroup>

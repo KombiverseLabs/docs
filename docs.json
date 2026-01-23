@@ -1,5 +1,6 @@
 {
-  "name": "KombiSphere",
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "kombify",
   "logo": {
     "dark": "/logo/dark.svg",
     "light": "/logo/light.svg"
@@ -7,14 +8,14 @@
   "favicon": "/favicon.svg",
   "theme": "mint",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373"
+    "primary": "#6366F1",
+    "light": "#818CF8",
+    "dark": "#4F46E5"
   },
   "topbarLinks": [
     {
       "name": "Support",
-      "url": "mailto:support@kombisphere.io"
+      "url": "mailto:support@kombify.dev"
     }
   ],
   "topbarCtaButton": {
@@ -23,119 +24,117 @@
   },
   "tabs": [
     {
-      "tab": "Open Core Tools",
-      "icon": "box-open",
+      "tab": "kombify Stack",
+      "icon": "server",
       "pages": [
         {
-          "group": "KombiStack",
-          "icon": "layer-group",
+          "group": "Overview",
           "pages": [
-            "tools/kombistack/overview",
-            "tools/kombistack/quickstart",
-            "tools/kombistack/installation",
-            "tools/kombistack/architecture",
-            "tools/kombistack/configuration",
-            "tools/kombistack/api-reference"
+            "stack/overview",
+            "stack/quickstart"
           ]
         },
         {
-          "group": "KombiSim",
-          "icon": "flask",
+          "group": "Installation",
           "pages": [
-            "tools/kombisim/overview",
-            "tools/kombisim/quickstart",
-            "tools/kombisim/installation",
-            "tools/kombisim/templates",
-            "tools/kombisim/api-reference"
+            "stack/install/docker",
+            "stack/install/kubernetes",
+            "stack/install/bare-metal"
           ]
         },
         {
-          "group": "StackKits",
-          "icon": "boxes-stacked",
+          "group": "Configuration",
           "pages": [
-            "tools/stackkits/overview",
-            "tools/stackkits/quickstart",
-            "tools/stackkits/available-kits",
-            "tools/stackkits/creating-stackkits",
-            "tools/stackkits/cli-reference"
+            "stack/configuration",
+            "stack/agents",
+            "stack/unifier",
+            "stack/troubleshooting"
           ]
         }
       ]
     },
     {
-      "tab": "SaaS Platform",
+      "tab": "kombify Sim",
+      "icon": "flask",
+      "pages": [
+        {
+          "group": "Overview",
+          "pages": [
+            "sim/overview",
+            "sim/quickstart"
+          ]
+        },
+        {
+          "group": "Installation",
+          "pages": [
+            "sim/install/docker",
+            "sim/install/compose"
+          ]
+        },
+        {
+          "group": "Usage",
+          "pages": [
+            "sim/configuration",
+            "sim/templates",
+            "sim/ssh",
+            "sim/troubleshooting"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "kombify StackKits",
+      "icon": "boxes-stacked",
+      "pages": [
+        {
+          "group": "Overview",
+          "pages": [
+            "stackkits/overview",
+            "stackkits/quickstart"
+          ]
+        },
+        {
+          "group": "Built-in StackKits",
+          "pages": [
+            "stackkits/builtin/base-homelab",
+            "stackkits/builtin/ha-homelab",
+            "stackkits/builtin/modern-homelab"
+          ]
+        },
+        {
+          "group": "Advanced",
+          "pages": [
+            "stackkits/writing-cue",
+            "stackkits/custom"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "kombify Sphere",
       "icon": "cloud",
       "pages": [
         {
-          "group": "KombiSphere Cloud",
-          "icon": "globe",
+          "group": "Overview",
           "pages": [
-            "saas/cloud/overview",
-            "saas/cloud/getting-started",
-            "saas/cloud/authentication",
-            "saas/cloud/subscriptions",
-            "saas/cloud/tool-launcher"
-          ]
-        },
-        {
-          "group": "Admin Center",
-          "icon": "shield-halved",
-          "pages": [
-            "saas/admin/overview",
-            "saas/admin/tool-evaluation",
-            "saas/admin/pattern-management",
-            "saas/admin/stackkit-management"
-          ]
-        },
-        {
-          "group": "API Gateway",
-          "icon": "route",
-          "pages": [
-            "saas/api/overview",
-            "saas/api/authentication",
-            "saas/api/rate-limits",
-            "saas/api/endpoints"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "Guides",
-      "icon": "book-open",
-      "pages": [
-        {
-          "group": "Getting started",
-          "pages": [
-            "guides/introduction",
-            "guides/architecture",
-            "guides/choosing-deployment"
-          ]
-        },
-        {
-          "group": "Self-hosting",
-          "pages": [
-            "guides/self-hosting/docker-compose",
-            "guides/self-hosting/kubernetes",
-            "guides/self-hosting/configuration",
-            "guides/self-hosting/security"
+            "sphere/overview",
+            "sphere/getting-started"
           ]
         },
         {
           "group": "Authentication",
           "pages": [
-            "guides/auth/overview",
-            "guides/auth/zitadel-setup",
-            "guides/auth/sso-integration",
-            "guides/auth/api-keys"
+            "sphere/auth/sso",
+            "sphere/auth/api-tokens"
           ]
         },
         {
-          "group": "Deployment",
+          "group": "Features",
           "pages": [
-            "guides/deployment/production-checklist",
-            "guides/deployment/coolify",
-            "guides/deployment/docker",
-            "guides/deployment/monitoring"
+            "sphere/dashboard",
+            "sphere/stacks",
+            "sphere/simulations",
+            "sphere/billing"
           ]
         }
       ]
@@ -145,30 +144,36 @@
       "icon": "code",
       "pages": [
         {
-          "group": "KombiStack API",
+          "group": "Getting Started",
           "pages": [
-            "api/kombistack/overview",
-            "api/kombistack/stacks",
-            "api/kombistack/workers",
-            "api/kombistack/jobs"
+            "api-reference/introduction",
+            "api-reference/authentication"
           ]
         },
         {
-          "group": "KombiSim API",
+          "group": "kombify Stack API",
           "pages": [
-            "api/kombisim/overview",
-            "api/kombisim/simulations",
-            "api/kombisim/nodes",
-            "api/kombisim/templates"
+            "api-reference/stack/overview",
+            "api-reference/stack/stacks",
+            "api-reference/stack/nodes",
+            "api-reference/stack/jobs"
           ]
         },
         {
-          "group": "KombiSphere API",
+          "group": "kombify Sim API",
           "pages": [
-            "api/kombisphere/overview",
-            "api/kombisphere/authentication",
-            "api/kombisphere/tools",
-            "api/kombisphere/subscriptions"
+            "api-reference/sim/overview",
+            "api-reference/sim/simulations",
+            "api-reference/sim/nodes",
+            "api-reference/sim/templates"
+          ]
+        },
+        {
+          "group": "kombify StackKits API",
+          "pages": [
+            "api-reference/stackkits/overview",
+            "api-reference/stackkits/validate",
+            "api-reference/stackkits/generate"
           ]
         }
       ]
@@ -178,12 +183,17 @@
     {
       "anchor": "GitHub",
       "icon": "github",
-      "href": "https://github.com/KombiverseLabs"
+      "href": "https://github.com/kombify"
     },
     {
       "anchor": "Community",
-      "icon": "slack",
-      "href": "https://discord.gg/kombisphere"
+      "icon": "discord",
+      "href": "https://discord.gg/kombify"
+    },
+    {
+      "anchor": "Blog",
+      "icon": "newspaper",
+      "href": "https://kombify.dev/blog"
     }
   ],
   "navigation": {
@@ -193,22 +203,40 @@
         "pages": [
           "introduction",
           "quickstart",
-          "ecosystem"
+          "quickstart-selfhosted"
         ]
       },
       {
-        "group": "Core concepts",
+        "group": "Concepts",
         "pages": [
-          "concepts/spec-driven-architecture",
-          "concepts/hybrid-infrastructure",
-          "concepts/stackkits-system",
-          "concepts/simulation-first"
+          "concepts/architecture",
+          "concepts/spec-driven",
+          "concepts/unifier",
+          "concepts/stackkits-explained",
+          "concepts/security"
+        ]
+      },
+      {
+        "group": "Integrations",
+        "pages": [
+          "integrations/zitadel",
+          "integrations/coolify",
+          "integrations/proxmox"
+        ]
+      },
+      {
+        "group": "Resources",
+        "pages": [
+          "changelog",
+          "contributing",
+          "community"
         ]
       }
     ]
   },
   "footerSocials": {
-    "github": "https://github.com/KombiverseLabs",
-    "twitter": "https://twitter.com/kombisphere"
+    "x": "https://x.com/kombifydev",
+    "github": "https://github.com/kombify",
+    "discord": "https://discord.gg/kombify"
   }
 }

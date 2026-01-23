@@ -1,33 +1,247 @@
 ---
-title: 'Introduction'
-description: 'Example section for showcasing API endpoints'
+title: API introduction
+description: Getting started with the kombify API
 ---
 
-<Note>
-  If you're not looking to build API reference documentation, you can delete
-  this section by removing the api-reference folder.
-</Note>
+# API introduction
 
-## Welcome
+The kombify API provides programmatic access to all kombify tools: Stack, Sim, StackKits, and Sphere.
 
-There are two ways to build API documentation: [OpenAPI](https://mintlify.com/docs/api-playground/openapi/setup) and [MDX components](https://mintlify.com/docs/api-playground/mdx/configuration). For the starter kit, we are using the following OpenAPI specification.
+## Base URLs
 
-<Card
-  title="Plant Store Endpoints"
-  icon="leaf"
-  href="https://github.com/mintlify/starter/blob/main/api-reference/openapi.json"
->
-  View the OpenAPI specification file
-</Card>
+| Service | Base URL | Purpose |
+|---------|----------|---------|
+| **kombify Stack** | `http://localhost:5260/api/v1` | Infrastructure orchestration |
+| **kombify Sim** | `http://localhost:5270/api/v1` | Simulation management |
+| **kombify Sphere** | `https://api.kombisphere.io/v1` | SaaS platform |
 
 ## Authentication
 
-All API endpoints are authenticated using Bearer tokens and picked up from the specification file.
+### Bearer token
+
+All API requests require authentication via Bearer token:
+
+```bash
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  https://api.kombisphere.io/v1/stacks
+```
+
+### Getting a token
+
+<Tabs>
+  <Tab title="Sphere (SaaS)">
+    Generate an API token in the Sphere dashboard:
+    
+    1. Go to **Settings** → **API Tokens**
+    2. Click **"Generate Token"**
+    3. Copy the token (shown only once)
+    
+    ```bash
+    export KOMBIFY_TOKEN="kb_..."
+    ```
+  </Tab>
+
+  <Tab title="Self-hosted">
+    Use PocketBase admin credentials or create an API token:
+    
+    ```bash
+    # Login to get token
+    curl -X POST http://localhost:5260/api/collections/users/auth-with-password \
+      -H "Content-Type: application/json" \
+      -d '{
+        "identity": "admin@kombistack.local",
+        "password": "your-password"
+      }'
+    ```
+  </Tab>
+</Tabs>
+
+## Rate limits
+
+| Plan | Requests/minute | Burst |
+|------|----------------|-------|
+| **Free** | 60 | 100 |
+| **Pro** | 300 | 500 |
+| **Enterprise** | Unlimited | Unlimited |
+
+Rate limit headers:
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 59
+X-RateLimit-Reset: 1640000000
+```
+
+## Response format
+
+### Success response
 
 ```json
-"security": [
-  {
-    "bearerAuth": []
+{
+  "success": true,
+  "data": {
+    "id": "stack_abc123",
+    "name": "my-homelab",
+    "status": "running"
   }
-]
+}
 ```
+
+### Error response
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid configuration",
+    "details": {
+      "field": "services.traefik",
+      "issue": "Missing required field: domain"
+    }
+  }
+}
+```
+
+## Error codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `UNAUTHORIZED` | 401 | Invalid or missing token |
+| `FORBIDDEN` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource not found |
+| `VALIDATION_ERROR` | 400 | Invalid request data |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+
+## Pagination
+
+List endpoints support pagination:
+
+```bash
+curl "https://api.kombisphere.io/v1/stacks?page=1&perPage=20" \
+  -H "Authorization: Bearer YOUR_TOKEN"
+```
+
+Response includes pagination metadata:
+
+```json
+{
+  "success": true,
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "perPage": 20,
+    "totalPages": 5,
+    "totalItems": 100
+  }
+}
+```
+
+## Filtering
+
+Filter results with query parameters:
+
+```bash
+# Filter by status
+curl "https://api.kombisphere.io/v1/stacks?status=running"
+
+# Filter by multiple fields
+curl "https://api.kombisphere.io/v1/stacks?status=running&stackkit=base-homelab"
+```
+
+## Sorting
+
+Sort results with the `sort` parameter:
+
+```bash
+# Sort by created date (descending)
+curl "https://api.kombisphere.io/v1/stacks?sort=-created"
+
+# Sort by name (ascending)
+curl "https://api.kombisphere.io/v1/stacks?sort=name"
+```
+
+## Webhooks
+
+Subscribe to events via webhooks:
+
+```bash
+curl -X POST https://api.kombisphere.io/v1/webhooks \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "url": "https://your-app.com/webhooks",
+    "events": ["stack.created", "stack.updated", "stack.deleted"]
+  }'
+```
+
+Available events:
+- `stack.created`
+- `stack.updated`
+- `stack.deleted`
+- `stack.deployed`
+- `simulation.created`
+- `simulation.deleted`
+
+## SDKs
+
+<CardGroup cols={3}>
+  <Card title="JavaScript/TypeScript" icon="js">
+    ```bash
+    npm install @kombify/sdk
+    ```
+  </Card>
+  <Card title="Python" icon="python">
+    ```bash
+    pip install kombify-sdk
+    ```
+  </Card>
+  <Card title="Go" icon="golang">
+    ```bash
+    go get github.com/kombify/sdk-go
+    ```
+  </Card>
+</CardGroup>
+
+## Quick example
+
+```javascript
+import { KombifyClient } from '@kombify/sdk';
+
+const client = new KombifyClient({
+  token: process.env.KOMBIFY_TOKEN,
+  baseUrl: 'https://api.kombisphere.io/v1'
+});
+
+// List stacks
+const stacks = await client.stacks.list();
+
+// Create a stack
+const stack = await client.stacks.create({
+  name: 'my-homelab',
+  stackkit: 'base-homelab',
+  config: {
+    domain: 'home.local'
+  }
+});
+
+// Deploy
+await client.stacks.deploy(stack.id);
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Stack API" icon="server" href="/api-reference/stack/overview">
+    Manage infrastructure
+  </Card>
+  <Card title="Sim API" icon="flask" href="/api-reference/sim/overview">
+    Manage simulations
+  </Card>
+  <Card title="StackKits API" icon="boxes-stacked" href="/api-reference/stackkits/overview">
+    Validate and generate
+  </Card>
+  <Card title="Authentication" icon="key" href="/api-reference/authentication">
+    Learn about auth
+  </Card>
+</CardGroup>

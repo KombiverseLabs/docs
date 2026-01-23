@@ -1,0 +1,283 @@
+---
+title: Architecture overview
+description: How kombify components work together
+---
+
+# Architecture overview
+
+kombify is a suite of tools that work together to simplify infrastructure management through a spec-driven approach.
+
+## System overview
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        kombify Ecosystem                         │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │                   kombify Sphere (SaaS)                     │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │ │
+│  │  │   SSO    │  │ Billing  │  │   Tool   │  │   Team   │   │ │
+│  │  │ (Zitadel)│  │ (Stripe) │  │ Launcher │  │   Mgmt   │   │ │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                              │                                   │
+│                              ▼                                   │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │                    kombify Stack (Core)                     │ │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │ │
+│  │  │ Unifier  │  │   gRPC   │  │ OpenTofu │  │PocketBase│   │ │
+│  │  │  Engine  │  │  Server  │  │  Runner  │  │   (DB)   │   │ │
+│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                              │                                   │
+│         ┌────────────────────┼────────────────────┐             │
+│         ▼                    ▼                    ▼             │
+│  ┌──────────┐        ┌──────────┐        ┌──────────┐          │
+│  │ kombify  │        │ kombify  │        │  Worker  │          │
+│  │   Sim    │        │StackKits │        │  Agents  │          │
+│  │(Testing) │        │(Schemas) │        │ (Nodes)  │          │
+│  └──────────┘        └──────────┘        └──────────┘          │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+## Core components
+
+### kombify Stack
+
+The orchestration engine that manages your infrastructure.
+
+**Responsibilities:**
+- Parse and validate `kombination.yaml`
+- Manage worker agents via gRPC
+- Generate OpenTofu code
+- Execute deployments
+- Track state in PocketBase
+
+**Tech:** Go, PocketBase, SvelteKit
+
+### kombify Sim
+
+The simulation engine for testing configurations.
+
+**Responsibilities:**
+- Create Docker-based simulation nodes
+- Provide SSH access to simulated servers
+- Apply templates for common setups
+- Validate configurations before deployment
+
+**Tech:** Go, Docker, SvelteKit
+
+### kombify StackKits
+
+Pre-validated infrastructure blueprints.
+
+**Responsibilities:**
+- Define service schemas with CUE
+- Provide default configurations
+- Enforce constraints and dependencies
+- Enable customization through inheritance
+
+**Tech:** CUE, YAML
+
+### kombify Sphere
+
+The managed SaaS platform (optional).
+
+**Responsibilities:**
+- User authentication (Zitadel OIDC)
+- Subscription management (Stripe)
+- Tool launcher with SSO
+- Team collaboration features
+
+**Tech:** SvelteKit, PostgreSQL, Zitadel, Stripe
+
+## Data flow
+
+### Deployment flow
+
+```
+1. User writes kombination.yaml
+         │
+         ▼
+2. kombify Stack validates with CUE (StackKits)
+         │
+         ▼
+3. Unifier resolves dependencies and defaults
+         │
+         ▼
+4. OpenTofu code is generated
+         │
+         ▼
+5. Agents execute on target nodes
+         │
+         ▼
+6. Infrastructure is deployed
+```
+
+### Simulation flow
+
+```
+1. User creates simulation in kombify Sim
+         │
+         ▼
+2. Docker containers are created as "VMs"
+         │
+         ▼
+3. User tests configuration via SSH
+         │
+         ▼
+4. If successful, deploy to real hardware via Stack
+```
+
+## Communication
+
+### Stack ↔ Agents
+
+- **Protocol:** gRPC with mTLS
+- **Port:** 5263
+- **Purpose:** Command execution, heartbeats, status updates
+
+### Stack ↔ Sphere
+
+- **Protocol:** HTTP REST + JWT
+- **Purpose:** SSO token exchange, user sync, feature flags
+
+### User ↔ Stack
+
+- **Protocol:** HTTP REST
+- **Port:** 5260 (API), 5261 (UI)
+- **Purpose:** Stack management, configuration
+
+### User ↔ Sim
+
+- **Protocol:** HTTP REST + SSH
+- **Ports:** 5270 (API), 5271 (UI), 2222-2322 (SSH)
+- **Purpose:** Simulation management, testing
+
+## Deployment models
+
+### Self-hosted (Open Core)
+
+```
+Your Infrastructure
+├── kombify Stack (Docker)
+├── kombify Sim (Docker, optional)
+└── Worker Agents (on nodes)
+```
+
+**Pros:**
+- Full control
+- No subscription costs
+- Data stays local
+- Customizable
+
+**Cons:**
+- You manage updates
+- No enterprise features
+- Self-support
+
+### Managed SaaS
+
+```
+kombify Sphere (Cloud)
+├── Hosted Stack instances
+├── Hosted Sim instances
+└── Your agents connect via internet
+```
+
+**Pros:**
+- Managed updates
+- Enterprise features
+- Team collaboration
+- Support included
+
+**Cons:**
+- Subscription cost
+- Data in cloud
+- Less customization
+
+### Hybrid
+
+```
+Your Infrastructure
+├── kombify Stack (self-hosted)
+└── Worker Agents (on nodes)
+     │
+     └─ Connected to Sphere for SSO/management
+```
+
+**Pros:**
+- Data stays local
+- Enterprise SSO
+- Managed updates (optional)
+- Best of both worlds
+
+**Cons:**
+- More complex setup
+- Requires internet connection
+
+## Security
+
+### Authentication
+
+- **Sphere:** Zitadel OIDC (OAuth 2.0 + OpenID Connect)
+- **Stack:** JWT tokens (from Sphere) or local auth
+- **Agents:** mTLS certificates
+
+### Authorization
+
+- **Role-based access control (RBAC)**
+  - User: Basic access
+  - Manager: Team management
+  - Admin: Full access
+
+### Network security
+
+- **Agent communication:** mTLS (mutual TLS)
+- **API access:** HTTPS with JWT
+- **SSH access (Sim):** Password or key-based
+
+### Data security
+
+- **At rest:** Encrypted SQLite (PocketBase)
+- **In transit:** TLS 1.3
+- **Secrets:** Doppler integration (optional)
+
+## Scalability
+
+### Single homelab
+
+- 1 Stack instance
+- 1-10 nodes
+- 10-50 services
+
+### Multiple homelabs
+
+- Multiple Stack instances
+- Managed via Sphere
+- Shared StackKits
+
+### Enterprise
+
+- Dedicated Stack instances
+- Custom StackKits
+- Priority support
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Spec-driven infrastructure" icon="file-code" href="/concepts/spec-driven">
+    Learn the core concept
+  </Card>
+  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits-explained">
+    Understand blueprints
+  </Card>
+  <Card title="Security model" icon="shield" href="/concepts/security">
+    Learn about security
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/quickstart">
+    Get started now
+  </Card>
+</CardGroup>
