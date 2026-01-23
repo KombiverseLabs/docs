@@ -1,0 +1,22 @@
+{
+  "name": "kombify-docs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "kombify platform documentation (Mintlify)",
+  "scripts": {
+    "dev": "mintlify dev",
+    "dev:clean": "mintlify dev --clear-cache",
+    "validate": "npx @mintlify/validation",
+    "validate:frontmatter": "node scripts/validate-frontmatter.js",
+    "validate:links": "node scripts/check-links.js",
+    "validate:orphans": "node scripts/check-orphaned-pages.js",
+    "validate:navigation": "node scripts/navigation-coverage.js",
+    "validate:all": "node scripts/validate-frontmatter.js && node scripts/check-links.js && node scripts/check-orphaned-pages.js && node scripts/navigation-coverage.js",
+    "lint": "npm run validate:all"
+  },
+  "devDependencies": {
+    "mintlify": "^4.0.0",
+    "gray-matter": "^4.0.3",
+    "glob": "^11.0.0"
+  }
+}

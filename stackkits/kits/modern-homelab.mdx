@@ -1,0 +1,591 @@
+---
+title: modern-homelab StackKit
+description: Cloud-native Kubernetes infrastructure for advanced homelabs
+sidebarTitle: modern-homelab
+icon: microchip
+---
+
+# modern-homelab StackKit
+
+The **modern-homelab** StackKit brings cloud-native Kubernetes infrastructure to your homelab. Designed for power users who want GitOps, auto-scaling, and full observability.
+
+## Overview
+
+```mermaid
+graph TB
+    subgraph Cluster["K3s Cluster"]
+        subgraph CP["Control Plane"]
+            API["API Server"]
+            ETCD["etcd"]
+            Sched["Scheduler"]
+        end
+        
+        subgraph Workers["Worker Nodes"]
+            W1["Worker 1"]
+            W2["Worker 2"]
+            W3["Worker 3"]
+        end
+        
+        subgraph Platform["Platform Services"]
+            Flux["FluxCD<br/>GitOps"]
+            Traefik["Traefik<br/>Ingress"]
+            Cert["cert-manager<br/>TLS"]
+        end
+        
+        subgraph Observability["Observability Stack"]
+            Prom["Prometheus"]
+            Graf["Grafana"]
+            Loki["Loki"]
+        end
+    end
+    
+    Git["Git Repository"]
+    User["User"]
+    
+    Git -->|Reconcile| Flux
+    Flux --> Workers
+    User -->|kubectl| API
+    API --> Workers
+    Workers --> Platform
+    Workers --> Observability
+    
+    style Cluster fill:#f0f9ff,stroke:#0369a1
+    style CP fill:#fef3c7,stroke:#d97706
+    style Workers fill:#d1fae5,stroke:#059669
+    style Platform fill:#e0e7ff,stroke:#6366f1
+    style Observability fill:#fce7f3,stroke:#db2777
+```
+
+## Key Features
+
+<CardGroup cols={3}>
+  <Card title="K3s Kubernetes" icon="dharmachakra">
+    Lightweight, production-grade Kubernetes
+  </Card>
+  <Card title="GitOps with Flux" icon="code-branch">
+    Declarative infrastructure from Git
+  </Card>
+  <Card title="Auto-Scaling" icon="arrows-up-down">
+    Scale workloads based on demand
+  </Card>
+  <Card title="Full Observability" icon="chart-line">
+    Prometheus, Grafana, Loki stack
+  </Card>
+  <Card title="Service Mesh Ready" icon="network-wired">
+    Optional Linkerd integration
+  </Card>
+  <Card title="Persistent Storage" icon="hard-drive">
+    Longhorn distributed storage
+  </Card>
+</CardGroup>
+
+## Requirements
+
+| Resource | Per Node | Minimum Cluster |
+|----------|----------|-----------------|
+| **Nodes** | 1 control + 2 workers | 3 total |
+| **CPU** | 4 cores | 12 cores |
+| **RAM** | 8 GB | 24 GB |
+| **Storage** | 50 GB SSD | 150 GB |
+| **Network** | 1 Gbps | Same subnet |
+
+<Warning>
+  modern-homelab has higher resource requirements than other StackKits. Ensure your hardware meets the minimums.
+</Warning>
+
+## Architecture Deep Dive
+
+### GitOps Workflow
+
+```mermaid
+sequenceDiagram
+    participant Dev as Developer
+    participant Git as Git Repository
+    participant Flux as FluxCD
+    participant K8s as Kubernetes
+    
+    Dev->>Git: Push changes
+    Git->>Flux: Webhook notification
+    Flux->>Git: Pull manifests
+    Flux->>K8s: Apply changes
+    K8s->>K8s: Reconcile state
+    Flux->>Git: Update status
+    
+    Note over Flux,K8s: Continuous reconciliation
+    loop Every 1 minute
+        Flux->>Git: Check for drift
+        Flux->>K8s: Correct any drift
+    end
+```
+
+### Storage Architecture
+
+```mermaid
+graph TB
+    subgraph Apps["Applications"]
+        App1["App 1"]
+        App2["App 2"]
+        App3["App 3"]
+    end
+    
+    subgraph Storage["Longhorn Storage"]
+        PVC1["PVC"]
+        PVC2["PVC"]
+        PVC3["PVC"]
+        
+        subgraph Replicas["Data Replication"]
+            R1["Replica<br/>Node 1"]
+            R2["Replica<br/>Node 2"]
+            R3["Replica<br/>Node 3"]
+        end
+    end
+    
+    App1 --> PVC1
+    App2 --> PVC2
+    App3 --> PVC3
+    
+    PVC1 --> Replicas
+    PVC2 --> Replicas
+    PVC3 --> Replicas
+    
+    style Apps fill:#dbeafe,stroke:#2563eb
+    style Storage fill:#d1fae5,stroke:#059669
+    style Replicas fill:#fef3c7,stroke:#d97706
+```
+
+## Quick Start
+
+<Steps>
+  <Step title="Define your cluster">
+    ```yaml kombination.yaml
+    stackkit: modern-homelab
+    
+    domain: k8s.homelab.local
+    email: you@example.com
+    
+    cluster:
+      name: homelab
+      version: "1.29"  # K3s version
+      
+    nodes:
+      - name: control-1
+        ip: 192.168.1.10
+        role: control-plane
+        
+      - name: worker-1
+        ip: 192.168.1.11
+        role: worker
+        
+      - name: worker-2
+        ip: 192.168.1.12
+        role: worker
+    ```
+  </Step>
+  
+  <Step title="Configure GitOps">
+    ```yaml
+    gitops:
+      enabled: true
+      provider: flux
+      repository:
+        url: git@github.com:you/homelab-config.git
+        branch: main
+        path: clusters/homelab
+    ```
+  </Step>
+  
+  <Step title="Enable platform services">
+    ```yaml
+    services:
+      # Ingress
+      traefik:
+        enabled: true
+        replicas: 2
+        
+      # TLS
+      cert-manager:
+        enabled: true
+        issuer: letsencrypt-prod
+        
+      # Storage
+      longhorn:
+        enabled: true
+        replicas: 2
+        
+      # Observability
+      prometheus:
+        enabled: true
+        retention: 15d
+        
+      grafana:
+        enabled: true
+        
+      loki:
+        enabled: true
+        retention: 7d
+    ```
+  </Step>
+  
+  <Step title="Deploy cluster">
+    ```bash
+    kombify validate
+    kombify generate
+    kombify deploy
+    ```
+  </Step>
+</Steps>
+
+## Configuration Reference
+
+### Cluster Options
+
+```yaml
+cluster:
+  name: homelab
+  version: "1.29"
+  
+  # High availability control plane
+  ha:
+    enabled: true
+    datastore: etcd  # or "embedded" for single control-plane
+    
+  # Network plugin
+  cni: flannel  # flannel, calico, cilium
+  
+  # Feature gates
+  features:
+    - GracefulNodeShutdown
+    - PodDisruptionConditions
+```
+
+### Node Configuration
+
+```yaml
+nodes:
+  - name: control-1
+    ip: 192.168.1.10
+    role: control-plane
+    taints:
+      - "node-role.kubernetes.io/control-plane:NoSchedule"
+    
+  - name: worker-1
+    ip: 192.168.1.11
+    role: worker
+    labels:
+      node-type: compute
+      
+  - name: worker-2
+    ip: 192.168.1.12
+    role: worker
+    labels:
+      node-type: storage
+      longhorn-node: "true"
+```
+
+### GitOps Configuration
+
+<Tabs>
+  <Tab title="FluxCD (Default)">
+    ```yaml
+    gitops:
+      enabled: true
+      provider: flux
+      repository:
+        url: git@github.com:you/homelab-config.git
+        branch: main
+        path: clusters/homelab
+      interval: 1m
+      prune: true
+    ```
+  </Tab>
+  <Tab title="ArgoCD">
+    ```yaml
+    gitops:
+      enabled: true
+      provider: argocd
+      repository:
+        url: https://github.com/you/homelab-config.git
+        branch: main
+        path: clusters/homelab
+      sync:
+        automated: true
+        prune: true
+        selfHeal: true
+    ```
+  </Tab>
+</Tabs>
+
+## Platform Components
+
+### Ingress & Networking
+
+```mermaid
+graph LR
+    Internet["Internet"]
+    
+    subgraph Edge["Edge"]
+        LB["MetalLB<br/>Load Balancer"]
+    end
+    
+    subgraph Ingress["Ingress Layer"]
+        Traefik["Traefik<br/>Ingress Controller"]
+        Cert["cert-manager<br/>TLS Certificates"]
+    end
+    
+    subgraph Apps["Applications"]
+        App1["grafana.homelab.local"]
+        App2["nextcloud.homelab.local"]
+        App3["home.homelab.local"]
+    end
+    
+    Internet --> LB
+    LB --> Traefik
+    Traefik --> Cert
+    Traefik --> Apps
+    
+    style Edge fill:#fee2e2,stroke:#dc2626
+    style Ingress fill:#dbeafe,stroke:#2563eb
+    style Apps fill:#d1fae5,stroke:#059669
+```
+
+### Observability Stack
+
+| Component | Purpose | Default Config |
+|-----------|---------|----------------|
+| Prometheus | Metrics collection | 15d retention |
+| Grafana | Visualization | Pre-built dashboards |
+| Loki | Log aggregation | 7d retention |
+| Promtail | Log shipping | DaemonSet |
+| Alertmanager | Alert routing | Slack/Discord/Email |
+
+```yaml
+observability:
+  prometheus:
+    retention: 15d
+    storage: 50Gi
+    scrapeInterval: 30s
+    
+  grafana:
+    dashboards:
+      - kubernetes-cluster
+      - node-exporter
+      - traefik
+      - longhorn
+      
+  alertmanager:
+    receivers:
+      - name: discord
+        webhook: https://discord.com/api/webhooks/xxx
+      - name: email
+        to: alerts@example.com
+```
+
+## Deploying Applications
+
+With GitOps, you deploy applications by adding manifests to your Git repository:
+
+```yaml
+# clusters/homelab/apps/homepage.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: homepage
+---
+apiVersion: helm.toolkit.fluxcd.io/v2beta1
+kind: HelmRelease
+metadata:
+  name: homepage
+  namespace: homepage
+spec:
+  interval: 5m
+  chart:
+    spec:
+      chart: homepage
+      version: "1.x"
+      sourceRef:
+        kind: HelmRepository
+        name: homepage
+        namespace: flux-system
+  values:
+    ingress:
+      enabled: true
+      hosts:
+        - host: home.homelab.local
+          paths:
+            - path: /
+```
+
+Commit and push—Flux handles the rest:
+
+```bash
+git add .
+git commit -m "Add homepage application"
+git push
+# Flux automatically deploys within 1 minute
+```
+
+## Scaling
+
+### Horizontal Pod Autoscaling
+
+```yaml
+services:
+  myapp:
+    autoscaling:
+      enabled: true
+      minReplicas: 2
+      maxReplicas: 10
+      metrics:
+        - type: cpu
+          target: 80
+        - type: memory
+          target: 80
+```
+
+### Adding Worker Nodes
+
+```yaml
+# Add to kombination.yaml
+nodes:
+  # ... existing nodes
+  
+  - name: worker-3
+    ip: 192.168.1.13
+    role: worker
+    labels:
+      node-type: compute
+```
+
+```bash
+kombify deploy --node worker-3
+```
+
+## Security
+
+### Network Policies
+
+```yaml
+security:
+  networkPolicies:
+    enabled: true
+    defaultDeny: true  # Deny all by default
+    
+  # Pod Security Standards
+  podSecurity:
+    enforce: baseline
+    audit: restricted
+    warn: restricted
+```
+
+### Secrets Management
+
+```yaml
+security:
+  secrets:
+    provider: sealed-secrets  # or vault, external-secrets
+    
+  # If using Sealed Secrets
+  sealedSecrets:
+    enabled: true
+```
+
+## Monitoring Dashboard
+
+Pre-configured Grafana dashboards:
+
+```mermaid
+graph TB
+    subgraph Dashboards["Grafana Dashboards"]
+        D1["Kubernetes Cluster<br/>Overall health"]
+        D2["Node Exporter<br/>Hardware metrics"]
+        D3["Traefik<br/>Ingress traffic"]
+        D4["Longhorn<br/>Storage health"]
+        D5["Flux<br/>GitOps status"]
+    end
+    
+    Prom["Prometheus"] --> Dashboards
+    Loki["Loki"] --> Dashboards
+    
+    style Dashboards fill:#fef3c7,stroke:#d97706
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Pods stuck in Pending">
+    1. Check node resources: `kubectl describe nodes`
+    2. Verify PVC binding: `kubectl get pvc -A`
+    3. Check for taints: `kubectl get nodes -o jsonpath='{.items[*].spec.taints}'`
+  </Accordion>
+  
+  <Accordion title="GitOps not syncing">
+    1. Check Flux logs: `kubectl logs -n flux-system deploy/source-controller`
+    2. Verify Git credentials: `kubectl get secrets -n flux-system`
+    3. Check repository status: `flux get sources git`
+  </Accordion>
+  
+  <Accordion title="Storage issues">
+    1. Check Longhorn UI: `kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80`
+    2. Verify disk space on nodes
+    3. Check replica health: `kubectl get volumes.longhorn.io -A`
+  </Accordion>
+</AccordionGroup>
+
+## Migration from ha-homelab
+
+<Warning>
+  Migration from Docker to Kubernetes requires data migration planning. Backup everything first!
+</Warning>
+
+<Steps>
+  <Step title="Backup all data">
+    ```bash
+    kombify backup --all --output ./backup
+    ```
+  </Step>
+  
+  <Step title="Update kombination.yaml">
+    ```yaml
+    stackkit: modern-homelab  # Changed!
+    
+    cluster:
+      name: homelab
+      
+    nodes:
+      - name: control-1
+        ip: 192.168.1.10  # Can reuse existing IPs
+        role: control-plane
+    # ...
+    ```
+  </Step>
+  
+  <Step title="Deploy new cluster">
+    ```bash
+    kombify generate
+    kombify deploy
+    ```
+  </Step>
+  
+  <Step title="Restore data">
+    ```bash
+    kombify restore --from ./backup
+    ```
+  </Step>
+</Steps>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="GitOps Guide" icon="code-branch" href="/guides/gitops">
+    Deep dive into GitOps workflows
+  </Card>
+  <Card title="Monitoring Setup" icon="chart-line" href="/guides/monitoring">
+    Configure comprehensive monitoring
+  </Card>
+  <Card title="Backup Strategy" icon="cloud-arrow-up" href="/guides/backups">
+    Protect your Kubernetes data
+  </Card>
+  <Card title="Security Hardening" icon="shield" href="/guides/security">
+    Secure your cluster
+  </Card>
+</CardGroup>

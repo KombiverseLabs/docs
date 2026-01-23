@@ -1,0 +1,104 @@
+---
+title: Stack Configuration
+description: Configure kombify Stack for your environment
+sidebarTitle: Configuration
+icon: gear
+---
+
+# Stack Configuration
+
+Configure Stack using environment variables, config files, or the web UI.
+
+## Environment Variables
+
+### Core Settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_PORT` | `5260` | API server port |
+| `KOMBISTACK_UI_PORT` | `5261` | Web UI port |
+| `KOMBISTACK_GRPC_PORT` | `5263` | Agent gRPC port |
+| `KOMBISTACK_DATA_DIR` | `./data` | Data directory |
+| `KOMBISTACK_LOG_LEVEL` | `info` | Log level |
+
+### Authentication
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_AUTH_ENABLED` | `false` | Enable authentication |
+| `KOMBISTACK_AUTH_PROVIDER` | `local` | Auth provider: local, oidc |
+| `KOMBISTACK_OIDC_ISSUER` | - | OIDC issuer URL |
+| `KOMBISTACK_OIDC_CLIENT_ID` | - | OIDC client ID |
+| `KOMBISTACK_OIDC_CLIENT_SECRET` | - | OIDC client secret |
+
+### TLS
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_TLS_ENABLED` | `false` | Enable TLS |
+| `KOMBISTACK_TLS_CERT` | - | TLS certificate path |
+| `KOMBISTACK_TLS_KEY` | - | TLS key path |
+| `KOMBISTACK_TLS_CA` | - | CA certificate path |
+
+## Configuration File
+
+```yaml
+# config.yaml
+server:
+  api_port: 5260
+  ui_port: 5261
+  grpc_port: 5263
+  host: 0.0.0.0
+
+database:
+  path: ./data/kombistack.db
+
+auth:
+  enabled: true
+  provider: oidc
+  oidc:
+    issuer: https://auth.example.com
+    client_id: kombistack
+    client_secret: ${OIDC_SECRET}
+
+tls:
+  enabled: true
+  cert: /etc/certs/server.crt
+  key: /etc/certs/server.key
+  ca: /etc/certs/ca.crt
+
+logging:
+  level: info
+  format: json
+
+unifier:
+  stackkits_path: /etc/kombistack/stackkits
+  
+tofu:
+  binary: /usr/local/bin/tofu
+  working_dir: /var/lib/kombistack/tofu
+```
+
+## Apply Configuration
+
+```bash
+# Via environment
+KOMBISTACK_LOG_LEVEL=debug ./kombistack serve
+
+# Via config file
+./kombistack serve --config /etc/kombistack/config.yaml
+
+# Via Docker
+docker run -v ./config.yaml:/etc/kombistack/config.yaml \
+  ghcr.io/kombify/stack:latest
+```
+
+## Dynamic Configuration
+
+Some settings can be changed at runtime via the API:
+
+```bash
+curl -X PATCH http://localhost:5260/api/v1/settings \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{"log_level": "debug"}'
+```

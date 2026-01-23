@@ -1,257 +1,244 @@
 ---
-title: What is kombify?
-description: The spec-driven infrastructure platform for homelabs and hybrid cloud
+title: Welcome to kombify
+description: The spec-driven homelab automation platform
+sidebarTitle: Introduction
 ---
 
-# What is kombify?
+<Card title="Get Started in 3 Minutes" icon="rocket" href="/quickstart" horizontal>
+  Deploy your first homelab stack with our quick start guide
+</Card>
 
-kombify is a **spec-driven infrastructure platform** that lets you define, simulate, and deploy your entire homelab in one YAML file. No more juggling docker-compose files, Terraform configs, and manual SSH sessions — just describe what you want, and kombify handles the rest.
+## What is kombify?
 
-<CardGroup cols={2}>
-  <Card
-    title="Quick start (SaaS)"
-    icon="rocket"
-    href="/quickstart"
-  >
-    Get started with kombify Sphere in 5 minutes
-  </Card>
-  <Card
-    title="Self-host"
-    icon="server"
-    href="/quickstart-selfhosted"
-  >
-    Run kombify Stack on your own infrastructure
-  </Card>
-  <Card
-    title="Architecture"
-    icon="sitemap"
-    href="/concepts/architecture"
-  >
-    Understand how kombify works
-  </Card>
-  <Card
-    title="Community"
-    icon="users"
-    href="/community"
-  >
-    Join the kombify community
-  </Card>
-</CardGroup>
+**kombify** is an open-source homelab automation platform that turns your infrastructure into code. Define your entire setup in a single YAML file, simulate it first, then deploy with confidence.
 
-## The kombify family
+```yaml kombination.yaml
+# Your entire homelab in one file
+stackkit: base-homelab
+nodes:
+  - name: proxmox-01
+    type: hypervisor
+services:
+  - traefik    # Reverse proxy with auto-SSL
+  - authelia   # Single sign-on
+  - immich     # Photo management
+  - homepage   # Dashboard
+```
 
-kombify is a suite of tools that work together to simplify infrastructure management:
+<Tip>
+  kombify validates your configuration, resolves dependencies automatically, and deploys using battle-tested Infrastructure as Code patterns.
+</Tip>
+
+## Choose Your Path
+
+<Columns cols={2}>
+  <Card title="Deploy a Homelab" icon="server" href="/stack/overview">
+    Use **kombify Stack** to provision and manage real infrastructure with agents
+  </Card>
+  <Card title="Test Configurations" icon="flask" href="/sim/overview">
+    Use **kombify Sim** to simulate your setup before deploying to real hardware
+  </Card>
+  <Card title="Browse Blueprints" icon="boxes-stacked" href="/stackkits/overview">
+    Use **StackKits** to start from pre-validated infrastructure blueprints
+  </Card>
+  <Card title="Managed Platform" icon="cloud" href="/sphere/overview">
+    Use **kombify Sphere** for hosted management with SSO and team features
+  </Card>
+</Columns>
+
+## How It Works
+
+```mermaid
+flowchart LR
+    subgraph User["👤 You"]
+        YAML["kombination.yaml"]
+    end
+    
+    subgraph Kombify["⚙️ kombify Stack"]
+        direction TB
+        Parse["Parse"]
+        Validate["Validate"]
+        Generate["Generate"]
+        Apply["Apply"]
+        Parse --> Validate --> Generate --> Apply
+    end
+    
+    subgraph Infrastructure["🖥️ Your Infrastructure"]
+        Node1["Server 1"]
+        Node2["Server 2"]
+        Services["Services"]
+    end
+    
+    YAML --> Parse
+    Apply --> Node1 & Node2
+    Node1 & Node2 --> Services
+    
+    style User fill:#f0f9ff,stroke:#0369a1
+    style Kombify fill:#fef3c7,stroke:#d97706
+    style Infrastructure fill:#dcfce7,stroke:#16a34a
+```
+
+<Steps>
+  <Step title="Define" icon="file-code">
+    Write your desired state in `kombination.yaml` — services, nodes, networks, storage
+  </Step>
+  <Step title="Validate" icon="check">
+    kombify validates against CUE schemas and checks dependencies
+  </Step>
+  <Step title="Simulate" icon="flask">
+    Test your configuration in Docker containers before touching real hardware
+  </Step>
+  <Step title="Deploy" icon="rocket">
+    Apply to your infrastructure with OpenTofu and gRPC agents
+  </Step>
+</Steps>
+
+## The kombify Ecosystem
+
+```mermaid
+graph TB
+    subgraph Sphere["☁️ kombify Sphere (SaaS)"]
+        SSO["Single Sign-On"]
+        Billing["Billing"]
+        Teams["Team Management"]
+    end
+    
+    subgraph Stack["🖥️ kombify Stack"]
+        direction TB
+        Unifier["Unifier Engine"]
+        gRPC["gRPC Server"]
+        ToFu["OpenTofu Runner"]
+        API["REST API"]
+    end
+    
+    subgraph Sim["🧪 kombify Sim"]
+        Docker["Docker Engine"]
+        Templates["Templates"]
+        SSH["SSH Access"]
+    end
+    
+    subgraph StackKits["📦 StackKits"]
+        Base["base-homelab"]
+        HA["ha-homelab"]
+        Modern["modern-homelab"]
+    end
+    
+    Sphere --> Stack
+    Stack --> StackKits
+    Sim --> StackKits
+    
+    style Sphere fill:#dbeafe,stroke:#2563eb
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Sim fill:#d1fae5,stroke:#059669
+    style StackKits fill:#fce7f3,stroke:#db2777
+```
 
 <AccordionGroup>
-  <Accordion title="kombify Stack - Hybrid control plane" icon="server">
-    The orchestration engine that manages your infrastructure. Define your desired state in `kombination.yaml`, and Stack handles validation, provisioning, and deployment.
+  <Accordion title="kombify Stack — Infrastructure Control Plane" icon="server">
+    The core orchestration engine that manages your homelab nodes. It reads your `kombination.yaml`, validates it with CUE schemas, and deploys using OpenTofu.
     
-    **Key features:**
-    - Spec-driven architecture with CUE validation
-    - Multi-node management via gRPC agents
-    - OpenTofu integration for IaC
-    - Embedded PocketBase for state management
+    **Key capabilities:**
+    - Multi-node management via lightweight gRPC agents
+    - Spec-driven infrastructure with CUE validation
+    - State management with embedded PocketBase
+    - OpenTofu integration for Infrastructure as Code
     
     **License:** MIT + AGPL-3.0 (Open Source)
+    
+    <Card title="Learn more about Stack" icon="arrow-right" href="/stack/overview" horizontal />
   </Accordion>
 
-  <Accordion title="kombify Sim - Simulation engine" icon="flask">
-    Test your infrastructure before deploying to real hardware. Sim creates lightweight Docker containers that simulate your entire homelab.
+  <Accordion title="kombify Sim — Simulation Engine" icon="flask">
+    Test your homelab configuration before deploying to real hardware. Sim creates Docker containers that behave like real servers.
     
-    **Key features:**
-    - Docker-based simulation nodes
-    - Real SSH access to simulated servers
+    **Key capabilities:**
+    - Docker-based lightweight "VMs"
+    - Real SSH access (ports 2222-2322)
     - Pre-built templates for common setups
     - Full REST API for automation
     
     **License:** MIT (Open Source)
+    
+    <Card title="Learn more about Sim" icon="arrow-right" href="/sim/overview" horizontal />
   </Accordion>
 
-  <Accordion title="kombify StackKits - IaC blueprints" icon="boxes-stacked">
-    Pre-validated infrastructure blueprints with CUE schemas. StackKits provide battle-tested configurations for common homelab scenarios.
+  <Accordion title="kombify StackKits — Infrastructure Blueprints" icon="boxes-stacked">
+    Pre-validated infrastructure blueprints with CUE schemas. Start from battle-tested configurations instead of building from scratch.
     
-    **Key features:**
-    - CUE schema validation
-    - Built-in blueprints (base-homelab, ha-homelab, modern-homelab)
-    - Extensible and customizable
-    - Community-contributed kits
+    **Available kits:**
+    - **base-homelab** — 4-6 essential services for beginners
+    - **ha-homelab** — High availability with 8-12 services
+    - **modern-homelab** — 15+ cutting-edge services for power users
     
     **License:** MIT (Open Source)
+    
+    <Card title="Browse StackKits" icon="arrow-right" href="/stackkits/overview" horizontal />
   </Accordion>
 
-  <Accordion title="kombify Sphere - SaaS platform" icon="cloud">
-    The managed platform that brings everything together. Sphere provides SSO, billing, team management, and a unified dashboard.
+  <Accordion title="kombify Sphere — Managed Platform" icon="cloud">
+    The SaaS platform that adds enterprise features like SSO, billing, and team collaboration on top of the open-source tools.
     
-    **Key features:**
-    - Single Sign-On with Zitadel
+    **Key capabilities:**
+    - Single Sign-On with Zitadel OIDC
     - Subscription management with Stripe
-    - Tool launcher for Stack, Sim, and more
-    - Team collaboration features
+    - Tool launcher with seamless authentication
+    - Team collaboration and access control
     
     **License:** Proprietary (SaaS)
+    
+    <Card title="Try Sphere" icon="arrow-right" href="/sphere/overview" horizontal />
   </Accordion>
 </AccordionGroup>
 
 ## Why kombify?
 
-<CardGroup cols={3}>
-  <Card title="Spec-driven" icon="file-code">
-    Define your entire infrastructure in one `kombination.yaml` file
+<Columns cols={3}>
+  <Card title="Spec-Driven" icon="file-code">
+    Your entire infrastructure in one YAML file — version-controlled, shareable, reproducible
   </Card>
-  <Card title="Simulation first" icon="flask">
-    Test configurations before deploying to real hardware
+  <Card title="Simulate First" icon="flask">
+    Test configurations in Docker before deploying to real hardware
   </Card>
-  <Card title="Hybrid ready" icon="cloud-arrow-up">
-    Manage both home servers and cloud VPS seamlessly
+  <Card title="Battle-Tested" icon="shield-check">
+    StackKits provide validated blueprints for common homelab setups
   </Card>
-  <Card title="Type-safe" icon="shield-check">
-    CUE validation catches errors before deployment
+</Columns>
+
+<Columns cols={3}>
+  <Card title="Open Source" icon="code-branch">
+    MIT licensed core tools with an active community
   </Card>
-  <Card title="Open core" icon="box-open">
-    Core tools are open source and self-hostable
+  <Card title="Self-Host or SaaS" icon="server">
+    Run on your infrastructure or use the managed platform
   </Card>
-  <Card title="Production ready" icon="rocket">
-    Battle-tested with OpenTofu and proven patterns
+  <Card title="Modern Stack" icon="rocket">
+    Go, SvelteKit, CUE, OpenTofu — built with modern tools
   </Card>
-</CardGroup>
+</Columns>
 
-## How it works
+## Next Steps
 
-```yaml kombination.yaml
-# This is all you write
-stack:
-  name: my-homelab
-  domain: home.local
-
-nodes:
-  - hostname: proxmox-1
-    type: proxmox
-    role: hypervisor
-
-services:
-  - traefik      # Reverse proxy
-  - authelia     # SSO
-  - homepage     # Dashboard
-  - immich       # Photos
-```
-
-**What kombify does:**
-1. **Validates** your config with CUE schemas
-2. **Simulates** the setup in Docker (optional)
-3. **Generates** OpenTofu/Terraform code
-4. **Deploys** to your infrastructure
-5. **Manages** ongoing state and updates
-
-## Deployment options
-
-<Tabs>
-  <Tab title="SaaS (Recommended)">
-    Use kombify Sphere for the easiest experience.
-    
-    ```bash
-    # Sign up at app.kombisphere.io
-    # Launch tools from the dashboard
-    # No infrastructure to manage
-    ```
-    
-    **Best for:**
-    - Getting started quickly
-    - Teams and collaboration
-    - Managed updates and support
-    - Enterprise SSO
-  </Tab>
-
-  <Tab title="Self-hosted">
-    Run kombify Stack on your own infrastructure.
-    
-    ```bash
-    # Docker Compose
-    curl -O https://raw.githubusercontent.com/soulcreek/KombiStack/main/docker-compose.yml
-    docker compose up -d
-    ```
-    
-    **Best for:**
-    - Privacy-conscious users
-    - Full control over data
-    - No subscription costs
-    - Custom modifications
-  </Tab>
-
-  <Tab title="Hybrid">
-    Self-host the core tools, use Sphere for management.
-    
-    ```bash
-    # Run Stack locally
-    docker compose up -d
-    
-    # Connect to Sphere for SSO and collaboration
-    ```
-    
-    **Best for:**
-    - Data sovereignty requirements
-    - Hybrid cloud/on-prem setups
-    - Gradual migration to SaaS
-  </Tab>
-</Tabs>
-
-## Use cases
-
-<CardGroup cols={2}>
-  <Card title="Homelab automation" icon="house">
-    Deploy and manage your entire homelab with one config file
+<Columns cols={2}>
+  <Card title="Quick Start (SaaS)" icon="cloud" href="/quickstart">
+    Get started with kombify Sphere in **5 minutes**
   </Card>
-  <Card title="Hybrid infrastructure" icon="cloud">
-    Combine local servers with cloud VPS seamlessly
+  <Card title="Quick Start (Self-Hosted)" icon="server" href="/quickstart-selfhosted">
+    Deploy kombify Stack on your own infrastructure
   </Card>
-  <Card title="Learning platform" icon="graduation-cap">
-    Simulate infrastructure before deploying to real hardware
-  </Card>
-  <Card title="Team collaboration" icon="users">
-    Share and collaborate on infrastructure configs
-  </Card>
-</CardGroup>
+</Columns>
 
-## Tech stack
+---
 
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Backend** | Go 1.24+ | Core services and agents |
-| **Frontend** | SvelteKit 2.x | Modern reactive UI |
-| **Database** | PocketBase (SQLite) | Embedded state management |
-| **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
-| **Validation** | CUE 0.15+ | Type-safe configuration |
-| **API gateway** | Kong OSS | Unified API entry point |
-| **Auth** | Zitadel | Enterprise OIDC provider |
+## Getting Help
 
-## Next steps
-
-<CardGroup cols={2}>
-  <Card
-    title="Quick start (SaaS)"
-    icon="play"
-    href="/quickstart"
-  >
-    Get started with kombify Sphere
+<Columns cols={3}>
+  <Card title="Discord Community" icon="discord" href="https://discord.gg/kombify">
+    Chat with the community and get real-time support
   </Card>
-  <Card
-    title="Self-host guide"
-    icon="server"
-    href="/quickstart-selfhosted"
-  >
-    Run kombify Stack yourself
+  <Card title="GitHub Issues" icon="github" href="https://github.com/kombify/stack/issues">
+    Report bugs or request features
   </Card>
-  <Card
-    title="Core concepts"
-    icon="book"
-    href="/concepts/spec-driven"
-  >
-    Learn about spec-driven infrastructure
+  <Card title="Documentation" icon="book" href="/guides/introduction">
+    Browse guides and tutorials
   </Card>
-  <Card
-    title="Join Discord"
-    icon="discord"
-    href="https://discord.gg/kombify"
-  >
-    Get help and share your setups
-  </Card>
-</CardGroup>
+</Columns>

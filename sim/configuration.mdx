@@ -1,0 +1,142 @@
+---
+title: Sim Configuration
+description: Configure Sim for your environment
+sidebarTitle: Configuration
+icon: gear
+---
+
+# Sim Configuration
+
+Configure Sim using environment variables or a configuration file.
+
+## Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_PORT` | `5270` | API server port |
+| `KOMBISIM_DATA_DIR` | `/data` | Data storage directory |
+| `KOMBISIM_LOG_LEVEL` | `info` | Log level: debug, info, warn, error |
+| `KOMBISIM_ENGINE` | `container` | Engine: container, qemu, external |
+| `KOMBISIM_ENGINE_ENDPOINT` | - | External engine endpoint URL |
+
+## Configuration File
+
+Create `kombisim.yaml`:
+
+```yaml
+# Server settings
+server:
+  port: 5270
+  host: 0.0.0.0
+
+# Storage
+data_dir: /data
+
+# Logging
+logging:
+  level: info
+  format: json
+
+# Engine configuration
+engine:
+  type: container  # container, qemu, external
+  docker:
+    socket: /var/run/docker.sock
+    network_prefix: kombisim
+    
+# Node defaults
+node_defaults:
+  os: ubuntu-22.04
+  resources:
+    cpu: 2
+    memory: 2048Mi
+    disk: 10Gi
+```
+
+## Engine Types
+
+<Tabs>
+  <Tab title="Container (Default)">
+    Uses Docker containers as simulated nodes:
+    
+    ```yaml
+    engine:
+      type: container
+      docker:
+        socket: /var/run/docker.sock
+    ```
+    
+    **Pros:** Fast startup, low overhead
+    **Cons:** Not full VM isolation
+  </Tab>
+  
+  <Tab title="QEMU">
+    Uses QEMU virtual machines:
+    
+    ```yaml
+    engine:
+      type: qemu
+      qemu:
+        images_dir: /var/lib/kombisim/images
+    ```
+    
+    **Pros:** Full VM isolation, accurate simulation
+    **Cons:** Slower, higher resource usage
+  </Tab>
+  
+  <Tab title="External">
+    Uses an external simulation backend:
+    
+    ```yaml
+    engine:
+      type: external
+      external:
+        endpoint: http://my-backend:8080
+    ```
+    
+    **Pros:** Custom backends, cloud integration
+    **Cons:** Requires additional setup
+  </Tab>
+</Tabs>
+
+## Resource Limits
+
+Configure default resources for nodes:
+
+```yaml
+node_defaults:
+  resources:
+    cpu: 2          # CPU cores
+    memory: 2048Mi  # Memory (Mi, Gi)
+    disk: 10Gi      # Disk space
+```
+
+## Networking
+
+### Custom Network Range
+
+```yaml
+networking:
+  subnet_prefix: "172.20"  # Creates 172.20.0.0/16
+  dns:
+    - 8.8.8.8
+    - 8.8.4.4
+```
+
+### SSH Port Range
+
+```yaml
+ssh:
+  port_start: 2222
+  port_end: 2322
+```
+
+## Apply Configuration
+
+```bash
+# Via environment
+KOMBISIM_LOG_LEVEL=debug docker run ...
+
+# Via config file
+docker run -v ./kombisim.yaml:/etc/kombisim/config.yaml ...
+```

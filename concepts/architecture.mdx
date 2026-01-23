@@ -1,283 +1,396 @@
 ---
-title: Architecture overview
-description: How kombify components work together
+title: Architecture Overview
+description: How kombify components work together to manage your infrastructure
+sidebarTitle: Architecture
 ---
 
-# Architecture overview
+# Architecture Overview
 
-kombify is a suite of tools that work together to simplify infrastructure management through a spec-driven approach.
+kombify is a suite of tools that work together to simplify infrastructure management through a **spec-driven approach**. This page explains how the components interact.
 
-## System overview
+## System Overview
 
+```mermaid
+graph TB
+    subgraph User["User Layer"]
+        YAML["kombination.yaml"]
+        UI["Web Dashboard"]
+        CLI["CLI Tools"]
+    end
+
+    subgraph Sphere["kombify Sphere (Optional SaaS)"]
+        direction LR
+        Auth["Zitadel SSO"]
+        Billing["Stripe Billing"]
+        Launcher["Tool Launcher"]
+    end
+
+    subgraph Stack["kombify Stack (Core)"]
+        direction TB
+        API["REST API<br/>Port 5260"]
+        gRPC["gRPC Server<br/>Port 5263"]
+        Unifier["Unifier Engine"]
+        ToFu["OpenTofu Runner"]
+        PB["PocketBase<br/>(State)"]
+        
+        API --> Unifier
+        Unifier --> ToFu
+        API --> PB
+        gRPC --> PB
+    end
+
+    subgraph Sim["kombify Sim"]
+        SimAPI["REST API<br/>Port 5270"]
+        SimUI["Web UI<br/>Port 5271"]
+        Docker["Docker Engine"]
+        
+        SimUI --> SimAPI
+        SimAPI --> Docker
+    end
+
+    subgraph StackKits["StackKits"]
+        CUE["CUE Schemas"]
+        Base["base-homelab"]
+        HA["ha-homelab"]
+        Modern["modern-homelab"]
+    end
+
+    subgraph Infra["Your Infrastructure"]
+        Agent1["Agent 1<br/>(proxmox-01)"]
+        Agent2["Agent 2<br/>(docker-01)"]
+        Agent3["Agent 3<br/>(k8s-01)"]
+    end
+
+    User --> Sphere
+    User --> Stack
+    Sphere --> Stack
+    
+    Stack --> StackKits
+    Sim --> StackKits
+    
+    gRPC <--> Agent1 & Agent2 & Agent3
+    ToFu --> Infra
+
+    style User fill:#e0f2fe,stroke:#0284c7
+    style Sphere fill:#dbeafe,stroke:#2563eb
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Sim fill:#d1fae5,stroke:#059669
+    style StackKits fill:#fce7f3,stroke:#db2777
+    style Infra fill:#f3f4f6,stroke:#6b7280
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        kombify Ecosystem                         │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │                   kombify Sphere (SaaS)                     │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │ │
-│  │  │   SSO    │  │ Billing  │  │   Tool   │  │   Team   │   │ │
-│  │  │ (Zitadel)│  │ (Stripe) │  │ Launcher │  │   Mgmt   │   │ │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │ │
-│  └────────────────────────────────────────────────────────────┘ │
-│                              │                                   │
-│                              ▼                                   │
-│  ┌────────────────────────────────────────────────────────────┐ │
-│  │                    kombify Stack (Core)                     │ │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌──────────┐   │ │
-│  │  │ Unifier  │  │   gRPC   │  │ OpenTofu │  │PocketBase│   │ │
-│  │  │  Engine  │  │  Server  │  │  Runner  │  │   (DB)   │   │ │
-│  │  └──────────┘  └──────────┘  └──────────┘  └──────────┘   │ │
-│  └────────────────────────────────────────────────────────────┘ │
-│                              │                                   │
-│         ┌────────────────────┼────────────────────┐             │
-│         ▼                    ▼                    ▼             │
-│  ┌──────────┐        ┌──────────┐        ┌──────────┐          │
-│  │ kombify  │        │ kombify  │        │  Worker  │          │
-│  │   Sim    │        │StackKits │        │  Agents  │          │
-│  │(Testing) │        │(Schemas) │        │ (Nodes)  │          │
-│  └──────────┘        └──────────┘        └──────────┘          │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
-```
 
-## Core components
+## Core Components
 
 ### kombify Stack
 
 The orchestration engine that manages your infrastructure.
 
-**Responsibilities:**
-- Parse and validate `kombination.yaml`
-- Manage worker agents via gRPC
-- Generate OpenTofu code
-- Execute deployments
-- Track state in PocketBase
+```mermaid
+graph LR
+    subgraph Input
+        YAML["kombination.yaml"]
+    end
 
-**Tech:** Go, PocketBase, SvelteKit
+    subgraph Stack["kombify Stack"]
+        direction TB
+        Parse["Parse YAML"]
+        Validate["CUE Validation"]
+        Resolve["Resolve Dependencies"]
+        Generate["Generate OpenTofu"]
+        Apply["Apply to Infra"]
+        
+        Parse --> Validate --> Resolve --> Generate --> Apply
+    end
+
+    subgraph Output
+        TF["main.tf"]
+        Vars["tfvars.json"]
+        State["State DB"]
+    end
+
+    YAML --> Parse
+    Generate --> TF & Vars
+    Apply --> State
+
+    style Input fill:#e0f2fe,stroke:#0284c7
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Output fill:#d1fae5,stroke:#059669
+```
+
+**Tech Stack:**
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| Backend | Go 1.24+ | Core services and agents |
+| Frontend | SvelteKit 2.x | Reactive dashboard UI |
+| Database | PocketBase (SQLite) | Embedded state management |
+| IaC Engine | OpenTofu 1.6+ | Infrastructure provisioning |
+| Validation | CUE 0.15+ | Type-safe configuration |
+| Networking | gRPC + mTLS | Secure agent communication |
+
+**Service Ports:**
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Core API | 5260 | HTTP | REST API + PocketBase Admin |
+| Frontend | 5261 | HTTP | SvelteKit Dashboard |
+| gRPC | 5263 | gRPC/mTLS | Agent communication |
 
 ### kombify Sim
 
-The simulation engine for testing configurations.
+The simulation engine for testing before deployment.
 
-**Responsibilities:**
-- Create Docker-based simulation nodes
-- Provide SSH access to simulated servers
-- Apply templates for common setups
-- Validate configurations before deployment
+```mermaid
+graph LR
+    subgraph Request
+        User["User Request"]
+    end
 
-**Tech:** Go, Docker, SvelteKit
+    subgraph Sim["kombify Sim"]
+        direction TB
+        API["REST API"]
+        Engine["Node Engine"]
+        Docker["Docker Backend"]
+        
+        API --> Engine --> Docker
+    end
+
+    subgraph Containers
+        C1["Container 1<br/>SSH: 2222"]
+        C2["Container 2<br/>SSH: 2223"]
+        C3["Container 3<br/>SSH: 2224"]
+    end
+
+    User --> API
+    Docker --> C1 & C2 & C3
+
+    style Request fill:#e0f2fe,stroke:#0284c7
+    style Sim fill:#d1fae5,stroke:#059669
+    style Containers fill:#f3f4f6,stroke:#6b7280
+```
+
+**Service Ports:**
+| Service | Port | Protocol | Description |
+|---------|------|----------|-------------|
+| Backend API | 5270 | HTTP | REST API |
+| Frontend | 5271 | HTTP | SvelteKit Dashboard |
+| SSH (Nodes) | 2222-2322 | SSH | Container SSH access |
 
 ### kombify StackKits
 
 Pre-validated infrastructure blueprints.
 
-**Responsibilities:**
-- Define service schemas with CUE
-- Provide default configurations
-- Enforce constraints and dependencies
-- Enable customization through inheritance
+```mermaid
+graph TB
+    subgraph Layer3["Layer 3: StackKits"]
+        Base["base-homelab<br/><i>Single-node Docker</i>"]
+        HA["ha-homelab<br/><i>High availability</i>"]
+        Modern["modern-homelab<br/><i>Multi-node Kubernetes</i>"]
+    end
 
-**Tech:** CUE, YAML
+    subgraph Layer2["Layer 2: Platforms"]
+        Docker["docker/<br/><i>Docker + Traefik</i>"]
+        K8s["kubernetes/<br/><i>K3s + Ingress</i>"]
+    end
+
+    subgraph Layer1["Layer 1: Core"]
+        Bootstrap["Bootstrap"]
+        Security["Security"]
+        Network["Network"]
+        Observe["Observability"]
+    end
+
+    Base --> Docker
+    HA --> Docker
+    Modern --> K8s
+    Docker --> Layer1
+    K8s --> Layer1
+
+    style Layer3 fill:#fce7f3,stroke:#db2777
+    style Layer2 fill:#dbeafe,stroke:#2563eb
+    style Layer1 fill:#d1fae5,stroke:#059669
+```
 
 ### kombify Sphere
 
 The managed SaaS platform (optional).
 
-**Responsibilities:**
-- User authentication (Zitadel OIDC)
-- Subscription management (Stripe)
-- Tool launcher with SSO
-- Team collaboration features
+```mermaid
+graph TB
+    subgraph Users
+        User1["User"]
+        User2["Team"]
+    end
 
-**Tech:** SvelteKit, PostgreSQL, Zitadel, Stripe
+    subgraph Sphere["kombify Sphere"]
+        direction TB
+        Frontend["SvelteKit App"]
+        
+        subgraph Services
+            Auth["Zitadel<br/>(SSO)"]
+            DB["PostgreSQL"]
+            Pay["Stripe<br/>(Billing)"]
+        end
+        
+        Frontend --> Auth & DB & Pay
+    end
 
-## Data flow
+    subgraph Tools["Self-Hosted Tools"]
+        Stack["kombify Stack"]
+        Sim["kombify Sim"]
+    end
 
-### Deployment flow
+    Users --> Frontend
+    Auth --> Stack & Sim
 
-```
-1. User writes kombination.yaml
-         │
-         ▼
-2. kombify Stack validates with CUE (StackKits)
-         │
-         ▼
-3. Unifier resolves dependencies and defaults
-         │
-         ▼
-4. OpenTofu code is generated
-         │
-         ▼
-5. Agents execute on target nodes
-         │
-         ▼
-6. Infrastructure is deployed
-```
-
-### Simulation flow
-
-```
-1. User creates simulation in kombify Sim
-         │
-         ▼
-2. Docker containers are created as "VMs"
-         │
-         ▼
-3. User tests configuration via SSH
-         │
-         ▼
-4. If successful, deploy to real hardware via Stack
+    style Users fill:#e0f2fe,stroke:#0284c7
+    style Sphere fill:#dbeafe,stroke:#2563eb
+    style Tools fill:#fef3c7,stroke:#d97706
 ```
 
-## Communication
+## Data Flow
 
-### Stack ↔ Agents
+### Deployment Pipeline
 
-- **Protocol:** gRPC with mTLS
-- **Port:** 5263
-- **Purpose:** Command execution, heartbeats, status updates
+```mermaid
+sequenceDiagram
+    participant User
+    participant Stack as kombify Stack
+    participant CUE as CUE Schemas
+    participant ToFu as OpenTofu
+    participant Agent as Node Agent
+    participant Infra as Infrastructure
 
-### Stack ↔ Sphere
-
-- **Protocol:** HTTP REST + JWT
-- **Purpose:** SSO token exchange, user sync, feature flags
-
-### User ↔ Stack
-
-- **Protocol:** HTTP REST
-- **Port:** 5260 (API), 5261 (UI)
-- **Purpose:** Stack management, configuration
-
-### User ↔ Sim
-
-- **Protocol:** HTTP REST + SSH
-- **Ports:** 5270 (API), 5271 (UI), 2222-2322 (SSH)
-- **Purpose:** Simulation management, testing
-
-## Deployment models
-
-### Self-hosted (Open Core)
-
-```
-Your Infrastructure
-├── kombify Stack (Docker)
-├── kombify Sim (Docker, optional)
-└── Worker Agents (on nodes)
-```
-
-**Pros:**
-- Full control
-- No subscription costs
-- Data stays local
-- Customizable
-
-**Cons:**
-- You manage updates
-- No enterprise features
-- Self-support
-
-### Managed SaaS
-
-```
-kombify Sphere (Cloud)
-├── Hosted Stack instances
-├── Hosted Sim instances
-└── Your agents connect via internet
+    User->>Stack: Upload kombination.yaml
+    Stack->>CUE: Validate configuration
+    CUE-->>Stack: Validation result
+    
+    alt Validation Failed
+        Stack-->>User: Error details
+    else Validation Passed
+        Stack->>ToFu: Generate HCL
+        ToFu-->>Stack: main.tf + tfvars.json
+        
+        User->>Stack: Apply deployment
+        Stack->>ToFu: tofu plan
+        ToFu-->>Stack: Execution plan
+        
+        Stack->>ToFu: tofu apply
+        ToFu->>Agent: Configure node
+        Agent->>Infra: Provision resources
+        Infra-->>Agent: Success
+        Agent-->>Stack: Status update
+        Stack-->>User: Deployment complete
+    end
 ```
 
-**Pros:**
-- Managed updates
-- Enterprise features
-- Team collaboration
-- Support included
+### Simulation Flow
 
-**Cons:**
-- Subscription cost
-- Data in cloud
-- Less customization
+```mermaid
+sequenceDiagram
+    participant User
+    participant Sim as kombify Sim
+    participant Docker
+    participant Container
 
-### Hybrid
-
+    User->>Sim: Create simulation
+    Sim->>Docker: Create network
+    Docker-->>Sim: Network ready
+    
+    User->>Sim: Add nodes
+    loop For each node
+        Sim->>Docker: Pull image
+        Sim->>Docker: Create container
+        Docker->>Container: Start with SSH
+        Container-->>Sim: Container ready
+    end
+    
+    Sim-->>User: Simulation running
+    
+    User->>Container: SSH connect (port 2222+)
+    Container-->>User: Shell access
 ```
-Your Infrastructure
-├── kombify Stack (self-hosted)
-└── Worker Agents (on nodes)
-     │
-     └─ Connected to Sphere for SSO/management
+
+## Security Model
+
+### Agent Communication
+
+```mermaid
+graph LR
+    subgraph Stack["kombify Stack"]
+        gRPC["gRPC Server<br/>Port 5263"]
+        CA["Certificate Authority"]
+    end
+
+    subgraph Agent["Node Agent"]
+        Client["gRPC Client"]
+        Cert["Client Certificate"]
+    end
+
+    CA -->|Issues| Cert
+    Client <-->|mTLS| gRPC
+
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Agent fill:#d1fae5,stroke:#059669
 ```
 
-**Pros:**
-- Data stays local
-- Enterprise SSO
-- Managed updates (optional)
-- Best of both worlds
+All agent communication uses **mutual TLS (mTLS)**:
 
-**Cons:**
-- More complex setup
-- Requires internet connection
+1. **Certificate Authority**: Stack Core generates a CA during initialization
+2. **Agent Certificates**: Each agent receives a unique certificate signed by the CA
+3. **Mutual Authentication**: Both sides verify certificates before communication
+4. **Encrypted Channel**: All data is encrypted in transit
 
-## Security
+### Authentication Flow (Sphere)
 
-### Authentication
+```mermaid
+sequenceDiagram
+    participant User
+    participant Sphere as kombify Sphere
+    participant Zitadel
+    participant Stack as kombify Stack
 
-- **Sphere:** Zitadel OIDC (OAuth 2.0 + OpenID Connect)
-- **Stack:** JWT tokens (from Sphere) or local auth
-- **Agents:** mTLS certificates
+    User->>Sphere: Access dashboard
+    Sphere->>Zitadel: Redirect to login
+    User->>Zitadel: Authenticate
+    Zitadel-->>Sphere: ID Token + Access Token
+    
+    User->>Sphere: Launch Stack
+    Sphere->>Stack: Forward request + Token
+    Stack->>Zitadel: Validate token
+    Zitadel-->>Stack: Token valid
+    Stack-->>User: Access granted
+```
 
-### Authorization
+## Deployment Models
 
-- **Role-based access control (RBAC)**
-  - User: Basic access
-  - Manager: Team management
-  - Admin: Full access
-
-### Network security
-
-- **Agent communication:** mTLS (mutual TLS)
-- **API access:** HTTPS with JWT
-- **SSH access (Sim):** Password or key-based
-
-### Data security
-
-- **At rest:** Encrypted SQLite (PocketBase)
-- **In transit:** TLS 1.3
-- **Secrets:** Doppler integration (optional)
-
-## Scalability
-
-### Single homelab
-
-- 1 Stack instance
-- 1-10 nodes
-- 10-50 services
-
-### Multiple homelabs
-
-- Multiple Stack instances
-- Managed via Sphere
-- Shared StackKits
-
-### Enterprise
-
-- Dedicated Stack instances
-- Custom StackKits
-- Priority support
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card title="Spec-driven infrastructure" icon="file-code" href="/concepts/spec-driven">
-    Learn the core concept
+<Columns cols={2}>
+  <Card title="Self-Hosted (Stack Only)" icon="server">
+    Run kombify Stack on your own infrastructure. Full control, no external dependencies.
+    
+    **Best for:** Privacy-focused users, air-gapped environments
+    
+    ```bash
+    docker compose up -d
+    ```
   </Card>
-  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits-explained">
-    Understand blueprints
+  <Card title="Hybrid (Stack + Sphere)" icon="cloud">
+    Use kombify Sphere for SSO and billing while self-hosting Stack.
+    
+    **Best for:** Teams, enterprise users
+    
+    Connect via Sphere dashboard
   </Card>
-  <Card title="Security model" icon="shield" href="/concepts/security">
-    Learn about security
+</Columns>
+
+## Next Steps
+
+<Columns cols={3}>
+  <Card title="Spec-Driven Concepts" icon="file-code" href="/concepts/spec-driven">
+    Learn how kombify transforms YAML into infrastructure
   </Card>
-  <Card title="Quick start" icon="rocket" href="/quickstart">
-    Get started now
+  <Card title="StackKits Deep Dive" icon="boxes-stacked" href="/concepts/stackkits">
+    Understand how StackKits provide validated blueprints
   </Card>
-</CardGroup>
+  <Card title="Security Model" icon="shield" href="/guides/self-hosting/security">
+    Learn about authentication and encryption
+  </Card>
+</Columns>

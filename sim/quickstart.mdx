@@ -1,0 +1,75 @@
+---
+title: Sim Quickstart
+description: Get started with kombify Sim in 5 minutes
+sidebarTitle: Quickstart
+icon: rocket
+---
+
+# Sim Quickstart
+
+Create your first simulated homelab in under 5 minutes.
+
+## Prerequisites
+
+- Docker installed and running
+- 2GB free RAM
+- Basic terminal knowledge
+
+## Step 1: Start Sim
+
+```bash
+docker run -d \
+  --name kombisim \
+  -p 5270:5270 \
+  -p 5271:5271 \
+  -p 2222-2232:2222-2232 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  ghcr.io/kombify/sim:latest
+```
+
+## Step 2: Create a Simulation
+
+```bash
+# Create a new simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -d '{"name": "my-homelab"}'
+```
+
+Save the returned `id` - you'll need it.
+
+## Step 3: Add a Node
+
+```bash
+curl -X POST http://localhost:5270/api/v1/nodes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "server-1",
+    "simulation_id": "YOUR_SIM_ID",
+    "os": "ubuntu-22.04"
+  }'
+```
+
+## Step 4: SSH into Your Node
+
+```bash
+ssh -p 2222 root@localhost
+# Password: kombisim
+```
+
+You now have a fully functional Ubuntu server to test with!
+
+## Step 5: Open the Dashboard
+
+Navigate to `http://localhost:5271` to manage your simulations visually.
+
+## What's Next?
+
+<CardGroup cols={2}>
+  <Card title="Templates" icon="book" href="/sim/templates">
+    Use pre-built simulation templates
+  </Card>
+  <Card title="Docker Compose" icon="layer-group" href="/sim/install/docker-compose">
+    Persistent setup with Docker Compose
+  </Card>
+</CardGroup>

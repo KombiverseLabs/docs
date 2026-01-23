@@ -1,0 +1,259 @@
+---
+title: Docker Installation
+description: Install kombify Stack using Docker Compose
+sidebarTitle: Docker
+---
+
+# Docker Installation
+
+The fastest way to get kombify Stack running is with Docker Compose. This guide covers installation on any Linux server with Docker installed.
+
+<Note>
+  **Requirements:** Docker 24+ and Docker Compose v2. See [official Docker installation guide](https://docs.docker.com/engine/install/) if not installed.
+</Note>
+
+## Quick Start
+
+<Steps>
+  <Step title="Create project directory">
+    ```bash
+    mkdir -p ~/kombify && cd ~/kombify
+    ```
+  </Step>
+
+  <Step title="Download configuration">
+    ```bash
+    curl -fsSL https://raw.githubusercontent.com/kombify/stack/main/docker-compose.yml -o docker-compose.yml
+    curl -fsSL https://raw.githubusercontent.com/kombify/stack/main/.env.example -o .env
+    ```
+  </Step>
+
+  <Step title="Configure environment">
+    Edit the `.env` file with your settings:
+    
+    ```bash .env
+    # Required settings
+    KOMBISTACK_DOMAIN=stack.yourdomain.com
+    KOMBISTACK_ADMIN_EMAIL=admin@yourdomain.com
+    
+    # Optional: External database (default: embedded PocketBase)
+    # KOMBISTACK_DB_URL=postgres://user:pass@host:5432/kombify
+    
+    # Optional: SSO with Zitadel (Sphere integration)
+    # KOMBISTACK_OIDC_ISSUER=https://auth.kombisphere.io
+    # KOMBISTACK_OIDC_CLIENT_ID=your-client-id
+    ```
+  </Step>
+
+  <Step title="Start services">
+    ```bash
+    docker compose up -d
+    ```
+  </Step>
+
+  <Step title="Access dashboard">
+    Open `http://localhost:5261` (or your configured domain) in your browser.
+    
+    Default credentials:
+    - **Username:** `admin@kombify.local`
+    - **Password:** `changeme`
+    
+    <Warning>
+      Change the default password immediately after first login!
+    </Warning>
+  </Step>
+</Steps>
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph Docker["Docker Host"]
+        subgraph Compose["docker-compose.yml"]
+            Core["kombistack-core<br/>Port: 5260"]
+            App["kombistack-app<br/>Port: 5261"]
+            gRPC["gRPC Server<br/>Port: 5263"]
+        end
+        
+        subgraph Volumes
+            Data["./data"]
+            Certs["./certs"]
+        end
+        
+        Core --> Data
+        Core --> Certs
+        App --> Core
+    end
+
+    subgraph External["External Access"]
+        Browser["Browser"]
+        Agents["Node Agents"]
+    end
+
+    Browser --> App
+    Agents --> gRPC
+
+    style Docker fill:#f0f9ff,stroke:#0369a1
+    style Compose fill:#dbeafe,stroke:#2563eb
+    style Volumes fill:#d1fae5,stroke:#059669
+    style External fill:#f3f4f6,stroke:#6b7280
+```
+
+## Docker Compose Configuration
+
+Here's the full `docker-compose.yml`:
+
+```yaml docker-compose.yml
+version: "3.8"
+
+services:
+  kombistack-core:
+    image: ghcr.io/kombify/stack:latest
+    container_name: kombistack-core
+    restart: unless-stopped
+    ports:
+      - "5260:5260"  # REST API
+      - "5263:5263"  # gRPC (agent communication)
+    environment:
+      - KOMBISTACK_PORT=5260
+      - KOMBISTACK_GRPC_PORT=5263
+      - KOMBISTACK_DATA_DIR=/data
+      - KOMBISTACK_LOG_LEVEL=${KOMBISTACK_LOG_LEVEL:-info}
+    volumes:
+      - ./data:/data
+      - ./certs:/certs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5260/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  kombistack-app:
+    image: ghcr.io/kombify/stack-app:latest
+    container_name: kombistack-app
+    restart: unless-stopped
+    ports:
+      - "5261:5261"
+    environment:
+      - VITE_API_URL=http://kombistack-core:5260
+    depends_on:
+      kombistack-core:
+        condition: service_healthy
+
+volumes:
+  data:
+  certs:
+```
+
+## Configuration Options
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_PORT` | `5260` | REST API port |
+| `KOMBISTACK_GRPC_PORT` | `5263` | gRPC server port |
+| `KOMBISTACK_DATA_DIR` | `/data` | Data directory path |
+| `KOMBISTACK_LOG_LEVEL` | `info` | Log level: debug, info, warn, error |
+| `KOMBISTACK_DOMAIN` | - | Public domain for the UI |
+| `KOMBISTACK_ADMIN_EMAIL` | - | Admin email for alerts |
+
+### With Traefik (Recommended)
+
+For production deployments, use Traefik for automatic SSL:
+
+```yaml docker-compose.yml
+version: "3.8"
+
+services:
+  kombistack-core:
+    image: ghcr.io/kombify/stack:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stack-api.rule=Host(`api.stack.yourdomain.com`)"
+      - "traefik.http.routers.stack-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stack-api.loadbalancer.server.port=5260"
+    # ... rest of config
+
+  kombistack-app:
+    image: ghcr.io/kombify/stack-app:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.stack-app.rule=Host(`stack.yourdomain.com`)"
+      - "traefik.http.routers.stack-app.tls.certresolver=letsencrypt"
+      - "traefik.http.services.stack-app.loadbalancer.server.port=5261"
+    # ... rest of config
+
+networks:
+  default:
+    external: true
+    name: proxy
+```
+
+## Verify Installation
+
+```bash
+# Check containers are running
+docker compose ps
+
+# Check API health
+curl http://localhost:5260/api/v1/health
+
+# Expected response:
+# {"status":"ok","version":"0.5.0"}
+
+# View logs
+docker compose logs -f kombistack-core
+```
+
+## Install Agent on Nodes
+
+To manage remote nodes, install the kombify agent:
+
+```bash
+# On each node you want to manage
+curl -fsSL https://install.kombify.dev/agent | sudo sh -s -- \
+  --server https://your-stack-server:5263 \
+  --token YOUR_REGISTRATION_TOKEN
+```
+
+Get the registration token from the Stack dashboard under **Settings → Agents**.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Container won't start">
+    Check logs for errors:
+    ```bash
+    docker compose logs kombistack-core
+    ```
+    
+    Common issues:
+    - Port already in use: Change ports in `docker-compose.yml`
+    - Permission denied: Ensure Docker socket is accessible
+  </Accordion>
+  
+  <Accordion title="Can't access dashboard">
+    1. Verify container is running: `docker compose ps`
+    2. Check firewall allows port 5261
+    3. Try accessing via `http://localhost:5261` first
+  </Accordion>
+  
+  <Accordion title="Agent can't connect">
+    1. Ensure port 5263 is accessible from agent
+    2. Check mTLS certificates are valid
+    3. Verify registration token hasn't expired
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Configure Stack" icon="gear" href="/stack/configuration">
+    Set up StackKits, agents, and integrations
+  </Card>
+  <Card title="Deploy First Stack" icon="rocket" href="/stack/quickstart">
+    Create your first infrastructure deployment
+  </Card>
+</Columns>

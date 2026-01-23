@@ -1,0 +1,61 @@
+# Cursor Rules - kombify Mintlify Documentation
+
+## Project Type
+Mintlify documentation site (MDX + docs.json). NOT a web app.
+
+## Key Files
+- `docs.json` - Site configuration and navigation (Mintlify schema)
+- `*.mdx` - Documentation pages with YAML frontmatter
+- `_templates/` - Page templates for new content
+- `internal-notes/` - Source material (never publish directly)
+- `.vscode/mcp.json` - Mintlify MCP server configuration
+
+## Frontmatter (Required on ALL .mdx files)
+```yaml
+---
+title: "Sentence case title"
+description: "One-line SEO summary"
+---
+```
+
+## Brand
+- "kombify" (lowercase k, always)
+- Tools: "kombify Stack", "kombify Sim", "kombify StackKits", "kombify Sphere"
+- Config file: `kombination.yaml`
+
+## Writing
+- Second-person voice ("you")
+- Sentence-case headings
+- Language tags on all code blocks
+- Relative internal links without .mdx extension
+- Prerequisites at top of procedural content
+
+## Mintlify Components (use in MDX)
+- `<Card>` / `<CardGroup cols={N}>` - Navigation cards
+- `<Steps>` / `<Step title="">` - Numbered procedures
+- `<Tabs>` / `<Tab title="">` - Tabbed content
+- `<Accordion>` / `<AccordionGroup>` - Collapsible sections
+- `<CodeGroup>` - Multi-language code examples
+- `<Note>` / `<Warning>` / `<Tip>` / `<Info>` - Callouts
+- `<ParamField>` / `<ResponseField>` - API docs
+- `<RequestExample>` / `<ResponseExample>` - API examples
+
+## Navigation (docs.json)
+- `tabs` array: product tabs with grouped pages
+- `navigation.pages`: main sidebar groups
+- Page paths are relative, no .mdx extension
+
+## Validation
+```bash
+node scripts/validate-frontmatter.js
+node scripts/check-links.js
+node scripts/check-orphaned-pages.js
+node scripts/navigation-coverage.js
+```
+
+## Do NOT
+- Add pages to `/tools/` (deprecated)
+- Use Title Case headings
+- Skip frontmatter
+- Use absolute URLs for internal links
+- Publish internal-notes content without rewriting

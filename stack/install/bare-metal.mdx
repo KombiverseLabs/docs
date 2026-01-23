@@ -1,0 +1,195 @@
+---
+title: Bare Metal Installation
+description: Install kombify Stack directly on a Linux server
+sidebarTitle: Bare Metal
+icon: server
+---
+
+# Bare Metal Installation
+
+Install kombify Stack directly on a Linux server without containers.
+
+## Prerequisites
+
+- Linux server (Ubuntu 22.04+, Debian 12+, or Rocky Linux 9+)
+- 2 CPU cores, 4GB RAM minimum
+- Root access
+- OpenTofu installed
+
+## Quick Install
+
+```bash
+curl -fsSL https://get.kombify.dev/stack | bash
+```
+
+This installs:
+- `kombistack` binary to `/usr/local/bin`
+- Systemd service
+- Default configuration
+
+## Manual Installation
+
+<Steps>
+  <Step title="Download binary">
+    ```bash
+    # Get latest release
+    VERSION=$(curl -s https://api.github.com/repos/kombify/stack/releases/latest | jq -r .tag_name)
+    
+    # Download for your architecture
+    curl -Lo kombistack "https://releases.kombify.dev/stack/${VERSION}/linux-amd64/kombistack"
+    chmod +x kombistack
+    sudo mv kombistack /usr/local/bin/
+    ```
+  </Step>
+  
+  <Step title="Create directories">
+    ```bash
+    sudo mkdir -p /etc/kombistack /var/lib/kombistack
+    ```
+  </Step>
+  
+  <Step title="Create configuration">
+    ```bash
+    sudo cat > /etc/kombistack/config.yaml << 'EOF'
+    server:
+      api_port: 5260
+      ui_port: 5261
+      grpc_port: 5263
+    
+    database:
+      path: /var/lib/kombistack/data.db
+    
+    logging:
+      level: info
+    EOF
+    ```
+  </Step>
+  
+  <Step title="Create systemd service">
+    ```bash
+    sudo cat > /etc/systemd/system/kombistack.service << 'EOF'
+    [Unit]
+    Description=kombify Stack
+    After=network.target
+    
+    [Service]
+    Type=simple
+    ExecStart=/usr/local/bin/kombistack serve --config /etc/kombistack/config.yaml
+    Restart=always
+    RestartSec=5
+    
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+    ```
+  </Step>
+  
+  <Step title="Start service">
+    ```bash
+    sudo systemctl daemon-reload
+    sudo systemctl enable --now kombistack
+    ```
+  </Step>
+</Steps>
+
+## Install OpenTofu
+
+Stack requires OpenTofu for infrastructure provisioning:
+
+```bash
+# Add repository
+curl -fsSL https://get.opentofu.org/install-opentofu.sh | bash
+```
+
+## Verify Installation
+
+```bash
+# Check service status
+sudo systemctl status kombistack
+
+# Test API
+curl http://localhost:5260/api/v1/health
+
+# Access UI
+# Open http://YOUR_SERVER_IP:5261 in browser
+```
+
+## TLS Configuration
+
+For production, enable TLS:
+
+```yaml
+# /etc/kombistack/config.yaml
+tls:
+  enabled: true
+  cert: /etc/kombistack/certs/server.crt
+  key: /etc/kombistack/certs/server.key
+```
+
+Generate certificates:
+
+```bash
+# Self-signed (development)
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/kombistack/certs/server.key \
+  -out /etc/kombistack/certs/server.crt \
+  -subj "/CN=stack.local"
+
+# Or use Let's Encrypt with certbot
+```
+
+## Firewall Rules
+
+```bash
+# Allow Stack ports
+sudo ufw allow 5260/tcp  # API
+sudo ufw allow 5261/tcp  # UI
+sudo ufw allow 5263/tcp  # gRPC (agents)
+```
+
+## Upgrading
+
+```bash
+# Stop service
+sudo systemctl stop kombistack
+
+# Download new version
+VERSION="v1.2.0"
+curl -Lo kombistack "https://releases.kombify.dev/stack/${VERSION}/linux-amd64/kombistack"
+chmod +x kombistack
+sudo mv kombistack /usr/local/bin/
+
+# Start service
+sudo systemctl start kombistack
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Service won't start">
+    Check logs: `journalctl -u kombistack -f`
+  </Accordion>
+  
+  <Accordion title="Port already in use">
+    Find the process: `lsof -i :5260`
+    Change ports in config
+  </Accordion>
+  
+  <Accordion title="Permission denied">
+    Ensure data directory is writable:
+    ```bash
+    sudo chown -R root:root /var/lib/kombistack
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Configuration" icon="gear" href="/stack/configuration">
+    Full configuration reference
+  </Card>
+  <Card title="Add Agents" icon="satellite-dish" href="/stack/agents">
+    Connect nodes with agents
+  </Card>
+</CardGroup>

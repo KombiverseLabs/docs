@@ -1,236 +1,356 @@
 ---
-title: kombify Sphere overview
-description: The managed SaaS platform for kombify
-icon: cloud
+title: kombify Sphere
+description: Managed homelab platform with SSO, billing, and team management
+sidebarTitle: Overview
+icon: globe
 ---
 
 # kombify Sphere
 
-kombify Sphere is the managed SaaS platform that brings all kombify tools together with enterprise features like SSO, billing, and team collaboration.
+**Sphere** is kombify's managed SaaS platform. It provides hosted infrastructure management with enterprise features like SSO, billing, and team collaboration.
 
-<Card title="What is kombify Sphere?" icon="circle-info">
-  kombify Sphere is the customer-facing portal that provides a unified dashboard, subscription management, SSO gateway, and tool launcher for kombify Stack, Sim, and other tools.
-</Card>
+## Why Sphere?
 
-## Key features
+<Tabs>
+  <Tab title="Self-Hosted (Stack)">
+    **You manage everything:**
+    - ✅ Full control
+    - ✅ No subscription costs
+    - ❌ You handle updates
+    - ❌ You manage backups
+    - ❌ You configure SSO
+    - ❌ Single homelab only
+  </Tab>
+  <Tab title="Managed (Sphere)">
+    **We handle the complexity:**
+    - ✅ Automatic updates
+    - ✅ Managed backups
+    - ✅ SSO pre-configured
+    - ✅ Multi-homelab support
+    - ✅ Team collaboration
+    - ✅ 24/7 support
+  </Tab>
+</Tabs>
 
-<CardGroup cols={2}>
-  <Card title="User portal" icon="user">
-    Dashboard, profile, and settings management
-  </Card>
-  <Card title="SSO gateway" icon="key">
-    Zitadel OIDC for all tools
-  </Card>
-  <Card title="Subscription management" icon="credit-card">
-    Stripe integration for billing
-  </Card>
-  <Card title="Tool launcher" icon="rocket">
-    One-click access to Stack, Sim, and more
-  </Card>
-</CardGroup>
+## How It Works
 
-## How it works
-
+```mermaid
+graph TB
+    subgraph Users["Your Team"]
+        Admin["Admin"]
+        Dev["Developer"]
+        Viewer["Viewer"]
+    end
+    
+    subgraph Sphere["kombify Sphere (Cloud)"]
+        Dashboard["Web Dashboard"]
+        Auth["Zitadel SSO"]
+        API["Sphere API"]
+        Billing["Stripe Billing"]
+    end
+    
+    subgraph Homelabs["Your Infrastructure"]
+        HL1["Homelab 1<br/>Production"]
+        HL2["Homelab 2<br/>Development"]
+        HL3["Homelab 3<br/>Testing"]
+    end
+    
+    Users -->|Login| Auth
+    Auth --> Dashboard
+    Dashboard --> API
+    API --> Billing
+    API -->|Secure Tunnel| Homelabs
+    
+    style Users fill:#dbeafe,stroke:#2563eb
+    style Sphere fill:#fef3c7,stroke:#d97706
+    style Homelabs fill:#d1fae5,stroke:#059669
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      kombify Sphere                          │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  Marketing  │  │   User      │  │   Billing   │         │
-│  │   Pages     │  │   Portal    │  │   System    │         │
-│  └─────────────┘  └─────────────┘  └─────────────┘         │
-│         │                │                │                 │
-│         └────────────────┴────────────────┘                 │
-│                          │                                  │
-│         ┌────────────────┼────────────────┐                 │
-│         ▼                ▼                ▼                 │
-│  ┌──────────┐   ┌──────────┐   ┌──────────┐               │
-│  │ Zitadel  │   │PostgreSQL│   │  Stripe  │               │
-│  │ (Auth)   │   │(Database)│   │(Payments)│               │
-│  └──────────┘   └──────────┘   └──────────┘               │
-└─────────────────────────────────────────────────────────────┘
-                          │
-                          ▼
-                   ┌──────────────┐
-                   │  Core Tools  │
-                   │ (SSO Access) │
-                   └──────────────┘
-```
 
-## Core capabilities
-
-### User management
-
-- **Profile management** - Avatar, name, email, settings
-- **Activity logs** - Audit trail for user actions
-- **Team management** - Invite and manage team members
-- **Role-based access** - User, Manager, Admin roles
-
-### Authentication
-
-- **Single Sign-On** - Zitadel OIDC integration
-- **API tokens** - Generate tokens for API access
-- **SSO to tools** - One-click access to Stack, Sim, etc.
-- **Session management** - Secure session handling
-
-### Billing
-
-- **Subscription plans** - Free, Pro, Enterprise
-- **Stripe integration** - Secure payment processing
-- **Invoice management** - Download and view invoices
-- **Usage tracking** - Monitor API calls and resources
-
-### Tool launcher
-
-- **kombify Stack** - Launch with SSO
-- **kombify Sim** - Launch with SSO
-- **Admin Center** - For administrators
-- **Custom tools** - Add your own tools
-
-## Pricing plans
+## Key Features
 
 <CardGroup cols={3}>
-  <Card title="Free" icon="gift">
-    **$0/month**
-    
-    - 1 homelab
-    - Community support
-    - Basic features
+  <Card title="Multi-Homelab" icon="server">
+    Manage multiple homelabs from a single dashboard
   </Card>
-  <Card title="Pro" icon="star">
-    **$9/month**
-    
-    - 3 homelabs
-    - Priority support
-    - Advanced features
-    - Team collaboration
+  <Card title="SSO / OIDC" icon="key">
+    Enterprise authentication via Zitadel
   </Card>
-  <Card title="Enterprise" icon="building">
-    **Custom pricing**
-    
-    - Unlimited homelabs
-    - SLA
-    - Dedicated support
-    - Custom integrations
+  <Card title="Team Management" icon="users">
+    Role-based access control for teams
+  </Card>
+  <Card title="Automated Backups" icon="cloud-arrow-up">
+    Scheduled configuration backups
+  </Card>
+  <Card title="Usage Analytics" icon="chart-line">
+    Insights into your infrastructure
+  </Card>
+  <Card title="Priority Support" icon="headset">
+    Direct access to the kombify team
   </Card>
 </CardGroup>
 
 ## Architecture
 
-### Tech stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Frontend** | SvelteKit 2.x | Modern reactive UI |
-| **Database** | PostgreSQL | User data and state |
-| **Auth** | Zitadel | OIDC provider |
-| **Billing** | Stripe | Payment processing |
-| **API Gateway** | Kong OSS | Unified API entry |
-
-### Database schema
-
-```typescript
-// Core entities
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  avatarUrl?: string;
-  role: UserRole;
-}
-
-interface Subscription {
-  id: string;
-  userId: string;
-  plan: Plan;
-  status: SubscriptionStatus;
-  currentPeriodEnd: Date;
-}
-
-interface ActivityLog {
-  id: string;
-  userId: string;
-  action: string;
-  resource: string;
-  createdAt: Date;
-}
+```mermaid
+graph TB
+    subgraph Cloud["Sphere Cloud"]
+        subgraph Frontend["Frontend"]
+            SvelteKit["SvelteKit App"]
+        end
+        
+        subgraph Backend["Backend Services"]
+            API["Sphere API"]
+            Auth["Zitadel<br/>Identity"]
+            PB["PocketBase<br/>State"]
+        end
+        
+        subgraph Integrations["Integrations"]
+            Stripe["Stripe<br/>Payments"]
+            SMTP["Email<br/>Notifications"]
+        end
+    end
+    
+    subgraph OnPrem["Your Premises"]
+        Agent1["Sphere Agent<br/>Homelab 1"]
+        Agent2["Sphere Agent<br/>Homelab 2"]
+    end
+    
+    SvelteKit --> API
+    API --> Auth
+    API --> PB
+    API --> Stripe
+    API --> SMTP
+    
+    API <-->|mTLS| Agent1
+    API <-->|mTLS| Agent2
+    
+    style Cloud fill:#f0f9ff,stroke:#0369a1
+    style OnPrem fill:#d1fae5,stroke:#059669
 ```
 
-## SSO flow
+## Connecting Your Homelab
 
-```
-┌────────────────┐     ┌────────────────┐     ┌────────────────┐
-│   User         │────▶│ kombify Sphere │────▶│    Zitadel     │
-│   (Browser)    │     │   (Auth.js)    │     │     OIDC       │
-└────────────────┘     └────────────────┘     └────────────────┘
-       │                                              │
-       │              ┌───────────────────────────────┘
-       │              ▼
-       │       ┌────────────────┐
-       └──────▶│  JWT Token     │
-               │  + Session     │
-               └────────────────┘
+The Sphere Agent establishes a secure connection from your homelab to the Sphere cloud:
+
+```mermaid
+sequenceDiagram
+    participant Homelab
+    participant Agent as Sphere Agent
+    participant Sphere as Sphere Cloud
+    
+    Note over Agent,Sphere: Initial Setup
+    Agent->>Sphere: Register with pairing token
+    Sphere->>Agent: Issue mTLS certificate
+    
+    Note over Agent,Sphere: Normal Operation
+    loop Every 30s
+        Agent->>Sphere: Heartbeat + metrics
+    end
+    
+    Sphere->>Agent: Deploy command
+    Agent->>Homelab: Execute deployment
+    Agent->>Sphere: Report status
 ```
 
-## Quick links
+### Agent Installation
+
+<Steps>
+  <Step title="Get pairing token">
+    In Sphere dashboard, go to **Homelabs → Add Homelab** and copy your pairing token.
+  </Step>
+  
+  <Step title="Install agent">
+    ```bash
+    curl -fsSL https://get.kombify.dev/sphere-agent | bash
+    ```
+  </Step>
+  
+  <Step title="Configure agent">
+    ```bash
+    sphere-agent init --token YOUR_PAIRING_TOKEN
+    ```
+  </Step>
+  
+  <Step title="Start agent">
+    ```bash
+    sudo systemctl enable --now sphere-agent
+    ```
+  </Step>
+</Steps>
+
+## Team & Access Control
+
+### Role-Based Access
+
+| Role | View | Deploy | Configure | Billing | Admin |
+|------|:----:|:------:|:---------:|:-------:|:-----:|
+| Viewer | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Operator | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Developer | ✅ | ✅ | ✅ | ❌ | ❌ |
+| Admin | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Owner | ✅ | ✅ | ✅ | ✅ | ✅ |
+
+### SSO Configuration
+
+Sphere uses Zitadel for enterprise-grade authentication:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Sphere
+    participant Zitadel
+    participant IdP as Your IdP (Optional)
+    
+    User->>Sphere: Access dashboard
+    Sphere->>Zitadel: Redirect to login
+    
+    alt Native Login
+        Zitadel->>User: Show login form
+        User->>Zitadel: Enter credentials
+    else Enterprise SSO
+        Zitadel->>IdP: Redirect to corporate IdP
+        User->>IdP: Authenticate
+        IdP->>Zitadel: Return assertion
+    end
+    
+    Zitadel->>Sphere: Return tokens
+    Sphere->>User: Authenticated session
+```
+
+Supported identity providers:
+- **OIDC**: Any OIDC-compliant provider
+- **SAML**: Okta, Azure AD, OneLogin, etc.
+- **LDAP**: Active Directory, OpenLDAP
+- **Social**: GitHub, Google, Microsoft
+
+## Pricing Plans
 
 <CardGroup cols={3}>
-  <Card title="Getting started" icon="rocket" href="/sphere/getting-started">
-    Create your account
+  <Card title="Starter" icon="seedling">
+    **Free**
+    
+    - 1 homelab
+    - 5 nodes max
+    - Community support
+    - 7-day backup retention
   </Card>
-  <Card title="SSO setup" icon="key" href="/sphere/auth/sso">
-    Configure SSO
+  
+  <Card title="Pro" icon="rocket">
+    **$19/month**
+    
+    - 3 homelabs
+    - Unlimited nodes
+    - Priority support
+    - 30-day backup retention
+    - Custom domain
   </Card>
-  <Card title="Dashboard" icon="gauge" href="/sphere/dashboard">
-    Use the dashboard
-  </Card>
-  <Card title="Billing" icon="credit-card" href="/sphere/billing">
-    Manage subscription
-  </Card>
-  <Card title="Stacks" icon="server" href="/sphere/stacks">
-    Manage your stacks
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/introduction">
-    Explore the API
+  
+  <Card title="Team" icon="building">
+    **$49/month**
+    
+    - 10 homelabs
+    - Unlimited nodes
+    - 5 team members
+    - SSO integration
+    - 90-day backup retention
+    - SLA guarantee
   </Card>
 </CardGroup>
 
-## Use cases
+<Note>
+  All plans include a 14-day free trial. No credit card required.
+</Note>
+
+## Dashboard Features
+
+### Homelab Overview
+
+View all your homelabs at a glance:
+- Node health status
+- Resource utilization
+- Recent deployments
+- Active alerts
+
+### Deployment History
+
+Track all changes:
+- Who deployed what
+- When it was deployed
+- Rollback capability
+- Diff viewer
+
+### Monitoring & Alerts
+
+Built-in monitoring:
+- Node availability
+- Resource usage
+- Service health
+- Custom alert rules
+
+## Security
 
 <AccordionGroup>
-  <Accordion title="Team collaboration" icon="users">
-    Invite team members, share homelabs, and collaborate on infrastructure.
+  <Accordion title="Data Encryption" icon="lock">
+    - All data encrypted at rest (AES-256)
+    - All traffic encrypted in transit (TLS 1.3)
+    - mTLS for agent communication
   </Accordion>
-
-  <Accordion title="Enterprise SSO" icon="building">
-    Integrate with your existing OIDC provider for seamless authentication.
+  
+  <Accordion title="Access Control" icon="shield">
+    - Role-based access control
+    - Audit logging for all actions
+    - IP allowlist support (Team plan)
   </Accordion>
-
-  <Accordion title="Managed infrastructure" icon="cloud">
-    Let Sphere handle updates, backups, and maintenance while you focus on your homelab.
-  </Accordion>
-
-  <Accordion title="Multi-tenant" icon="layer-group">
-    Manage multiple homelabs for different projects or clients.
+  
+  <Accordion title="Compliance" icon="clipboard-check">
+    - SOC 2 Type II (in progress)
+    - GDPR compliant
+    - Data residency options (EU/US)
   </Accordion>
 </AccordionGroup>
 
-## License
+## Self-Hosted vs Sphere
 
-kombify Sphere is **proprietary software** (SaaS).
+| Feature | Self-Hosted (Stack) | Managed (Sphere) |
+|---------|---------------------|------------------|
+| **Cost** | Free | $0-49/month |
+| **Setup** | ~1 hour | ~5 minutes |
+| **Updates** | Manual | Automatic |
+| **Multi-homelab** | No | Yes |
+| **Team access** | DIY | Built-in |
+| **SSO** | DIY | Included |
+| **Backups** | DIY | Automatic |
+| **Support** | Community | Priority |
 
-## Next steps
+## Getting Started
+
+<Steps>
+  <Step title="Create account">
+    Sign up at [sphere.kombify.dev](https://sphere.kombify.dev)
+  </Step>
+  
+  <Step title="Add your first homelab">
+    Follow the guided setup to connect your infrastructure
+  </Step>
+  
+  <Step title="Deploy your first stack">
+    Choose a StackKit and deploy in minutes
+  </Step>
+</Steps>
+
+## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Create account" icon="user-plus" href="https://app.kombisphere.io">
-    Sign up for free
+  <Card title="Quickstart Guide" icon="rocket" href="/sphere/quickstart">
+    Get up and running in 5 minutes
   </Card>
-  <Card title="Getting started" icon="play" href="/sphere/getting-started">
-    Learn the basics
+  <Card title="Agent Installation" icon="download" href="/sphere/agent">
+    Detailed agent setup instructions
   </Card>
-  <Card title="SSO setup" icon="key" href="/sphere/auth/sso">
-    Configure authentication
+  <Card title="SSO Setup" icon="key" href="/sphere/sso">
+    Configure enterprise authentication
   </Card>
-  <Card title="Pricing" icon="tag" href="/sphere/billing">
-    View plans
+  <Card title="API Reference" icon="code" href="/api-reference/sphere">
+    Automate with the Sphere API
   </Card>
 </CardGroup>

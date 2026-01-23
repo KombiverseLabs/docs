@@ -1,161 +1,431 @@
 ---
-title: kombify Sim overview
-description: Infrastructure simulation engine for testing before deployment
-icon: flask
+title: kombify Sim Overview
+description: Test homelab configurations in isolated Docker environments
+sidebarTitle: Overview
+icon: flask-vial
 ---
 
 # kombify Sim
 
-kombify Sim is an infrastructure simulation engine that lets you test homelab configurations before deploying to real hardware using lightweight Docker containers.
+**Sim** is kombify's infrastructure simulation engine. It creates isolated, disposable environments for testing homelab configurations before deploying to real hardware.
 
-<Card title="What is kombify Sim?" icon="circle-info">
-  kombify Sim creates Docker-based "virtual servers" that simulate your entire homelab environment. You can SSH into them, test configurations, and validate your setup before touching real hardware.
-</Card>
+## Why Sim?
 
-## Key features
+```mermaid
+graph LR
+    subgraph Without["Without Sim ❌"]
+        direction TB
+        W1["Write config"]
+        W2["Deploy to hardware"]
+        W3["Something breaks"]
+        W4["Debug on live system"]
+        W5["Repeat..."]
+        
+        W1 --> W2 --> W3 --> W4 --> W5
+        W5 --> W1
+    end
+    
+    subgraph With["With Sim ✅"]
+        direction TB
+        S1["Write config"]
+        S2["Test in Sim"]
+        S3["Fix issues safely"]
+        S4["Deploy with confidence"]
+        
+        S1 --> S2
+        S2 -->|Issues| S3
+        S3 --> S2
+        S2 -->|Works| S4
+    end
+    
+    style Without fill:#fee2e2,stroke:#dc2626
+    style With fill:#d1fae5,stroke:#059669
+```
+
+<Info>
+  **Save Time, Reduce Risk**: Test complex multi-node setups in minutes instead of hours, without risking your production environment.
+</Info>
+
+## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Docker simulation" icon="docker">
-    Lightweight "VMs" with Docker containers
+  <Card title="Instant Nodes" icon="bolt">
+    Spin up simulated servers in seconds using Docker containers
   </Card>
-  <Card title="Real SSH access" icon="terminal">
-    SSH into simulated nodes (ports 2222-2322)
+  <Card title="Real SSH Access" icon="terminal">
+    Full SSH access to every simulated node
   </Card>
-  <Card title="Simulation groups" icon="layer-group">
-    Organize nodes into logical simulations
+  <Card title="Network Simulation" icon="network-wired">
+    Realistic network topologies with custom subnets
   </Card>
-  <Card title="Template library" icon="book">
-    Pre-built templates for common setups
+  <Card title="Snapshot & Restore" icon="camera">
+    Save and restore simulation states instantly
   </Card>
 </CardGroup>
 
-## How it works
+## How It Works
 
+```mermaid
+graph TB
+    subgraph User["Your Workflow"]
+        Spec["kombination.yaml"]
+        UI["Web Dashboard"]
+        API["REST API"]
+    end
+    
+    subgraph SimEngine["Sim Engine"]
+        Controller["Controller"]
+        NodeMgr["Node Manager"]
+        NetMgr["Network Manager"]
+    end
+    
+    subgraph Runtime["Container Runtime"]
+        D1["node-1<br/>Ubuntu 22.04"]
+        D2["node-2<br/>Debian 12"]
+        D3["node-3<br/>Rocky 9"]
+        Net["Virtual Networks"]
+    end
+    
+    User --> Controller
+    Controller --> NodeMgr
+    Controller --> NetMgr
+    NodeMgr --> Runtime
+    NetMgr --> Net
+    
+    style User fill:#dbeafe,stroke:#2563eb
+    style SimEngine fill:#fef3c7,stroke:#d97706
+    style Runtime fill:#d1fae5,stroke:#059669
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                        kombify Sim                           │
-│  ┌─────────────────┐         ┌─────────────────┐           │
-│  │    Web UI       │────────▶│    REST API     │           │
-│  │   (SvelteKit)   │         │      (Go)       │           │
-│  │   Port: 5271    │         │   /api/v1/*     │           │
-│  └─────────────────┘         └────────┬────────┘           │
-│                                       │                     │
-│                          ┌────────────▼────────────┐        │
-│                          │   Node Engine           │        │
-│                          │   (Docker Backend)      │        │
-│                          └────────────┬────────────┘        │
-│                                       │                     │
-│                          ┌────────────▼────────────┐        │
-│                          │   Docker Daemon         │        │
-│                          │   (Containers as VMs)   │        │
-│                          └─────────────────────────┘        │
-└─────────────────────────────────────────────────────────────┘
+
+## Quick Start
+
+<Steps>
+  <Step title="Start Sim">
+    ```bash
+    docker run -d \
+      -p 5270:5270 \
+      -p 5271:5271 \
+      -p 2222-2322:2222-2322 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      ghcr.io/kombify/sim:latest
+    ```
+  </Step>
+  
+  <Step title="Open Dashboard">
+    Navigate to `http://localhost:5271` in your browser.
+    
+    ![Sim Dashboard](/images/sim-dashboard.png)
+  </Step>
+  
+  <Step title="Create Simulation">
+    ```bash
+    curl -X POST http://localhost:5270/api/v1/simulations \
+      -H "Content-Type: application/json" \
+      -d '{"name": "my-homelab"}'
+    ```
+  </Step>
+  
+  <Step title="Add Nodes">
+    ```bash
+    curl -X POST http://localhost:5270/api/v1/nodes \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "server-1",
+        "simulation_id": "sim_xxx",
+        "os": "ubuntu-22.04",
+        "resources": {
+          "cpu": 2,
+          "memory": "2048Mi"
+        }
+      }'
+    ```
+  </Step>
+  
+  <Step title="SSH into Node">
+    ```bash
+    ssh -p 2222 root@localhost
+    # Password: kombisim
+    ```
+  </Step>
+</Steps>
+
+## Architecture
+
+```mermaid
+graph TB
+    subgraph External["External Access"]
+        Browser["Browser<br/>Dashboard"]
+        CLI["CLI / API Client"]
+        SSH["SSH Client"]
+    end
+    
+    subgraph SimContainer["Sim Container"]
+        WebUI["Web UI<br/>:5271"]
+        API["REST API<br/>:5270"]
+        Engine["Node Engine"]
+        DB["SQLite DB"]
+    end
+    
+    subgraph Docker["Docker Host"]
+        Socket["/var/run/docker.sock"]
+        
+        subgraph Nodes["Simulated Nodes"]
+            N1["node-1<br/>:2222"]
+            N2["node-2<br/>:2223"]
+            N3["node-3<br/>:2224"]
+        end
+        
+        Networks["Docker Networks"]
+    end
+    
+    Browser --> WebUI
+    CLI --> API
+    SSH --> Nodes
+    
+    API --> Engine
+    WebUI --> API
+    Engine --> DB
+    Engine --> Socket
+    Socket --> Nodes
+    Socket --> Networks
+    
+    style External fill:#dbeafe,stroke:#2563eb
+    style SimContainer fill:#fef3c7,stroke:#d97706
+    style Docker fill:#f0f9ff,stroke:#0369a1
 ```
 
-## Built-in templates
+## Supported Operating Systems
 
-| Template | Nodes | Description |
-|----------|-------|-------------|
-| `single-node` | 1 | Minimal single server |
-| `homelab-basic` | 2 | Web server + Database |
-| `homelab-advanced` | 5 | Full homelab stack |
-| `hybrid-setup` | 5 | VPS + Local combined |
-| `ha-setup` | 5 | Load balancer + HA |
+| OS | Image | SSH Port Base |
+|----|-------|---------------|
+| Ubuntu 22.04 | `ubuntu-22.04` | 2222 |
+| Ubuntu 24.04 | `ubuntu-24.04` | 2222 |
+| Debian 12 | `debian-12` | 2222 |
+| Rocky Linux 9 | `rocky-9` | 2222 |
+| Alpine 3.19 | `alpine-3.19` | 2222 |
 
-## Service ports
+## Use Cases
 
-| Service | Port | Protocol | Description |
-|---------|------|----------|-------------|
-| Backend API | 5270 | HTTP | REST API |
-| Frontend | 5271 | HTTP | SvelteKit Dashboard |
-| SSH (Nodes) | 2222-2322 | SSH | Container SSH access |
+<Tabs>
+  <Tab title="Testing StackKits">
+    Test a StackKit configuration before deploying:
+    
+    ```bash
+    # Start simulation
+    kombify sim start --from kombination.yaml
+    
+    # Run validation
+    kombify validate --against-sim
+    
+    # Deploy to simulation
+    kombify deploy --target sim
+    
+    # Verify everything works
+    kombify test --target sim
+    ```
+  </Tab>
+  
+  <Tab title="Multi-Node Testing">
+    Test HA configurations with multiple nodes:
+    
+    ```yaml
+    # sim-config.yaml
+    simulation:
+      name: ha-test
+      
+    nodes:
+      - name: node-1
+        os: ubuntu-22.04
+        role: primary
+        
+      - name: node-2
+        os: ubuntu-22.04
+        role: replica
+        
+      - name: node-3
+        os: ubuntu-22.04
+        role: replica
+    
+    network:
+      subnet: 172.20.0.0/24
+    ```
+  </Tab>
+  
+  <Tab title="CI/CD Testing">
+    Run tests in CI pipelines:
+    
+    ```yaml
+    # .github/workflows/test.yml
+    jobs:
+      test:
+        runs-on: ubuntu-latest
+        steps:
+          - uses: kombify/sim-action@v1
+            with:
+              config: test-config.yaml
+              
+          - name: Run integration tests
+            run: |
+              kombify test --target sim
+    ```
+  </Tab>
+</Tabs>
 
-## Quick example
+## API Overview
+
+### Simulations
 
 ```bash
-# Create a simulation
-curl -X POST http://localhost:5270/api/v1/simulations \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "test-lab",
-    "description": "Testing my homelab setup"
-  }'
+# List simulations
+curl http://localhost:5270/api/v1/simulations
 
-# Add a node
+# Create simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -d '{"name": "test"}'
+
+# Delete simulation
+curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
+```
+
+### Nodes
+
+```bash
+# List nodes in simulation
+curl http://localhost:5270/api/v1/nodes?simulation_id={sim_id}
+
+# Create node
 curl -X POST http://localhost:5270/api/v1/nodes \
-  -H "Content-Type: application/json" \
   -d '{
     "name": "web-server",
-    "simulation_id": "sim-uuid",
-    "type": "vps",
+    "simulation_id": "sim_xxx",
     "os": "ubuntu-22.04"
   }'
 
-# SSH into the node
-ssh -p 2222 root@localhost
-# Password: kombisim
+# Get node details
+curl http://localhost:5270/api/v1/nodes/{id}
+
+# Delete node
+curl -X DELETE http://localhost:5270/api/v1/nodes/{id}
 ```
 
-## Use cases
+## Resource Limits
+
+Configure resources per node:
+
+```bash
+curl -X POST http://localhost:5270/api/v1/nodes \
+  -d '{
+    "name": "db-server",
+    "os": "ubuntu-22.04",
+    "resources": {
+      "cpu": 4,
+      "memory": "4096Mi",
+      "disk": "20Gi"
+    }
+  }'
+```
+
+## Networking
+
+### Custom Networks
+
+```bash
+# Create isolated network
+curl -X POST http://localhost:5270/api/v1/networks \
+  -d '{
+    "name": "backend",
+    "subnet": "172.30.0.0/24",
+    "simulation_id": "sim_xxx"
+  }'
+
+# Attach node to network
+curl -X POST http://localhost:5270/api/v1/nodes/{id}/networks \
+  -d '{"network_id": "net_xxx", "ip": "172.30.0.10"}'
+```
+
+### Network Topology Example
+
+```mermaid
+graph TB
+    subgraph Internet["Simulated Internet"]
+        GW["Gateway<br/>172.20.0.1"]
+    end
+    
+    subgraph Frontend["Frontend Network (172.20.0.0/24)"]
+        LB["Load Balancer<br/>172.20.0.10"]
+        Web1["Web Server 1<br/>172.20.0.11"]
+        Web2["Web Server 2<br/>172.20.0.12"]
+    end
+    
+    subgraph Backend["Backend Network (172.30.0.0/24)"]
+        API1["API Server 1<br/>172.30.0.10"]
+        API2["API Server 2<br/>172.30.0.11"]
+        DB["Database<br/>172.30.0.20"]
+    end
+    
+    GW --> LB
+    LB --> Web1
+    LB --> Web2
+    Web1 --> API1
+    Web2 --> API2
+    API1 --> DB
+    API2 --> DB
+    
+    style Internet fill:#fee2e2,stroke:#dc2626
+    style Frontend fill:#dbeafe,stroke:#2563eb
+    style Backend fill:#d1fae5,stroke:#059669
+```
+
+## Best Practices
 
 <AccordionGroup>
-  <Accordion title="Pre-deployment testing" icon="vial">
-    Test your `kombination.yaml` in a safe environment before deploying to real hardware.
+  <Accordion title="Use realistic resource limits">
+    Match your simulation resources to actual hardware specs:
+    
+    ```yaml
+    nodes:
+      - name: raspberry-pi
+        resources:
+          cpu: 4
+          memory: "4096Mi"  # 4GB like real Pi 4
+    ```
   </Accordion>
-
-  <Accordion title="Learning platform" icon="graduation-cap">
-    Learn infrastructure concepts without risking your production setup.
+  
+  <Accordion title="Test failure scenarios">
+    Sim lets you safely test failures:
+    
+    ```bash
+    # Stop a node to test failover
+    curl -X POST http://localhost:5270/api/v1/nodes/{id}/stop
+    
+    # Simulate network partition
+    curl -X POST http://localhost:5270/api/v1/networks/{id}/disconnect \
+      -d '{"node_id": "node_xxx"}'
+    ```
   </Accordion>
-
-  <Accordion title="CI/CD integration" icon="code-branch">
-    Validate infrastructure changes in your CI pipeline before merging.
-  </Accordion>
-
-  <Accordion title="Documentation" icon="book">
-    Create reproducible examples for documentation and tutorials.
+  
+  <Accordion title="Clean up after testing">
+    Delete simulations when done to free resources:
+    
+    ```bash
+    curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
+    ```
   </Accordion>
 </AccordionGroup>
 
-## Quick links
-
-<CardGroup cols={3}>
-  <Card title="Quick start" icon="rocket" href="/sim/quickstart">
-    Get started in 5 minutes
-  </Card>
-  <Card title="Installation" icon="download" href="/sim/install/docker">
-    Install with Docker
-  </Card>
-  <Card title="Templates" icon="book" href="/sim/templates">
-    Browse templates
-  </Card>
-  <Card title="SSH access" icon="terminal" href="/sim/ssh">
-    Connect to nodes
-  </Card>
-  <Card title="Configuration" icon="sliders" href="/sim/configuration">
-    Configure Sim
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/sim/overview">
-    Explore the API
-  </Card>
-</CardGroup>
-
-## License
-
-kombify Sim is licensed under the **MIT License**.
-
-## Next steps
+## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick start" icon="play" href="/sim/quickstart">
-    Create your first simulation
+  <Card title="Docker Installation" icon="docker" href="/sim/install/docker">
+    Quick start with Docker
+  </Card>
+  <Card title="Docker Compose" icon="layer-group" href="/sim/install/docker-compose">
+    Persistent deployment with Compose
   </Card>
   <Card title="Templates" icon="book" href="/sim/templates">
-    Explore built-in templates
+    Pre-built simulation templates
   </Card>
-  <Card title="Integration" icon="plug" href="/stack/overview">
-    Use with kombify Stack
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/sim/overview">
-    Explore the API
+  <Card title="API Reference" icon="code" href="/api-reference/sim">
+    Full API documentation
   </Card>
 </CardGroup>

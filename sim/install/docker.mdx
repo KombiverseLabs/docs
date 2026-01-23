@@ -1,0 +1,143 @@
+---
+title: Docker Installation
+description: Install kombify Sim using Docker
+sidebarTitle: Docker
+---
+
+# Docker Installation
+
+The fastest way to run kombify Sim is with a single Docker container.
+
+<Note>
+  **Requirements:** Docker 24+ on Linux, macOS, or Windows with WSL2
+</Note>
+
+## Quick Start
+
+<Steps>
+  <Step title="Pull the image">
+    ```bash
+    docker pull ghcr.io/kombify/sim:latest
+    ```
+  </Step>
+
+  <Step title="Run the container">
+    ```bash
+    docker run -d \
+      --name kombisim \
+      -p 5270:5270 \
+      -p 5271:5271 \
+      -p 2222-2322:2222-2322 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      -v kombisim-data:/data \
+      ghcr.io/kombify/sim:latest
+    ```
+  </Step>
+
+  <Step title="Access the dashboard">
+    Open `http://localhost:5271` in your browser.
+    
+    <Tip>
+      No authentication required by default — Sim is designed for local development.
+    </Tip>
+  </Step>
+</Steps>
+
+## Port Mapping
+
+| Port | Purpose |
+|------|---------|
+| 5270 | REST API |
+| 5271 | Web Dashboard |
+| 2222-2322 | SSH access to simulated nodes |
+
+The SSH port range allows up to 100 simultaneous simulation nodes.
+
+## Docker Run Options
+
+### With Custom Data Directory
+
+```bash
+docker run -d \
+  --name kombisim \
+  -p 5270:5270 \
+  -p 5271:5271 \
+  -p 2222-2322:2222-2322 \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /path/to/data:/data \
+  ghcr.io/kombify/sim:latest
+```
+
+### With Environment Variables
+
+```bash
+docker run -d \
+  --name kombisim \
+  -p 5270:5270 \
+  -p 5271:5271 \
+  -p 2222-2322:2222-2322 \
+  -e KOMBISIM_LOG_LEVEL=debug \
+  -e KOMBISIM_DATA_DIR=/data \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v kombisim-data:/data \
+  ghcr.io/kombify/sim:latest
+```
+
+### Environment Variables
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_PORT` | `5270` | API server port |
+| `KOMBISIM_DATA_DIR` | `/data` | Data directory |
+| `KOMBISIM_LOG_LEVEL` | `info` | Log level: debug, info, warn, error |
+| `KOMBISIM_ENGINE` | `container` | Simulation engine: container, qemu, external |
+
+## Verify Installation
+
+```bash
+# Check container is running
+docker ps | grep kombisim
+
+# Check API health
+curl http://localhost:5270/api/v1/health
+
+# Expected response:
+# {"status":"ok","version":"0.3.0"}
+
+# View logs
+docker logs -f kombisim
+```
+
+## Create Your First Simulation
+
+```bash
+# Create a simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -d '{"name": "test-lab"}'
+
+# Add a node
+curl -X POST http://localhost:5270/api/v1/nodes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "web-server",
+    "simulation_id": "<simulation-id>",
+    "type": "vps",
+    "os": "ubuntu-22.04"
+  }'
+
+# SSH into the node
+ssh -p 2222 root@localhost
+# Password: kombisim
+```
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Docker Compose Setup" icon="layer-group" href="/sim/install/docker-compose">
+    Run Sim with persistent configuration
+  </Card>
+  <Card title="Templates" icon="book" href="/sim/templates">
+    Use pre-built templates for common setups
+  </Card>
+</Columns>

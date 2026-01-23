@@ -1,0 +1,96 @@
+---
+title: StackKits Quickstart
+description: Use your first StackKit in 5 minutes
+sidebarTitle: Quickstart
+icon: rocket
+---
+
+# StackKits Quickstart
+
+Learn to use StackKits by creating a simple homelab configuration.
+
+## Step 1: Choose a StackKit
+
+Available StackKits:
+
+| Kit | Use Case | Complexity |
+|-----|----------|------------|
+| `base-homelab` | Single node, beginners | Low |
+| `ha-homelab` | High availability | Medium |
+| `modern-homelab` | Kubernetes | High |
+
+For this quickstart, we'll use `base-homelab`.
+
+## Step 2: Create kombination.yaml
+
+```yaml
+# kombination.yaml
+stackkit: base-homelab
+
+domain: homelab.local
+email: you@example.com
+
+ssl:
+  provider: selfsigned
+
+services:
+  traefik:
+    enabled: true
+  portainer:
+    enabled: true
+  homepage:
+    enabled: true
+```
+
+## Step 3: Validate Configuration
+
+```bash
+kombify validate
+```
+
+Expected output:
+```
+✓ Configuration valid
+✓ All service dependencies satisfied
+✓ No port conflicts detected
+
+Ready to deploy!
+```
+
+## Step 4: Generate Infrastructure
+
+```bash
+kombify generate
+```
+
+This creates:
+- `docker-compose.yml`
+- Service configuration files
+- TLS certificates (if self-signed)
+
+## Step 5: Deploy
+
+```bash
+docker compose up -d
+```
+
+## What You Get
+
+After deployment:
+
+| Service | URL |
+|---------|-----|
+| Traefik Dashboard | `https://traefik.homelab.local` |
+| Portainer | `https://portainer.homelab.local` |
+| Homepage | `https://home.homelab.local` |
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="base-homelab Details" icon="house" href="/stackkits/kits/base-homelab">
+    Full documentation for base-homelab
+  </Card>
+  <Card title="Add Services" icon="plus" href="/guides/adding-services">
+    Expand your homelab with more services
+  </Card>
+</CardGroup>

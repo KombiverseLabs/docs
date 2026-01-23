@@ -1,231 +1,250 @@
 ---
-title: kombify Stack overview
+title: kombify Stack
 description: Hybrid infrastructure control plane for homelabs and cloud
+sidebarTitle: Overview
 icon: server
 ---
 
 # kombify Stack
 
-kombify Stack is an open-source infrastructure control plane that manages your homelab nodes through a unified spec-driven workflow.
+**kombify Stack** is an open-source infrastructure control plane that manages your homelab nodes through a unified spec-driven workflow.
 
 <Card title="What is kombify Stack?" icon="circle-info">
-  kombify Stack orchestrates your infrastructure by reading a single `kombination.yaml` file, validating it with CUE schemas, and deploying it using OpenTofu. It manages both local servers and cloud VPS through lightweight gRPC agents.
+  Stack orchestrates your infrastructure by reading a single `kombination.yaml` file, validating it with CUE schemas, and deploying using OpenTofu. It manages both local servers and cloud VPS through lightweight gRPC agents.
 </Card>
 
-## Key features
+## Key Features
 
 <CardGroup cols={2}>
-  <Card title="Spec-driven" icon="file-code">
-    Define your infrastructure in YAML, let Stack handle the rest
+  <Card title="Spec-Driven" icon="file-code">
+    Define your infrastructure in YAML — Stack handles validation, generation, and deployment
   </Card>
-  <Card title="Agent-based" icon="robot">
-    Lightweight agents connect nodes to the control plane
+  <Card title="Agent-Based" icon="robot">
+    Lightweight agents connect your nodes to the control plane via secure mTLS
   </Card>
-  <Card title="Multi-engine" icon="gears">
-    Support for Proxmox, Docker, and cloud providers
+  <Card title="Multi-Engine" icon="gears">
+    Support for Proxmox, Docker, Kubernetes, and cloud providers
   </Card>
-  <Card title="Open source" icon="code-branch">
+  <Card title="Open Source" icon="code-branch">
     MIT licensed core with optional enterprise features
   </Card>
 </CardGroup>
 
-## How it works
+## How It Works
 
+```mermaid
+flowchart LR
+    subgraph Input["Your Intent"]
+        YAML["kombination.yaml"]
+    end
+
+    subgraph Stack["kombify Stack"]
+        direction TB
+        API["REST API"]
+        Unifier["Unifier Engine"]
+        ToFu["OpenTofu"]
+        gRPC["gRPC Server"]
+        
+        API --> Unifier
+        Unifier --> ToFu
+        API --> gRPC
+    end
+
+    subgraph Infra["Your Infrastructure"]
+        Agent1["Agent 1<br/><i>proxmox-01</i>"]
+        Agent2["Agent 2<br/><i>docker-01</i>"]
+        Services["Deployed<br/>Services"]
+    end
+
+    YAML --> API
+    ToFu --> Agent1 & Agent2
+    Agent1 & Agent2 --> Services
+    gRPC <-.->|mTLS| Agent1 & Agent2
+
+    style Input fill:#e0f2fe,stroke:#0284c7
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Infra fill:#d1fae5,stroke:#059669
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     kombify Stack Core                       │
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
-│  │  REST API   │  │ gRPC Server │  │  Unifier    │         │
-│  │  (5260)     │  │   (5263)    │  │   Engine    │         │
-│  └──────┬──────┘  └──────┬──────┘  └──────┬──────┘         │
-│         │                │                │                 │
-│         └────────────────┴────────────────┘                 │
-│                          │                                  │
-│                 ┌───────┴───────┐                           │
-│                 │  PocketBase   │                           │
-│                 │  (SQLite/WAL) │                           │
-│                 └───────────────┘                           │
-└─────────────────────────────────────────────────────────────┘
-                    │                   │
-        ┌───────────┴───────┐   ┌──────┴──────┐
-        │                   │   │             │
-   ┌────▼────┐         ┌────▼────┐  ┌────────────┐
-   │ Agent 1 │         │ Agent 2 │  │  OpenTofu  │
-   │ (Node)  │         │ (Node)  │  │   Runner   │
-   └─────────┘         └─────────┘  └────────────┘
-```
 
-## Core principles
-
-### 1. Spec-driven flow
-
-```
-kombination.yaml  →  Unifier  →  OpenTofu  →  Infrastructure
-    (Intent)         (CUE)       (IaC)         (Reality)
-```
-
-User intent is never automatically modified. All transformations create separate artifacts.
-
-### 2. Single-stack architecture
-
-**1 kombify Stack = 1 Homelab**
-
-- One instance manages exactly one homelab
-- A homelab can include multiple physical servers (nodes)
-- Multi-homelab scenarios require multiple instances
-
-### 3. Interface-first design
-
-Business logic changes begin with `pkg/core` interfaces. Implementations follow the contracts.
+<Steps>
+  <Step title="Define" icon="file-code">
+    Write your desired state in `kombination.yaml`
+  </Step>
+  <Step title="Validate" icon="check">
+    Stack validates against StackKit CUE schemas
+  </Step>
+  <Step title="Generate" icon="code">
+    OpenTofu code is generated automatically
+  </Step>
+  <Step title="Deploy" icon="rocket">
+    Infrastructure is provisioned via agents
+  </Step>
+</Steps>
 
 ## Architecture
 
-### Service ports
+```mermaid
+graph TB
+    subgraph UI["User Interface"]
+        Dashboard["SvelteKit Dashboard<br/>Port: 5261"]
+        CLI["CLI Tool"]
+    end
+
+    subgraph Core["kombify Stack Core"]
+        API["REST API<br/>Port: 5260"]
+        Unifier["Unifier Engine"]
+        ToFu["OpenTofu Runner"]
+        gRPC["gRPC Server<br/>Port: 5263"]
+        PB["PocketBase<br/>(SQLite)"]
+        
+        API --> Unifier
+        Unifier --> ToFu
+        API --> PB
+        gRPC --> PB
+    end
+
+    subgraph Agents["Node Agents"]
+        A1["proxmox-01"]
+        A2["docker-01"]
+        A3["k8s-01"]
+    end
+
+    Dashboard --> API
+    CLI --> API
+    gRPC <-->|mTLS| A1 & A2 & A3
+
+    style UI fill:#e0f2fe,stroke:#0284c7
+    style Core fill:#fef3c7,stroke:#d97706
+    style Agents fill:#d1fae5,stroke:#059669
+```
+
+### Service Ports
 
 | Service | Port | Protocol | Description |
 |---------|------|----------|-------------|
-| Core API | 5260 | HTTP | REST API + embedded PocketBase Admin |
-| App (UI) | 5261 | HTTP | SvelteKit Dashboard |
+| Core API | 5260 | HTTP | REST API + PocketBase Admin |
+| Frontend | 5261 | HTTP | SvelteKit Dashboard |
 | gRPC | 5263 | gRPC/mTLS | Agent communication |
 
-### Tech stack
+### Tech Stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Backend** | Go 1.24+ | Core services and agents |
 | **Frontend** | SvelteKit 2.x | Modern reactive UI |
 | **Database** | PocketBase (SQLite) | Embedded state management |
-| **IaC engine** | OpenTofu 1.6+ | Infrastructure provisioning |
+| **IaC Engine** | OpenTofu 1.6+ | Infrastructure provisioning |
 | **Validation** | CUE 0.15+ | Type-safe configuration |
 | **Networking** | gRPC + mTLS | Secure agent communication |
 
-## Unifier engine
+## Core Principles
 
-The Unifier is the heart of kombify Stack — it transforms your high-level intent into validated, deployable infrastructure code.
+### 1. Spec-Driven Flow
 
-### Three-stage pipeline
+```mermaid
+flowchart LR
+    Intent["kombination.yaml<br/><i>(Intent)</i>"]
+    CUE["Unifier + CUE<br/><i>(Validation)</i>"]
+    IaC["OpenTofu<br/><i>(IaC)</i>"]
+    Infra["Infrastructure<br/><i>(Reality)</i>"]
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│  Intent-Spec    │────▶│ Requirements-   │────▶│  Unified-Spec   │
-│                 │     │     Spec        │     │                 │
-│ User goals &    │     │ CPU, RAM,       │     │ Final validated │
-│ high-level      │     │ storage,        │     │ configuration   │
-│ constraints     │     │ network layout  │     │ for rollout     │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-```
+    Intent --> CUE --> IaC --> Infra
 
-### Responsibilities
-
-1. **Validate** all three spec stages with CUE before rollout
-2. **Select** appropriate StackKits for the requested intent
-3. **Perform** service placement on worker nodes
-4. **Generate** `kombination.yaml` as canonical user spec
-5. **Produce** output artifacts for downstream tools
-
-## Worker system
-
-### Agent registration flow
-
-```
-┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
-│   1. Generate    │────▶│   2. Register    │────▶│   3. Ready       │
-│   mTLS Certs     │     │   via gRPC       │     │   for Tasks      │
-└──────────────────┘     └──────────────────┘     └──────────────────┘
+    style Intent fill:#e0f2fe,stroke:#0284c7
+    style CUE fill:#fce7f3,stroke:#db2777
+    style IaC fill:#fef3c7,stroke:#d97706
+    style Infra fill:#d1fae5,stroke:#059669
 ```
 
-1. **Generate** mTLS credentials from kombify Stack CA
-2. **Register** via gRPC, announcing capabilities and resources
-3. **Heartbeat** every ~30 seconds
-4. **Execute** commands via bidirectional CommandStream
+User intent is **never** automatically modified. All transformations create separate artifacts.
 
-### Worker capabilities
+### 2. Single-Stack Architecture
 
-- Online/offline status and heartbeat timestamps
-- Resource usage and capacity
-- Supported features (virtualization, GPU, storage type)
+<Note>
+  **1 kombify Stack = 1 Homelab**
+</Note>
 
-## Quick links
+- One instance manages exactly one homelab
+- A homelab can include multiple physical servers (nodes)
+- Multi-homelab scenarios require multiple Stack instances
+
+### 3. Interface-First Design
+
+Business logic changes begin with `pkg/core` interfaces. Implementations follow the contracts.
+
+## Quick Example
+
+```yaml kombination.yaml
+version: "1.0"
+stackkit: base-homelab
+
+meta:
+  name: my-homelab
+  domain: home.example.com
+
+nodes:
+  - name: proxmox-01
+    type: hypervisor
+    connection:
+      host: 192.168.1.100
+      user: root
+      ssh_key: ~/.ssh/id_ed25519
+
+services:
+  - traefik      # Reverse proxy with auto-SSL
+  - authelia     # Single sign-on
+  - homepage     # Dashboard
+  - immich       # Photo management
+```
+
+```bash
+# Validate configuration
+kombify validate
+
+# Preview changes
+kombify plan
+
+# Apply to infrastructure
+kombify apply
+```
+
+## Installation Options
 
 <CardGroup cols={3}>
-  <Card title="Quick start" icon="rocket" href="/stack/quickstart">
-    Get started in 5 minutes
+  <Card title="Docker" icon="docker" href="/stack/install/docker">
+    Fastest way to get started — single `docker compose up`
   </Card>
-  <Card title="Installation" icon="download" href="/stack/install/docker">
-    Install with Docker
+  <Card title="Kubernetes" icon="dharmachakra" href="/stack/install/kubernetes">
+    Production-ready Helm chart with HA support
   </Card>
-  <Card title="Configuration" icon="sliders" href="/stack/configuration">
-    Configure your instance
+  <Card title="Bare Metal" icon="server" href="/stack/install/bare-metal">
+    Install directly on Linux servers
   </Card>
-  <Card title="Agents" icon="robot" href="/stack/agents">
-    Set up worker agents
+</CardGroup>
+
+## Next Steps
+
+<Columns cols={2}>
+  <Card title="Quick Start" icon="rocket" href="/stack/quickstart">
+    Deploy your first stack in 10 minutes
   </Card>
-  <Card title="Unifier" icon="wand-magic-sparkles" href="/stack/unifier">
-    Learn about the Unifier
+  <Card title="Architecture Deep Dive" icon="sitemap" href="/stack/architecture">
+    Understand the Unifier, agents, and data flow
   </Card>
+</Columns>
+
+---
+
+## Getting Help
+
+<Columns cols={3}>
   <Card title="Troubleshooting" icon="wrench" href="/stack/troubleshooting">
-    Fix common issues
+    Common issues and solutions
   </Card>
-</CardGroup>
-
-## Use cases
-
-<AccordionGroup>
-  <Accordion title="Homelab automation" icon="house">
-    Deploy and manage your entire homelab with one config file. Stack handles service placement, networking, and updates.
-  </Accordion>
-
-  <Accordion title="Hybrid infrastructure" icon="cloud">
-    Combine local servers with cloud VPS seamlessly. Stack treats all nodes equally, whether they're in your basement or in AWS.
-  </Accordion>
-
-  <Accordion title="Multi-node orchestration" icon="network-wired">
-    Manage multiple physical servers as one logical unit. Stack distributes services based on resources and constraints.
-  </Accordion>
-
-  <Accordion title="GitOps workflows" icon="code-branch">
-    Store your `kombination.yaml` in Git and deploy automatically. Stack integrates with CI/CD pipelines.
-  </Accordion>
-</AccordionGroup>
-
-## License
-
-kombify Stack is dual-licensed:
-
-- **MIT License** - Core functionality
-- **AGPL-3.0 License** - Network-exposed features
-
-See the [LICENSE](https://github.com/soulcreek/KombiStack/blob/main/LICENSE) file for details.
-
-## Next steps
-
-<CardGroup cols={2}>
-  <Card
-    title="Quick start"
-    icon="play"
-    href="/stack/quickstart"
-  >
-    Deploy your first stack
+  <Card title="Discord" icon="discord" href="https://discord.gg/kombify">
+    Real-time community support
   </Card>
-  <Card
-    title="Installation guide"
-    icon="download"
-    href="/stack/install/docker"
-  >
-    Install kombify Stack
+  <Card title="GitHub" icon="github" href="https://github.com/kombify/stack">
+    Report issues and contribute
   </Card>
-  <Card
-    title="Configuration"
-    icon="sliders"
-    href="/stack/configuration"
-  >
-    Configure for production
-  </Card>
-  <Card
-    title="API reference"
-    icon="code"
-    href="/api-reference/stack/overview"
-  >
-    Explore the API
-  </Card>
-</CardGroup>
+</Columns>

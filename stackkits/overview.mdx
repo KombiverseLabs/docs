@@ -1,58 +1,222 @@
 ---
-title: kombify StackKits overview
-description: Pre-validated infrastructure blueprints with CUE schemas
+title: kombify StackKits
+description: Pre-validated infrastructure blueprints powered by CUE schemas
 icon: boxes-stacked
 ---
 
 # kombify StackKits
 
-kombify StackKits are pre-validated, battle-tested infrastructure blueprints that provide sane defaults for common homelab scenarios.
+StackKits are validated, reusable infrastructure blueprints that define how your homelab should be configured. Each StackKit provides a complete infrastructure pattern that you can customize for your needs.
 
-<Card title="What are StackKits?" icon="circle-info">
-  A StackKit is a predefined set of services, configurations, defaults, and constraints that work together. Instead of figuring out which tools to use and how to configure them, you pick a StackKit and customize it to your needs.
-</Card>
+## What is a StackKit?
 
-## The problem StackKits solve
+```mermaid
+graph LR
+    subgraph Input["Your Input"]
+        YI["kombination.yaml<br/>Your choices"]
+    end
+    
+    subgraph StackKit["StackKit"]
+        CUE["CUE Schemas<br/>Rules & validation"]
+        Defaults["Defaults<br/>Best practices"]
+        Templates["Templates<br/>OpenTofu/Docker"]
+    end
+    
+    subgraph Output["Generated Output"]
+        TF["main.tf<br/>Infrastructure code"]
+        Vars["variables.tf<br/>Configuration"]
+        Compose["docker-compose.yml<br/>Service definitions"]
+    end
+    
+    Input --> StackKit
+    StackKit --> Output
+    
+    style Input fill:#dbeafe,stroke:#2563eb
+    style StackKit fill:#fef3c7,stroke:#d97706
+    style Output fill:#d1fae5,stroke:#059669
+```
 
-You want to set up a homelab. You've heard of:
-- Traefik (or Caddy? or nginx?)
-- Authelia (or Authentik? or Keycloak?)
-- Portainer (or Dockge? or Coolify?)
-- Immich (or Photoprism?)
+A StackKit is essentially a **smart template system** that:
+1. **Validates** your choices against proven patterns
+2. **Applies** sensible defaults for things you don't specify
+3. **Generates** production-ready infrastructure code
 
-**Questions:**
-- Which tools work well together?
-- How do I configure them correctly?
-- What are the best practices?
-- How do I avoid security issues?
+## The Problem StackKits Solve
 
-**StackKits answer all of these.**
+<Tabs>
+  <Tab title="The Challenge">
+    You want to set up a homelab. You've heard of:
+    - Traefik (or Caddy? or nginx?)
+    - Authelia (or Authentik? or Keycloak?)
+    - Portainer (or Dockge? or Coolify?)
+    - Immich (or Photoprism?)
+
+    **Questions that keep you stuck:**
+    - Which tools work well together?
+    - How do I configure them correctly?
+    - What are the best practices?
+    - How do I avoid security issues?
+  </Tab>
+  <Tab title="The Solution">
+    Pick a StackKit and customize it:
+    
+    ```yaml kombination.yaml
+    stackkit: base-homelab
+    domain: homelab.local
+    services:
+      traefik:
+        enabled: true
+      authelia:
+        enabled: true
+    ```
+    
+    **StackKits provide:**
+    - ✅ Curated service combinations
+    - ✅ Pre-configured integrations
+    - ✅ Security best practices built-in
+    - ✅ Validation before deployment
+  </Tab>
+</Tabs>
 
 ## Available StackKits
 
 <CardGroup cols={3}>
-  <Card title="base-homelab" icon="house">
+  <Card title="base-homelab" icon="house" href="/stackkits/kits/base-homelab">
     **For beginners**
     
-    4-6 essential services with simple configuration
-  </Card>
-  <Card title="ha-homelab" icon="shield">
-    **For advanced users**
+    Single-node homelab with essential services. Perfect for getting started.
     
-    8-12 services with high availability
+    - Docker Compose
+    - Single node
+    - 4-6 core services
   </Card>
-  <Card title="modern-homelab" icon="rocket">
-    **For power users**
+  
+  <Card title="ha-homelab" icon="shield-halved" href="/stackkits/kits/ha-homelab">
+    **For reliability**
     
-    15+ cutting-edge services
+    High-availability setup with redundancy and failover.
+    
+    - Multi-node (2-5)
+    - Load balancing
+    - 8-12 services
+  </Card>
+  
+  <Card title="modern-homelab" icon="microchip" href="/stackkits/kits/modern-homelab">
+    **For scale**
+    
+    Cloud-native Kubernetes infrastructure for advanced users.
+    
+    - Kubernetes
+    - GitOps ready
+    - 15+ services
   </Card>
 </CardGroup>
 
-## How StackKits work
+## How StackKits Work
 
-### 1. CUE schema definition
+### The Three-Layer Architecture
 
-Each StackKit is defined in [CUE](https://cuelang.org/):
+```mermaid
+graph TB
+    subgraph Layer3["Layer 3: Your Configuration"]
+        User["kombination.yaml<br/>Your specific choices"]
+    end
+    
+    subgraph Layer2["Layer 2: StackKit Definition"]
+        Schema["schema.cue<br/>Validation rules"]
+        Defaults["defaults.cue<br/>Default values"]
+        Output["output.cue<br/>Generation logic"]
+    end
+    
+    subgraph Layer1["Layer 1: Base Definitions"]
+        Base["base.cue<br/>Common types"]
+        Services["services.cue<br/>Service catalog"]
+    end
+    
+    Layer3 --> Layer2
+    Layer2 --> Layer1
+    
+    style Layer3 fill:#dbeafe,stroke:#2563eb,stroke-width:2px
+    style Layer2 fill:#fef3c7,stroke:#d97706
+    style Layer1 fill:#f3e8ff,stroke:#9333ea
+```
+
+<Steps>
+  <Step title="Layer 1: Base Definitions (shared)">
+    Common type definitions used by all StackKits:
+    ```cue
+    // base.cue
+    #Service: {
+        name:    string
+        image:   string
+        ports:   [...#Port]
+        volumes: [...#Volume]
+        depends: [...string]
+    }
+    ```
+  </Step>
+  
+  <Step title="Layer 2: StackKit Rules">
+    Each StackKit defines its validation schema and defaults:
+    ```cue
+    // base-homelab/schema.cue
+    config: {
+        nodes: [1]  // Only 1 node allowed
+        network: "bridge" | "macvlan"
+        services: {
+            traefik:  #TraefikConfig
+            portainer: #PortainerConfig
+            // ...
+        }
+    }
+    ```
+  </Step>
+  
+  <Step title="Layer 3: Your Choices">
+    You only specify what you want to customize:
+    ```yaml
+    # kombination.yaml
+    stackkit: base-homelab
+    domain: homelab.local
+    services:
+      traefik:
+        enabled: true
+      portainer:
+        enabled: true
+    ```
+  </Step>
+</Steps>
+
+### Validation Flow
+
+When you run `kombify validate`:
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant CLI as kombify CLI
+    participant Unifier as Unifier Engine
+    participant CUE as CUE Validator
+    participant StackKit
+    
+    User->>CLI: kombify validate
+    CLI->>Unifier: Load kombination.yaml
+    Unifier->>StackKit: Load base-homelab
+    StackKit->>CUE: Merge schemas
+    CUE->>CUE: Validate & unify
+    
+    alt Valid Config
+        CUE-->>Unifier: ✓ Resolved config
+        Unifier-->>CLI: ✓ Validation passed
+        CLI-->>User: Ready to deploy!
+    else Invalid Config
+        CUE-->>Unifier: ✗ Constraint errors
+        Unifier-->>CLI: ✗ Validation failed
+        CLI-->>User: Error details
+    end
+```
+
+### Example CUE Definition
 
 ```cue
 // base-homelab/stack.cue
@@ -74,188 +238,84 @@ import "kombify.dev/base"
 }
 ```
 
-### 2. Validation
+### Validation Output
 
-When you run `kombify validate`:
+```bash
+$ kombify validate
 
-```
 ✓ YAML syntax valid
 ✓ Required fields present
 ✓ Service dependencies satisfied
 ✓ Port conflicts: none
 ✓ Network configuration: valid
 ✓ SSL configuration: valid
+
+Ready to deploy!
 ```
 
-### 3. Generation
+## Choosing a StackKit
 
-The Unifier generates:
-- `docker-compose.yml` with all services
-- `traefik/` configuration
-- `authelia/configuration.yml`
-- OpenTofu code (if infrastructure provisioning needed)
-
-## Example: base-homelab
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                      BASE-HOMELAB STACKKIT                      │
-├────────────────────────────────────────────────────────────────┤
-│                                                                 │
-│  Included Services:                                             │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────────────┐  │
-│  │ Traefik  │ │ Authelia │ │ Homepage │ │ Portainer Agent  │  │
-│  │ (Proxy)  │ │  (Auth)  │ │(Dashboard│ │  (Management)    │  │
-│  └──────────┘ └──────────┘ └──────────┘ └──────────────────┘  │
-│                                                                 │
-│  Pre-configured:                                                │
-│  • Traefik routes all services                                 │
-│  • Authelia protects sensitive endpoints                       │
-│  • Homepage auto-discovers services                            │
-│  • SSL via Let's Encrypt                                       │
-│                                                                 │
-│  You configure:                                                 │
-│  • Your domain (home.local)                                    │
-│  • Your email (for SSL)                                        │
-│  • Your users (admin, family, etc.)                            │
-│                                                                 │
-└────────────────────────────────────────────────────────────────┘
-```
-
-## Using a StackKit
-
-```yaml kombination.yaml
-# This is all you write
-stackkit: base-homelab
-version: "1.0.0"
-
-meta:
-  name: "My Homelab"
-
-stack:
-  domain: home.local
-  email: admin@home.local
-
-nodes:
-  - hostname: server-1
-    type: local
-
-services:
-  - traefik
-  - authelia
-  - homepage
-```
-
-**kombify generates:**
-- Complete docker-compose.yml
-- Traefik configuration with SSL
-- Authelia configuration
-- Network setup
-- Volume mounts
-
-## Extending StackKits
-
-You can add services not in the StackKit:
-
-```yaml
-stackkit: base-homelab
-
-# Additional services
-services:
-  - jellyfin        # Not in base-homelab
-  - vaultwarden     # Not in base-homelab
-```
-
-## Creating custom StackKits
-
-<Steps>
-  <Step title="Fork an existing StackKit">
-    ```bash
-    kombify stackkit fork base-homelab my-custom-stack
-    ```
-  </Step>
-
-  <Step title="Modify services">
-    ```cue
-    // my-custom-stack/stack.cue
-    package my_custom_stack
+<AccordionGroup>
+  <Accordion title="I'm new to homelabs" icon="seedling">
+    **Use: base-homelab**
     
-    import "kombify.dev/base-homelab"
+    Start simple with a single-node setup:
+    - Easy to understand
+    - Minimal resource requirements (4GB RAM)
+    - Great for learning
     
-    #Stack: base_homelab.#Stack & {
-        // Add Immich
-        services: immich: #ImmichService
-        
-        // Remove Homepage (optional)
-        services: homepage: _|_
-    }
-    ```
-  </Step>
+    You can always migrate to ha-homelab later as your needs grow.
+  </Accordion>
+  
+  <Accordion title="I need high availability" icon="shield">
+    **Use: ha-homelab**
+    
+    When downtime is unacceptable:
+    - Database services (Nextcloud, Home Assistant)
+    - Media servers (Plex, Jellyfin)
+    - Network infrastructure (DNS, VPN)
+    
+    Requires at least 2 nodes (16GB+ RAM total) for failover.
+  </Accordion>
+  
+  <Accordion title="I want cloud-native infrastructure" icon="cloud">
+    **Use: modern-homelab**
+    
+    For advanced users wanting:
+    - Kubernetes orchestration
+    - GitOps workflows
+    - Auto-scaling
+    - Full observability
+    
+    Requires more resources (32GB+ RAM) but offers maximum flexibility.
+  </Accordion>
+</AccordionGroup>
 
-  <Step title="Test">
-    ```bash
-    kombify stackkit test my-custom-stack
-    ```
-  </Step>
+## StackKit Comparison
 
-  <Step title="Publish (optional)">
-    ```bash
-    kombify stackkit publish my-custom-stack
-    ```
-  </Step>
-</Steps>
+| Feature | base-homelab | ha-homelab | modern-homelab |
+|---------|-------------|------------|----------------|
+| **Nodes** | 1 | 2-5 | 3+ |
+| **Orchestration** | Docker Compose | Docker Swarm | Kubernetes |
+| **Complexity** | Low | Medium | High |
+| **Min Resources** | 4GB RAM | 16GB RAM | 32GB+ RAM |
+| **Use Case** | Learning, single apps | Home servers | Production-grade |
+| **Failover** | ❌ | ✅ | ✅ |
+| **Auto-scaling** | ❌ | ❌ | ✅ |
 
-## StackKit vs Docker Compose template
-
-| Aspect | Docker Compose Template | StackKit |
-|--------|------------------------|----------|
-| **Format** | YAML | CUE + YAML |
-| **Validation** | None | Schema-based |
-| **Customization** | Copy & Paste | Inheritance |
-| **Defaults** | Hardcoded | Overridable |
-| **Dependencies** | Manual | Automatic |
-| **Updates** | Manual | `kombify update` |
-
-## Quick links
-
-<CardGroup cols={3}>
-  <Card title="Quick start" icon="rocket" href="/stackkits/quickstart">
-    Use your first StackKit
-  </Card>
-  <Card title="Built-in kits" icon="book" href="/stackkits/builtin/base-homelab">
-    Browse available kits
-  </Card>
-  <Card title="Writing CUE" icon="code" href="/stackkits/writing-cue">
-    Learn CUE basics
-  </Card>
-  <Card title="Custom kits" icon="wrench" href="/stackkits/custom">
-    Create your own
-  </Card>
-  <Card title="Concepts" icon="lightbulb" href="/concepts/stackkits-explained">
-    Deep dive
-  </Card>
-  <Card title="API reference" icon="code" href="/api-reference/stackkits/overview">
-    Explore the API
-  </Card>
-</CardGroup>
-
-## License
-
-kombify StackKits are licensed under the **MIT License**.
-
-## Next steps
+## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quick start" icon="play" href="/stackkits/quickstart">
-    Use your first StackKit
+  <Card title="base-homelab Kit" icon="house" href="/stackkits/kits/base-homelab">
+    Detailed documentation for the beginner-friendly StackKit
   </Card>
-  <Card title="Browse kits" icon="book" href="/stackkits/builtin/base-homelab">
-    Explore built-in StackKits
+  <Card title="CUE Language Basics" icon="code" href="/stackkits/cue-basics">
+    Learn the CUE language used in StackKits
   </Card>
-  <Card title="Learn CUE" icon="graduation-cap" href="/stackkits/writing-cue">
-    Understand CUE schemas
+  <Card title="Customization Guide" icon="sliders" href="/stackkits/customization">
+    How to customize StackKits for your needs
   </Card>
-  <Card title="Create custom" icon="wrench" href="/stackkits/custom">
-    Build your own StackKit
+  <Card title="Creating StackKits" icon="hammer" href="/stackkits/creating">
+    Build your own StackKits from scratch
   </Card>
 </CardGroup>

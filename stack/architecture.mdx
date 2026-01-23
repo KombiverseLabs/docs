@@ -1,0 +1,175 @@
+---
+title: Stack Architecture
+description: Technical deep-dive into kombify Stack's architecture
+sidebarTitle: Architecture
+icon: sitemap
+---
+
+# Stack Architecture
+
+kombify Stack is a hybrid control plane built with Go that orchestrates infrastructure across cloud and on-premises environments.
+
+## System Overview
+
+```mermaid
+graph TB
+    subgraph Clients["Client Layer"]
+        UI["Web UI<br/>SvelteKit"]
+        CLI["CLI<br/>Go"]
+        API_Client["API Clients"]
+    end
+    
+    subgraph Core["Stack Core"]
+        API["REST API<br/>:5260"]
+        Unifier["Unifier Engine<br/>CUE Validation"]
+        Jobs["Job Queue<br/>Async Operations"]
+        PB["PocketBase<br/>SQLite + Auth"]
+    end
+    
+    subgraph Agents["Agent Layer"]
+        gRPC["gRPC Server<br/>:5263 (mTLS)"]
+        A1["Agent 1"]
+        A2["Agent 2"]
+        A3["Agent 3"]
+    end
+    
+    subgraph IaC["IaC Layer"]
+        Tofu["OpenTofu<br/>Runner"]
+        TF["Generated HCL"]
+    end
+    
+    Clients --> API
+    API --> Unifier
+    API --> Jobs
+    API --> PB
+    Jobs --> Tofu
+    Tofu --> TF
+    
+    gRPC --> A1
+    gRPC --> A2
+    gRPC --> A3
+    
+    style Clients fill:#dbeafe,stroke:#2563eb
+    style Core fill:#fef3c7,stroke:#d97706
+    style Agents fill:#d1fae5,stroke:#059669
+    style IaC fill:#f3e8ff,stroke:#9333ea
+```
+
+## Core Components
+
+### Unifier Engine
+
+The Unifier validates and resolves user configurations:
+
+```mermaid
+graph LR
+    Input["kombination.yaml"]
+    
+    subgraph Unifier["Unifier Engine"]
+        Load["Load StackKit"]
+        Merge["Merge Schemas"]
+        Validate["CUE Validate"]
+        Resolve["Resolve Defaults"]
+    end
+    
+    Output["Resolved Config"]
+    
+    Input --> Load --> Merge --> Validate --> Resolve --> Output
+    
+    style Unifier fill:#fef3c7,stroke:#d97706
+```
+
+### Job Queue
+
+Async operations for long-running tasks:
+
+| Job Type | Description | Duration |
+|----------|-------------|----------|
+| `provision` | Provision infrastructure | Minutes |
+| `destroy` | Tear down infrastructure | Minutes |
+| `validate` | Validate configuration | Seconds |
+| `healthcheck` | Check node health | Seconds |
+
+### Agent Protocol
+
+Agents communicate via gRPC with mTLS:
+
+```mermaid
+sequenceDiagram
+    participant Agent
+    participant gRPC as gRPC Server
+    participant Core as Stack Core
+    
+    Agent->>gRPC: Register (with cert)
+    gRPC->>Agent: Registration confirmed
+    
+    loop Every 30s
+        Agent->>gRPC: Heartbeat + metrics
+        gRPC->>Core: Update node status
+    end
+    
+    Core->>gRPC: Queue command
+    gRPC->>Agent: CommandStream (deploy)
+    Agent->>Agent: Execute command
+    Agent->>gRPC: Report result
+```
+
+## Data Model
+
+```mermaid
+erDiagram
+    Stack ||--o{ Node : contains
+    Stack ||--o{ Job : triggers
+    Node ||--o{ Heartbeat : sends
+    Job ||--o{ JobLog : produces
+    
+    Stack {
+        string id PK
+        string name
+        string stackkit
+        json config
+        string status
+    }
+    
+    Node {
+        string id PK
+        string stack_id FK
+        string name
+        string ip
+        string role
+        string status
+    }
+    
+    Job {
+        string id PK
+        string stack_id FK
+        string type
+        string status
+        timestamp started_at
+    }
+```
+
+## Ports & Networking
+
+| Port | Service | Protocol |
+|------|---------|----------|
+| `5260` | REST API | HTTP/HTTPS |
+| `5261` | Web UI | HTTP/HTTPS |
+| `5263` | Agent gRPC | HTTP/2 + mTLS |
+
+## Security Model
+
+- **API Auth**: API keys or OIDC tokens
+- **Agent Auth**: mTLS with client certificates
+- **Data**: SQLite with WAL mode, encrypted at rest (optional)
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Agent Protocol" icon="satellite-dish" href="/stack/agents">
+    Deep dive into agent communication
+  </Card>
+  <Card title="Unifier Engine" icon="wand-magic-sparkles" href="/stack/unifier">
+    Learn about configuration validation
+  </Card>
+</CardGroup>

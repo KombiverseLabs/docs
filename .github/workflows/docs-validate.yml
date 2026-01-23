@@ -1,0 +1,35 @@
+name: Docs Validation
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.mdx'
+      - 'docs.json'
+      - 'snippets/**'
+      - 'api-reference/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - run: npm ci
+
+      - name: Validate frontmatter
+        run: npm run validate:frontmatter
+
+      - name: Check internal links
+        run: npm run validate:links
+
+      - name: Check orphaned pages
+        run: npm run validate:orphans
+        continue-on-error: true
+
+      - name: Check navigation coverage
+        run: npm run validate:navigation

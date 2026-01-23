@@ -1,292 +1,371 @@
 ---
-title: Ecosystem overview
-description: Understand how KombiStack, KombiSim, StackKits, and KombiSphere work together
+title: kombify Ecosystem
+description: How Stack, Sim, StackKits, and Sphere work together
+icon: sitemap
 ---
 
-# Ecosystem overview
+# kombify Ecosystem
 
-The KombiSphere ecosystem consists of six interconnected components organized into two layers: **Open Core Tools** and **SaaS Platform**.
+The kombify platform consists of four interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
 
-## Architecture diagram
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         KOMBISPHERE PLATFORM                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌────────────────────── SaaS Layer ──────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐        │ │
-│  │  │ KombiSphere     │  │   KombiSphere   │  │   KombiSphere   │        │ │
-│  │  │     Cloud       │  │      Admin      │  │       API       │        │ │
-│  │  │ (User Portal)   │  │ (Admin Center)  │  │ (Kong Gateway)  │        │ │
-│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘        │ │
-│  │                                                                         │ │
-│  └─────────────────────────────────────────────────────────────────────────┘ │
-│                                      │                                       │
-│                                      ▼                                       │
-│  ┌────────────────────── Open Core Layer ────────────────────────────────┐  │
-│  │                                                                         │ │
-│  │  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐        │ │
-│  │  │   KombiStack    │  │    KombiSim     │  │    StackKits    │        │ │
-│  │  │ (Control Plane) │  │  (Simulation)   │  │ (IaC Blueprints)│        │ │
-│  │  └─────────────────┘  └─────────────────┘  └─────────────────┘        │ │
-│  │                                                                         │ │
-│  └─────────────────────────────────────────────────────────────────────────┘ │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-## Open core tools
-
-### KombiStack
-
-<Card title="Hybrid infrastructure control plane" icon="layer-group" href="/tools/kombistack/overview">
-  The core orchestration engine that unifies cloud and home infrastructure. Users define their desired state in a `kombination.yaml` file, and the Unifier Engine resolves this into valid OpenTofu configurations.
-  
-  **Tech stack:** Go, PocketBase, SvelteKit, OpenTofu, CUE
-  
-  **License:** MIT + AGPL-3.0 (dual-scope)
-</Card>
-
-**Key capabilities:**
-- Spec-driven architecture with YAML/CUE configuration
-- CUE-based validation and unification engine
-- Multi-node management via gRPC agents with mTLS
-- Embedded PocketBase for zero-dependency deployment
-- OpenTofu integration for IaC execution
-- Headscale VPN for secure mesh networking
-
-### KombiSim
-
-<Card title="Infrastructure simulation engine" icon="flask" href="/tools/kombisim/overview">
-  Test infrastructure configurations before deployment. KombiSim creates lightweight Docker-based "VMs" with real SSH access, allowing you to validate your setup without real hardware.
-  
-  **Tech stack:** Go, Docker SDK, SvelteKit
-  
-  **License:** MIT
-</Card>
-
-**Key capabilities:**
-- Docker-based simulation nodes (ports 2222-2322 for SSH)
-- Real SSH access to simulated servers
-- Simulation groups with SQLite persistence
-- 6 pre-built templates (homelab, hybrid, development)
-- Full REST API for automation
-- Web UI for managing simulations
-
-### StackKits
-
-<Card title="Declarative IaC blueprints" icon="boxes-stacked" href="/tools/stackkits/overview">
-  Battle-tested infrastructure blueprints with CUE validation and OpenTofu execution. StackKits provide the "recipes" that KombiStack uses to provision your infrastructure.
-  
-  **Tech stack:** CUE, OpenTofu, Go
-  
-  **License:** MIT
-</Card>
-
-**Key capabilities:**
-- 3-layer architecture (Core, Platforms, StackKits)
-- CUE schema validation for type safety
-- Multi-OS support via variants (Ubuntu, Debian)
-- Simple mode (OpenTofu only) and Advanced mode (Terramate orchestration)
-- Available kits: base-homelab, modern-homelab, ha-homelab
-
-## SaaS platform
-
-### KombiSphere Cloud
-
-<Card title="User portal and billing" icon="globe" href="/saas/cloud/overview">
-  The managed SaaS portal that provides unified access to all tools with enterprise-grade authentication and subscription management.
-  
-  **Tech stack:** SvelteKit, Prisma, PostgreSQL, Stripe, Zitadel
-  
-  **License:** Proprietary
-</Card>
-
-**Key features:**
-- OIDC authentication with Zitadel
-- Single sign-on across all tools
-- Stripe subscription management (Free, Pro, Enterprise)
-- Tool launcher with SSO token generation
-- User dashboard and settings
-
-### KombiSphere Admin
-
-<Card title="Administration center" icon="shield-halved" href="/saas/admin/overview">
-  The management platform for tool evaluation, pattern management, and StackKit configuration. Provides the "catalog" of available tools and configurations.
-  
-  **Tech stack:** Go, PocketBase, SvelteKit
-  
-  **License:** BSL-1.1 (converts to Apache 2.0 after 4 years)
-</Card>
-
-**Key features:**
-- Tool and pattern evaluation
-- StackKit management and configuration
-- Category-based organization
-- Discovery engine (GitHub, npm, PyPI crawlers)
-- Version tracking and changelog monitoring
-
-### KombiSphere API
-
-<Card title="API gateway" icon="route" href="/saas/api/overview">
-  Central API gateway built on Kong OSS. Provides unified entry point for all microservices with authentication, rate limiting, and routing.
-  
-  **Tech stack:** Kong OSS, Docker
-  
-  **License:** MIT
-</Card>
-
-**Key features:**
-- JWT authentication (Zitadel OIDC)
-- API key management for external consumers
-- Rate limiting per endpoint
-- gRPC support for worker communication
-- Declarative configuration with decK
-
-## Data flow
-
-### Stack creation flow
+## The Big Picture
 
 ```mermaid
-graph TD
-    A[User defines kombination.yaml] --> B[KombiStack Unifier]
-    B --> C{Validation}
-    C -->|Valid| D[Resolve StackKit]
-    C -->|Invalid| E[Return errors]
-    D --> F[Generate OpenTofu config]
-    F --> G{Deployment mode}
-    G -->|Simple| H[tofu apply]
-    G -->|Advanced| I[terramate run]
-    H --> J[Infrastructure provisioned]
-    I --> J
-    J --> K[Agents deploy services]
+graph TB
+    subgraph User["Your Journey"]
+        direction LR
+        Q1["🤔 What should<br/>I build?"]
+        Q2["🧪 Will it<br/>work?"]
+        Q3["🚀 Deploy<br/>it!"]
+        Q4["📊 Manage<br/>it"]
+        
+        Q1 --> Q2 --> Q3 --> Q4
+    end
+    
+    subgraph Tools["kombify Tools"]
+        direction LR
+        SK["StackKits<br/>📦 Blueprints"]
+        Sim["Sim<br/>🧪 Testing"]
+        Stack["Stack<br/>🚀 Deployment"]
+        Sphere["Sphere<br/>☁️ Management"]
+        
+        SK --> Sim --> Stack --> Sphere
+    end
+    
+    Q1 -.-> SK
+    Q2 -.-> Sim
+    Q3 -.-> Stack
+    Q4 -.-> Sphere
+    
+    style User fill:#f0f9ff,stroke:#0369a1
+    style Tools fill:#fef3c7,stroke:#d97706
 ```
 
-### SSO flow
+## Tool Overview
+
+<CardGroup cols={2}>
+  <Card title="StackKits" icon="cube" href="/stackkits/overview">
+    **Infrastructure Blueprints**
+    
+    Pre-validated CUE schemas that define homelab configurations. Choose a blueprint, customize it, and let kombify handle the rest.
+    
+    → *"What should I build?"*
+  </Card>
+  
+  <Card title="Sim" icon="flask-vial" href="/sim/overview">
+    **Test Before Deploy**
+    
+    Spin up simulated nodes in Docker to test your configuration. Full SSH access, realistic networking, zero risk.
+    
+    → *"Will it work?"*
+  </Card>
+  
+  <Card title="Stack" icon="layer-group" href="/stack/overview">
+    **Deploy & Orchestrate**
+    
+    The control plane that provisions your infrastructure using OpenTofu and manages your nodes via secure gRPC agents.
+    
+    → *"Deploy it!"*
+  </Card>
+  
+  <Card title="Sphere" icon="globe" href="/sphere/overview">
+    **Managed Platform**
+    
+    SaaS platform with SSO, team management, and multi-homelab support. Let us handle the complexity.
+    
+    → *"Manage it"*
+  </Card>
+</CardGroup>
+
+## Complete Workflow
 
 ```mermaid
 sequenceDiagram
-    participant User
-    participant Cloud as KombiSphere Cloud
-    participant Zitadel
-    participant Tool as KombiStack/KombiSim
+    participant You
+    participant StackKits as StackKits
+    participant Sim as Sim
+    participant Stack as Stack
+    participant Infra as Your Infrastructure
     
-    User->>Cloud: Click tool tile
-    Cloud->>Cloud: Verify subscription
-    Cloud->>Zitadel: Get tokens
-    Zitadel-->>Cloud: ID + Access tokens
-    Cloud->>Tool: Redirect with tokens
-    Tool->>Zitadel: Validate tokens
-    Zitadel-->>Tool: Token valid
-    Tool->>Tool: Create session
-    Tool-->>User: Redirect to dashboard
+    Note over You,Infra: Phase 1: Design
+    You->>StackKits: Choose blueprint (e.g., base-homelab)
+    StackKits->>You: kombination.yaml template
+    You->>You: Customize configuration
+    
+    Note over You,Infra: Phase 2: Test
+    You->>Sim: Test configuration
+    Sim->>Sim: Create simulated nodes
+    You->>Sim: SSH & verify
+    Sim->>You: ✓ Configuration works!
+    
+    Note over You,Infra: Phase 3: Deploy
+    You->>Stack: Deploy configuration
+    Stack->>Stack: Validate with CUE
+    Stack->>Stack: Generate OpenTofu
+    Stack->>Infra: Provision infrastructure
+    Infra->>Stack: Report status
+    Stack->>You: ✓ Deployment complete!
+    
+    Note over You,Infra: Phase 4: Operate
+    loop Continuous
+        Infra->>Stack: Heartbeat & metrics
+        Stack->>You: Dashboard updates
+    end
 ```
 
-## Component relationships
+## Architecture Layers
 
-| Component | Depends on | Provides to |
-|-----------|------------|-------------|
-| **StackKits** | CUE, OpenTofu | KombiStack (blueprints) |
-| **KombiStack** | StackKits, PocketBase, OpenTofu | Users (orchestration), KombiSphere (core engine) |
-| **KombiSim** | Docker | KombiStack (simulation), Users (testing) |
-| **KombiSphere Cloud** | Zitadel, Stripe | Users (portal), Tools (SSO) |
-| **KombiSphere Admin** | PocketBase | KombiSphere Cloud (tool catalog) |
-| **KombiSphere API** | Kong | All services (unified API) |
+### Layer 1: Open Core (Self-Hosted)
 
-## Deployment models
+These tools are open-source and can run entirely on your infrastructure:
+
+```mermaid
+graph LR
+    subgraph OpenCore["Open Core (Self-Hosted)"]
+        SK["StackKits<br/>MIT License"]
+        Sim["Sim<br/>MIT License"]
+        Stack["Stack<br/>AGPL-3.0"]
+    end
+    
+    SK -->|Blueprints| Stack
+    Sim -->|Validated Config| Stack
+    
+    style OpenCore fill:#d1fae5,stroke:#059669
+```
+
+### Layer 2: SaaS Platform (Managed)
+
+Optional managed services that add enterprise features:
+
+```mermaid
+graph TB
+    subgraph SaaS["Sphere Platform (Managed)"]
+        Cloud["Sphere Cloud<br/>User Portal"]
+        Admin["Sphere Admin<br/>Operations"]
+        API["Sphere API<br/>Gateway"]
+    end
+    
+    subgraph Core["Your Homelabs"]
+        HL1["Homelab 1"]
+        HL2["Homelab 2"]
+        HL3["Homelab 3"]
+    end
+    
+    Cloud --> API
+    Admin --> API
+    API -->|Secure Agent| Core
+    
+    style SaaS fill:#dbeafe,stroke:#2563eb
+    style Core fill:#fef3c7,stroke:#d97706
+```
+
+## How They Connect
+
+### The kombination.yaml File
+
+All tools share a common configuration format:
+
+```yaml
+# kombination.yaml - The universal config
+stackkit: base-homelab      # ← StackKit to use
+version: "1.0.0"
+
+domain: homelab.local
+email: you@example.com
+
+nodes:
+  - name: server-1
+    ip: 192.168.1.10
+    role: primary
+
+services:
+  traefik:
+    enabled: true
+  portainer:
+    enabled: true
+```
+
+This single file works with:
+
+| Tool | Usage |
+|------|-------|
+| **StackKits** | Validates against CUE schemas |
+| **Sim** | Creates simulated test environment |
+| **Stack** | Generates & deploys infrastructure |
+| **Sphere** | Stores & version-controls configs |
+
+### Data Flow
+
+```mermaid
+graph LR
+    YAML["kombination.yaml"]
+    
+    subgraph Validation["Validation"]
+        CUE["CUE Schema<br/>(StackKit)"]
+    end
+    
+    subgraph Generation["Generation"]
+        Unifier["Unifier Engine"]
+        TF["OpenTofu<br/>HCL"]
+        Compose["docker-compose<br/>YAML"]
+    end
+    
+    subgraph Execution["Execution"]
+        Tofu["OpenTofu<br/>Apply"]
+        Docker["Docker<br/>Compose"]
+    end
+    
+    YAML --> CUE
+    CUE --> Unifier
+    Unifier --> TF
+    Unifier --> Compose
+    TF --> Tofu
+    Compose --> Docker
+    
+    style Validation fill:#f3e8ff,stroke:#9333ea
+    style Generation fill:#fef3c7,stroke:#d97706
+    style Execution fill:#d1fae5,stroke:#059669
+```
+
+## Deployment Options
 
 <Tabs>
-  <Tab title="Standalone (Open core)">
-    Run only the open-source tools without any SaaS components.
+  <Tab title="Fully Self-Hosted">
+    Run everything yourself:
     
-    ```yaml
-    # docker-compose.yml
-    services:
-      kombistack:
-        image: ghcr.io/kombiverselabs/kombistack:latest
-        ports:
-          - "5260:5260"
-          - "5261:5261"
-      
-      kombisim:
-        image: ghcr.io/kombiverselabs/kombisim:latest
-        ports:
-          - "5270:5270"
+    ```mermaid
+    graph TB
+        subgraph Your["Your Infrastructure"]
+            Stack["Stack"]
+            Sim["Sim"]
+            HL["Homelab"]
+        end
+        
+        You["You"] --> Stack
+        Stack --> HL
+        
+        style Your fill:#d1fae5,stroke:#059669
     ```
     
-    **Use case:** Privacy-focused, full control, no subscription
+    **Best for:** Privacy-focused users, air-gapped networks
   </Tab>
-
-  <Tab title="SaaS-managed">
-    Use the fully managed platform at kombisphere.io.
+  
+  <Tab title="Hybrid (Recommended)">
+    Self-hosted tools with Sphere management:
     
-    **Components:**
-    - KombiSphere Cloud (user portal)
-    - KombiSphere Admin (admin center)
-    - KombiSphere API (gateway)
-    - Hosted KombiStack instances
-    
-    **Use case:** Teams, enterprise SSO, managed updates
-  </Tab>
-
-  <Tab title="Hybrid">
-    Self-host core tools, connect to SaaS for management.
-    
-    ```yaml
-    # docker-compose.yml
-    services:
-      kombistack:
-        image: ghcr.io/kombiverselabs/kombistack:latest
-        environment:
-          - KOMBISPHERE_API_URL=https://api.kombisphere.io
-          - KOMBISPHERE_API_KEY=${API_KEY}
+    ```mermaid
+    graph TB
+        subgraph Sphere["Sphere (Cloud)"]
+            Dashboard["Dashboard"]
+            SSO["SSO"]
+        end
+        
+        subgraph Your["Your Infrastructure"]
+            Agent["Sphere Agent"]
+            Stack["Stack"]
+            HL["Homelab"]
+        end
+        
+        Dashboard --> Agent
+        Agent --> Stack
+        Stack --> HL
+        
+        style Sphere fill:#dbeafe,stroke:#2563eb
+        style Your fill:#d1fae5,stroke:#059669
     ```
     
-    **Use case:** Data sovereignty + enterprise features
+    **Best for:** Most users—balance of control and convenience
+  </Tab>
+  
+  <Tab title="Fully Managed">
+    Everything hosted by kombify:
+    
+    ```mermaid
+    graph TB
+        subgraph Sphere["Sphere (Cloud)"]
+            Dashboard["Dashboard"]
+            Stack["Hosted Stack"]
+        end
+        
+        subgraph Your["Your Infrastructure"]
+            Agent["Sphere Agent"]
+            HL["Homelab"]
+        end
+        
+        Dashboard --> Stack
+        Stack --> Agent
+        Agent --> HL
+        
+        style Sphere fill:#dbeafe,stroke:#2563eb
+        style Your fill:#fef3c7,stroke:#d97706
+    ```
+    
+    **Best for:** Teams, multi-homelab setups, minimal maintenance
   </Tab>
 </Tabs>
 
-## License overview
+## Technology Stack
 
-| Component | License | Commercial use | Modifications |
-|-----------|---------|----------------|---------------|
-| **StackKits** | MIT | ✅ Allowed | ✅ Allowed |
-| **KombiSim** | MIT | ✅ Allowed | ✅ Allowed |
-| **KombiStack** | MIT + AGPL-3.0 | ✅ Allowed* | ✅ Allowed* |
-| **KombiSphere Admin** | BSL-1.1 | ⚠️ Limited** | ✅ Allowed |
-| **KombiSphere Cloud** | Proprietary | ❌ SaaS only | ❌ Not allowed |
-| **KombiSphere API** | MIT | ✅ Allowed | ✅ Allowed |
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.24+ | High-performance, single binary |
+| **Frontend** | SvelteKit | Modern, reactive UI |
+| **Database** | PocketBase (SQLite) | Zero-dependency persistence |
+| **IaC** | OpenTofu | Infrastructure provisioning |
+| **Validation** | CUE | Schema definition & validation |
+| **Agent Comm** | gRPC + mTLS | Secure, efficient RPC |
+| **Auth** | Zitadel (OIDC) | Enterprise SSO |
+| **Billing** | Stripe | Subscription management |
 
-<Info>
-  \*Historical code is MIT, new server-side code is AGPL-3.0. See [licensing docs](https://github.com/KombiverseLabs/KombiStack/blob/main/docs/LICENSES.md).
-  
-  \*\*BSL-1.1 allows production use for organizations with less than $1M ARR. Converts to Apache 2.0 after 4 years.
-</Info>
-
-## Next steps
+## Choose Your Path
 
 <CardGroup cols={3}>
-  <Card
-    title="KombiStack deep dive"
-    icon="layer-group"
-    href="/tools/kombistack/overview"
-  >
-    Learn about the control plane
+  <Card title="Start with Sim" icon="flask-vial" href="/sim/overview">
+    **Test first**
+    
+    Try configurations in a safe environment before committing to real hardware.
   </Card>
-  <Card
-    title="Simulate infrastructure"
-    icon="flask"
-    href="/tools/kombisim/overview"
-  >
-    Test before deploying
+  
+  <Card title="Start with Stack" icon="layer-group" href="/stack/overview">
+    **Deploy now**
+    
+    Jump straight into deployment if you already know what you want.
   </Card>
-  <Card
-    title="Browse StackKits"
-    icon="boxes-stacked"
-    href="/tools/stackkits/available-kits"
-  >
-    Explore infrastructure blueprints
+  
+  <Card title="Start with Sphere" icon="globe" href="/sphere/overview">
+    **Managed experience**
+    
+    Let us handle the setup—focus on your applications.
   </Card>
 </CardGroup>
+
+## Comparison Table
+
+| Feature | Self-Hosted | Sphere Managed |
+|---------|:-----------:|:--------------:|
+| **Setup Time** | ~1 hour | ~5 minutes |
+| **Updates** | Manual | Automatic |
+| **Multi-homelab** | DIY | Built-in |
+| **Team Access** | DIY | Built-in |
+| **SSO** | Optional | Included |
+| **Support** | Community | Priority |
+| **Cost** | Free | $0-49/month |
+| **Data Location** | Your choice | Your premises* |
+
+*Sphere only manages configuration—your data stays on your infrastructure.
+
+## Next Steps
+
+<Steps>
+  <Step title="Try the Quickstart">
+    Get running in 5 minutes with our [quickstart guide](/quickstart).
+  </Step>
+  
+  <Step title="Explore StackKits">
+    Browse available [infrastructure blueprints](/stackkits/overview).
+  </Step>
+  
+  <Step title="Read the Concepts">
+    Understand [spec-driven architecture](/concepts/spec-driven) and the [Unifier Engine](/concepts/architecture).
+  </Step>
+</Steps>
