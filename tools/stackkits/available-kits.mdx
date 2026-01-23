@@ -1,33 +1,173 @@
 ---
 title: Available StackKits
-description: Browse all available infrastructure blueprints
+description: Browse all infrastructure blueprints and their current status
 ---
 
 # Available StackKits
 
-## base-homelab
+StackKits provides battle-tested infrastructure blueprints for common homelab scenarios. Each StackKit includes CUE validation, OpenTofu templates, and service definitions.
 
-**Single-server homelab with Docker and Dokploy**
+## Production ready
 
-- **Nodes:** 1 main node
-- **Platform:** Docker
-- **Services:** Traefik, Dokploy, Portainer
-- **Best for:** Beginners, single-server setups
+### base-homelab
 
-## modern-homelab
+<Card title="Single-server homelab" icon="server" href="#base-homelab-details">
+  **Status:** ✅ Production Ready (v1.0)
+  
+  **Platform:** Docker + Dokploy
+  
+  **Nodes:** 1 (local only)
+  
+  Perfect for beginners and single-server setups
+</Card>
 
-**Multi-node Docker Swarm with Coolify**
+#### Details
 
-- **Nodes:** 2+ nodes
-- **Platform:** Docker Swarm
-- **Services:** Traefik, Coolify, monitoring
-- **Best for:** Production homelabs
+- **Minimum requirements:** 1 server, 2 CPU cores, 4GB RAM
+- **Platform:** Docker with Dokploy PaaS
+- **Network:** Local only (LAN access)
+- **Domain:** Optional
+- **Deployment modes:** Simple (OpenTofu) or Advanced (Terramate)
 
-## ha-homelab
+**Services included:**
+- Traefik (reverse proxy)
+- Dokploy (PaaS platform)
+- Optional: Portainer, Uptime Kuma, Beszel
 
-**Kubernetes high availability cluster**
+**Variants:**
+- `os/ubuntu-24` - Ubuntu 24.04 (default)
+- `os/ubuntu-22` - Ubuntu 22.04
+- `os/debian-12` - Debian 12
+- `service/default` - Full service stack
+- `service/minimal` - Minimal services
+- `service/beszel` - Lightweight monitoring
 
-- **Nodes:** 3+ nodes
-- **Platform:** k3s
-- **Services:** Ingress, storage, monitoring
-- **Best for:** Enterprise-grade setups
+**Quick start:**
+```bash
+stackkit init base-homelab
+stackkit apply
+```
+
+## Planned releases
+
+### modern-homelab
+
+<Card title="Multi-node hybrid homelab" icon="network-wired" href="#modern-homelab-details">
+  **Status:** ⏳ Planned for v1.1
+  
+  **Platform:** Docker + Coolify
+  
+  **Nodes:** 2+ (cloud + local)
+  
+  Multi-server hybrid setup with public domain
+</Card>
+
+#### Details
+
+- **Minimum requirements:** 2+ servers (1 cloud VPS + 1+ local), own domain
+- **Platform:** Docker with Coolify PaaS
+- **Network:** Public internet + VPN overlay (Headscale/Tailscale)
+- **Domain:** Required (for ACME TLS)
+- **Deployment modes:** Simple or Advanced
+
+**Planned services:**
+- Traefik (reverse proxy + TLS)
+- Coolify (PaaS platform)
+- Headscale (VPN coordination)
+- Prometheus + Grafana + Loki (monitoring)
+- Uptime Kuma (status page)
+
+**Planned variants:**
+- `default` - Full PLG monitoring stack
+- `minimal` - Coolify + Headscale + Uptime Kuma only
+- `beszel` - Lightweight monitoring alternative
+
+**Architecture:**
+```
+Cloud VPS (Public)
+├── Traefik (HTTPS entry point)
+├── Coolify (PaaS)
+├── Headscale (VPN coordinator)
+└── Monitoring (Prometheus/Grafana/Loki)
+    │
+    └── VPN Mesh (Tailscale)
+        │
+        ├── Local Node 1 (Docker workloads)
+        ├── Local Node 2 (Docker workloads)
+        └── Local Node N (Docker workloads)
+```
+
+### ha-homelab
+
+<Card title="High availability cluster" icon="shield-check" href="#ha-homelab-details">
+  **Status:** ⏳ Planned for v1.2
+  
+  **Platform:** Docker Swarm (HA)
+  
+  **Nodes:** 3+ (for quorum)
+  
+  Enterprise-grade HA with automatic failover
+</Card>
+
+#### Details
+
+- **Minimum requirements:** 3+ servers (for Swarm quorum), 4GB RAM per node
+- **Platform:** Docker Swarm (NOT Kubernetes)
+- **Network:** Overlay networks with VIP failover
+- **Storage:** Distributed storage (GlusterFS) or shared NAS
+- **Deployment modes:** Simple or Advanced (recommended)
+
+**Why Docker Swarm (not Kubernetes)?**
+- Simpler to operate than Kubernetes
+- Lower resource overhead
+- Docker-native (leverages existing knowledge)
+- Sufficient for homelab HA needs
+
+**Planned services:**
+- Traefik (HA reverse proxy with VIP)
+- Dokploy (Swarm mode)
+- Prometheus/Grafana (HA federation)
+- Distributed storage configuration
+
+**Architecture:**
+```
+Load Balancer / VIP
+├── Node 1 (Swarm Manager)
+│   ├── Traefik
+│   └── App Replicas
+├── Node 2 (Swarm Manager)
+│   ├── Traefik
+│   └── App Replicas
+└── Node 3 (Swarm Manager)
+    ├── Traefik
+    └── App Replicas
+    
+Distributed Storage (GlusterFS/NAS)
+```
+
+**Planned features:**
+- Tolerates failure of 1 manager node
+- Zero-downtime updates
+- Automatic service failover
+- HA Prometheus/Grafana
+
+## Comparison matrix
+
+| Feature | base-homelab | modern-homelab | ha-homelab |
+|---------|--------------|----------------|------------|
+| **Status** | ✅ v1.0 | ⏳ v1.1 | ⏳ v1.2 |
+| **Nodes** | 1 | 2+ | 3+ |
+| **Platform** | Docker | Docker | Docker Swarm |
+| **PaaS** | Dokploy | Coolify | Dokploy (Swarm) |
+| **Network** | Local | Public + VPN | Overlay + VIP |
+| **Domain** | Optional | Required | Optional |
+| **HA** | No | No | Yes |
+| **Use case** | Home network | Hybrid/public | Enterprise-grade |
+
+## Creating custom StackKits
+
+Want to create your own StackKit? See the [Creating StackKits](/tools/stackkits/creating-stackkits) guide.
+
+## Next steps
+
+<CardGroup cols={2}>\n  <Card\n    title=\"Quick start\"\n    icon=\"play\"\n    href=\"/tools/stackkits/quickstart\"\n  >\n    Deploy base-homelab now\n  </Card>\n  <Card\n    title=\"Create custom StackKit\"\n    icon=\"hammer\"\n    href=\"/tools/stackkits/creating-stackkits\"\n  >\n    Build your own blueprint\n  </Card>\n  <Card\n    title=\"CLI reference\"\n    icon=\"terminal\"\n    href=\"/tools/stackkits/cli-reference\"\n  >\n    Command-line documentation\n  </Card>\n  <Card\n    title=\"Architecture\"\n    icon=\"sitemap\"\n    href=\"/concepts/stackkits-system\"\n  >\n    Understand the 3-layer architecture\n  </Card>\n</CardGroup>
