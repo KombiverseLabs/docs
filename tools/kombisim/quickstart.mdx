@@ -1,0 +1,381 @@
+---
+title: KombiSim quickstart
+description: Create your first simulation in 5 minutes
+---
+
+# KombiSim quickstart
+
+Get KombiSim running and create your first infrastructure simulation in under 5 minutes.
+
+## Prerequisites
+
+<CardGroup cols={2}>
+  <Card title="Docker" icon="docker">
+    Docker Engine 24.0+
+  </Card>
+  <Card title="System resources" icon="microchip">
+    2GB RAM, 5GB disk
+  </Card>
+</CardGroup>
+
+## Installation
+
+<Tabs>
+  <Tab title="Docker (Recommended)">
+    ```bash
+    docker run -d \
+      --name kombisim \
+      -p 5270:5270 \
+      -p 5271:5271 \
+      -p 2222-2322:2222-2322 \
+      -v /var/run/docker.sock:/var/run/docker.sock \
+      ghcr.io/kombiverselabs/kombisim:latest
+    ```
+  </Tab>
+
+  <Tab title="Docker Compose">
+    ```yaml
+    # docker-compose.yml
+    version: '3.8'
+    services:
+      kombisim:
+        image: ghcr.io/kombiverselabs/kombisim:latest
+        ports:
+          - "5270:5270"
+          - "5271:5271"
+          - "2222-2322:2222-2322"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - kombisim-data:/app/data
+    
+    volumes:
+      kombisim-data:
+    ```
+    
+    ```bash
+    docker compose up -d
+    ```
+  </Tab>
+
+  <Tab title="From source">
+    ```bash
+    git clone https://github.com/KombiverseLabs/KombiSim
+    cd KombiSim
+    
+    # Backend
+    go run ./cmd/kombisim
+    
+    # Frontend (in another terminal)
+    cd app && bun install && bun run dev
+    ```
+  </Tab>
+</Tabs>
+
+## Verify installation
+
+```bash
+# Check API
+curl http://localhost:5270/api/v1/health
+
+# Open Web UI
+open http://localhost:5271
+```
+
+## Create your first simulation
+
+<Steps>
+  <Step title="Create simulation">
+    **Via API:**
+    ```bash
+    curl -X POST http://localhost:5270/api/v1/simulations \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "my-first-simulation",
+        "nodes": [
+          {"name": "web-server", "location": "local"},
+          {"name": "database", "location": "local"}
+        ]
+      }'
+    ```
+    
+    **Via Web UI:**
+    1. Open http://localhost:5271
+    2. Click "New Simulation"
+    3. Enter name: "my-first-simulation"
+    4. Add nodes: web-server, database
+    5. Click "Create"
+  </Step>
+
+  <Step title="Start nodes">
+    ```bash
+    # Get simulation ID from response
+    SIMULATION_ID="<id-from-previous-step>"
+    
+    # Start all nodes
+    curl -X POST http://localhost:5270/api/v1/simulations/$SIMULATION_ID/start
+    ```
+    
+    **What happens:**
+    - Docker containers are created
+    - SSH servers start on ports 2222, 2223
+    - Nodes become accessible
+  </Step>
+
+  <Step title="Get SSH details">
+    ```bash
+    # List nodes
+    curl http://localhost:5270/api/v1/simulations/$SIMULATION_ID/nodes
+    
+    # Get SSH details for specific node
+    curl http://localhost:5270/api/v1/nodes/{node-id}/ssh
+    ```
+    
+    **Response:**
+    ```json
+    {
+      "host": "localhost",
+      "port": 2222,
+      "user": "root",
+      "password": "kombisim"
+    }
+    ```
+  </Step>
+
+  <Step title="SSH into nodes">
+    ```bash
+    # SSH to web-server (port 2222)
+    ssh -p 2222 root@localhost
+    # Password: kombisim
+    
+    # Test commands
+    whoami
+    hostname
+    docker ps
+    exit
+    
+    # SSH to database (port 2223)
+    ssh -p 2223 root@localhost
+    ```
+  </Step>
+
+  <Step title="Stop and clean up">
+    ```bash
+    # Stop simulation
+    curl -X POST http://localhost:5270/api/v1/simulations/$SIMULATION_ID/stop
+    
+    # Delete simulation
+    curl -X DELETE http://localhost:5270/api/v1/simulations/$SIMULATION_ID
+    ```
+  </Step>
+</Steps>
+
+## Use a template
+
+Faster way to get started with pre-built templates:
+
+```bash
+# List available templates
+curl http://localhost:5270/api/v1/templates
+
+# Apply homelab-basic template
+curl -X POST http://localhost:5270/api/v1/templates/homelab-basic/apply \
+  -H "Content-Type: application/json" \
+  -d '{
+    "simulation_name": "my-homelab-test",
+    "auto_start": true
+  }'
+
+# Get simulation details
+curl http://localhost:5270/api/v1/simulations
+```
+
+## Test with KombiStack
+
+Integrate with KombiStack for automatic validation:
+
+<Steps>
+  <Step title="Configure KombiStack">
+    ```yaml
+    # kombistack.yaml
+    simulation:
+      enabled: true
+      endpoint: "http://localhost:5270"
+      auto_validate: true
+    ```
+  </Step>
+
+  <Step title="Create kombination.yaml">
+    ```yaml
+    version: "1.0"
+    name: test-stack
+    kit: base-homelab
+    
+    nodes:
+      - name: server-1
+        type: main
+        ssh:
+          host: 192.168.1.100
+          user: admin
+    
+    services:
+      - name: traefik
+      - name: dokploy
+    ```
+  </Step>
+
+  <Step title="Validate with simulation">
+    ```bash
+    # KombiStack will automatically:
+    # 1. Create simulation in KombiSim
+    # 2. Deploy to simulated nodes
+    # 3. Run validation checks
+    # 4. Report results
+    
+    kombistack validate kombination.yaml
+    ```
+  </Step>
+</Steps>
+
+## Common tasks
+
+### List all simulations
+
+```bash
+curl http://localhost:5270/api/v1/simulations
+```
+
+### Get simulation status
+
+```bash
+curl http://localhost:5270/api/v1/simulations/{id}
+```
+
+### Add node to existing simulation
+
+```bash
+curl -X POST http://localhost:5270/api/v1/simulations/{id}/nodes \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "new-node",
+    "location": "local"
+  }'
+```
+
+### Export simulation config
+
+```bash
+# Export as kombination.yaml
+curl http://localhost:5270/api/v1/simulations/{id}/export > kombination.yaml
+```
+
+### View node logs
+
+```bash
+# Get Docker container logs
+docker logs kombisim-node-{id}
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port conflicts">
+    **Symptoms:** "address already in use"
+    
+    **Solutions:**
+    ```bash
+    # Check what's using the port
+    lsof -i :5270
+    
+    # Use different ports
+    docker run -p 5370:5270 -p 5371:5271 kombisphere/kombisim
+    ```
+  </Accordion>
+
+  <Accordion title="SSH connection refused">
+    **Symptoms:** "Connection refused" when SSH'ing to node
+    
+    **Solutions:**
+    1. Check node is running:
+       ```bash
+       curl http://localhost:5270/api/v1/nodes/{id}
+       ```
+    
+    2. Check Docker container:
+       ```bash
+       docker ps | grep kombisim
+       ```
+    
+    3. Check SSH port mapping:
+       ```bash
+       docker port kombisim-node-{id}
+       ```
+  </Accordion>
+
+  <Accordion title="Docker socket permission denied">
+    **Symptoms:** "permission denied" accessing Docker socket
+    
+    **Solutions:**
+    ```bash
+    # Linux: Add user to docker group
+    sudo usermod -aG docker $USER
+    newgrp docker
+    
+    # Or run with sudo
+    sudo docker run ...
+    ```
+  </Accordion>
+
+  <Accordion title="Nodes not starting">
+    **Symptoms:** Nodes stuck in "starting" state
+    
+    **Solutions:**
+    1. Check Docker logs:
+       ```bash
+       docker logs kombisim
+       ```
+    
+    2. Check available resources:
+       ```bash
+       docker system df
+       docker system prune  # Clean up if needed
+       ```
+    
+    3. Restart KombiSim:
+       ```bash
+       docker restart kombisim
+       ```
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Templates"
+    icon="file-code"
+    href="/tools/kombisim/templates"
+  >
+    Explore pre-built templates
+  </Card>
+  <Card
+    title="Installation"
+    icon="download"
+    href="/tools/kombisim/installation"
+  >
+    Advanced installation options
+  </Card>
+  <Card
+    title="API reference"
+    icon="code"
+    href="/api/kombisim/overview"
+  >
+    Full API documentation
+  </Card>
+  <Card
+    title="KombiStack integration"
+    icon="layer-group"
+    href="/tools/kombistack/configuration"
+  >
+    Configure automatic simulation
+  </Card>
+</CardGroup>
