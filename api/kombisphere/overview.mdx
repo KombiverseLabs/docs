@@ -1,0 +1,40 @@
+---
+title: KombiSphere API overview
+description: Unified API gateway
+---
+
+# KombiSphere API
+
+Unified API gateway for all KombiSphere services.
+
+## Base URL
+
+```
+https://api.kombisphere.io/v1
+```
+
+## Authentication
+
+```bash
+# JWT token
+curl -H "Authorization: Bearer $TOKEN" \
+  https://api.kombisphere.io/v1/tools
+
+# API key
+curl -H "X-API-Key: $API_KEY" \
+  https://api.kombisphere.io/v1/tools
+```
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/api/kombisphere/authentication">
+    Auth methods
+  </Card>
+  <Card title="Tools" icon="wrench" href="/api/kombisphere/tools">
+    Tool management
+  </Card>
+  <Card title="Subscriptions" icon="credit-card" href="/api/kombisphere/subscriptions">
+    Subscription management
+  </Card>
+</CardGroup>
