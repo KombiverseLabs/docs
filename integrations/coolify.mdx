@@ -1,0 +1,291 @@
+---
+title: Coolify integration
+description: Deploy kombify Stack using Coolify
+---
+
+# Coolify integration
+
+Deploy and manage kombify Stack using Coolify, the self-hostable Heroku/Netlify alternative.
+
+## Overview
+
+[Coolify](https://coolify.io) is an open-source platform for deploying applications with:
+- Docker-based deployments
+- Automatic SSL certificates
+- Git integration
+- Built-in monitoring
+
+You can use Coolify to deploy kombify Stack alongside your other services.
+
+## Prerequisites
+
+<CardGroup cols={2}>
+  <Card title="Coolify instance" icon="ship">
+    Coolify v4.0+ installed
+  </Card>
+  <Card title="Server access" icon="server">
+    SSH access to your server
+  </Card>
+</CardGroup>
+
+## Deployment options
+
+### Option 1: Docker Compose (recommended)
+
+<Steps>
+  <Step title="Create new resource">
+    In Coolify dashboard:
+    - Click **+ New Resource**
+    - Select **Docker Compose**
+  </Step>
+
+  <Step title="Configure source">
+    - **Name:** `kombify-stack`
+    - **Source:** GitHub repository
+    - **Repository:** `https://github.com/soulcreek/KombiStack`
+    - **Branch:** `main`
+  </Step>
+
+  <Step title="Set environment variables">
+    Add these environment variables:
+    
+    ```bash
+    KOMBISTACK_PORT=5260
+    KOMBISTACK_GRPC_PORT=5263
+    KOMBISTACK_LOG_LEVEL=info
+    KOMBISTACK_DATA_DIR=/data
+    ```
+  </Step>
+
+  <Step title="Configure volumes">
+    Add persistent volumes:
+    
+    ```
+    /data → /app/data
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy** and wait for the build to complete.
+  </Step>
+</Steps>
+
+### Option 2: Docker Image
+
+<Steps>
+  <Step title="Create new resource">
+    - Click **+ New Resource**
+    - Select **Docker Image**
+  </Step>
+
+  <Step title="Configure image">
+    - **Image:** `ghcr.io/soulcreek/kombistack:latest`
+    - **Port:** `5260`
+  </Step>
+
+  <Step title="Add environment variables">
+    Same as Option 1
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy**
+  </Step>
+</Steps>
+
+## Configure SSL
+
+<Steps>
+  <Step title="Add domain">
+    In your resource settings:
+    - Navigate to **Domains**
+    - Add your domain: `stack.yourdomain.com`
+  </Step>
+
+  <Step title="Enable SSL">
+    Coolify automatically provisions Let's Encrypt certificates.
+    
+    Wait for the certificate to be issued (usually 1-2 minutes).
+  </Step>
+
+  <Step title="Verify">
+    Access your Stack at `https://stack.yourdomain.com`
+  </Step>
+</Steps>
+
+## Deploy kombify Sim alongside Stack
+
+<Steps>
+  <Step title="Create new Docker Compose resource">
+    - **Name:** `kombify-sim`
+    - **Repository:** `https://github.com/soulcreek/KombiSim`
+  </Step>
+
+  <Step title="Configure ports">
+    Expose these ports:
+    - `5270` — Sim API
+    - `5271` — Sim UI
+    - `2222-2322` — SSH for simulated nodes
+  </Step>
+
+  <Step title="Link to Stack">
+    Add environment variable:
+    
+    ```bash
+    KOMBISIM_STACK_URL=http://kombistack:5260
+    ```
+  </Step>
+
+  <Step title="Deploy">
+    Both Stack and Sim will be running on the same server.
+  </Step>
+</Steps>
+
+## Monitoring
+
+### View logs
+
+In Coolify dashboard:
+1. Navigate to your resource
+2. Click **Logs**
+3. View real-time logs
+
+### Health checks
+
+Add health check endpoint:
+
+```yaml
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:5260/api/v1/health"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
+```
+
+## Backup and restore
+
+### Backup
+
+Coolify automatically backs up volumes. To manually backup:
+
+```bash
+# SSH into your server
+ssh user@your-server
+
+# Backup kombify data
+docker run --rm \
+  -v kombistack_data:/data \
+  -v $(pwd):/backup \
+  alpine tar czf /backup/kombistack-backup.tar.gz /data
+```
+
+### Restore
+
+```bash
+# Restore from backup
+docker run --rm \
+  -v kombistack_data:/data \
+  -v $(pwd):/backup \
+  alpine tar xzf /backup/kombistack-backup.tar.gz -C /
+```
+
+## Update kombify Stack
+
+<Steps>
+  <Step title="Pull latest changes">
+    In Coolify dashboard:
+    - Navigate to your resource
+    - Click **Redeploy**
+  </Step>
+
+  <Step title="Automatic updates">
+    Enable automatic deployments:
+    - Go to **Settings** → **Auto Deploy**
+    - Enable **Deploy on Git Push**
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Port conflicts">
+    If ports are already in use, change them in Coolify:
+    
+    1. Navigate to **Ports**
+    2. Change `5260` to another port (e.g., `5360`)
+    3. Update environment variables accordingly
+  </Accordion>
+
+  <Accordion title="Volume permissions">
+    Fix permission issues:
+    
+    ```bash
+    # SSH into server
+    docker exec -it kombistack chown -R 1000:1000 /app/data
+    ```
+  </Accordion>
+
+  <Accordion title="SSL certificate issues">
+    Verify DNS is pointing to your server:
+    
+    ```bash
+    dig stack.yourdomain.com
+    ```
+    
+    Ensure port 80 and 443 are open.
+  </Accordion>
+</AccordionGroup>
+
+## Advanced: Deploy full kombify ecosystem
+
+Deploy all kombify components with Coolify:
+
+```yaml docker-compose.yml
+services:
+  kombistack:
+    image: ghcr.io/soulcreek/kombistack:latest
+    ports:
+      - "5260:5260"
+      - "5263:5263"
+    volumes:
+      - stack-data:/app/data
+
+  kombisim:
+    image: ghcr.io/soulcreek/kombisim:latest
+    ports:
+      - "5270:5270"
+      - "2222-2322:2222-2322"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - sim-data:/app/data
+
+  traefik:
+    image: traefik:v3.0
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - traefik-data:/letsencrypt
+
+volumes:
+  stack-data:
+  sim-data:
+  traefik-data:
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Proxmox integration" icon="server" href="/integrations/proxmox">
+    Manage Proxmox VMs with kombify
+  </Card>
+  <Card title="Zitadel integration" icon="key" href="/integrations/zitadel">
+    Set up SSO with Zitadel
+  </Card>
+  <Card title="Quick start" icon="rocket" href="/quickstart-selfhosted">
+    Self-host kombify Stack
+  </Card>
+  <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
+    Understand kombify architecture
+  </Card>
+</CardGroup>
