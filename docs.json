@@ -29,24 +29,25 @@
     "name": "Dashboard",
     "url": "https://app.kombisphere.io"
   },
-  "anchors": [
-    {
-      "anchor": "GitHub",
-      "icon": "github",
-      "href": "https://github.com/kombify"
-    },
-    {
-      "anchor": "Community",
-      "icon": "discord",
-      "href": "https://discord.gg/kombify"
-    },
-    {
-      "anchor": "Blog",
-      "icon": "newspaper",
-      "href": "https://kombify.dev/blog"
-    }
-  ],
-  "tabs": [
+  "navigation": {
+    "anchors": [
+      {
+        "anchor": "GitHub",
+        "icon": "github",
+        "href": "https://github.com/kombify"
+      },
+      {
+        "anchor": "Community",
+        "icon": "discord",
+        "href": "https://discord.gg/kombify"
+      },
+      {
+        "anchor": "Blog",
+        "icon": "newspaper",
+        "href": "https://kombify.dev/blog"
+      }
+    ],
+    "tabs": [
     {
       "tab": "Documentation",
       "icon": "book-open",
