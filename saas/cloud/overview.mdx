@@ -1,295 +1,83 @@
 ---
 title: KombiSphere Cloud overview
-description: Managed SaaS portal with enterprise authentication and subscription management
+description: Managed SaaS platform for unified tool access and subscription management
 ---
 
 # KombiSphere Cloud
 
-KombiSphere Cloud is the **managed SaaS portal** that provides unified access to KombiStack, KombiSim, and StackKits with enterprise-grade authentication and subscription management.
+KombiSphere Cloud is the **managed SaaS portal** that provides unified access to all tools with enterprise-grade authentication and subscription management.
 
 <CardGroup cols={2}>
-  <Card
-    title="Getting started"
-    icon="rocket"
-    href="/saas/cloud/getting-started"
-  >
+  <Card title="Getting started" icon="rocket" href="/saas/cloud/getting-started">
     Sign up and launch your first tool
   </Card>
-  <Card
-    title="Authentication"
-    icon="key"
-    href="/saas/cloud/authentication"
-  >
+  <Card title="Authentication" icon="lock" href="/saas/cloud/authentication">
     SSO and security features
   </Card>
-  <Card
-    title="Subscriptions"
-    icon="credit-card"
-    href="/saas/cloud/subscriptions"
-  >
+  <Card title="Subscriptions" icon="credit-card" href="/saas/cloud/subscriptions">
     Plans and billing
   </Card>
-  <Card
-    title="Tool launcher"
-    icon="rocket"
-    href="/saas/cloud/tool-launcher"
-  >
-    Access your tools
+  <Card title="Tool launcher" icon="rocket" href="/saas/cloud/tool-launcher">
+    Access KombiStack and KombiSim
   </Card>
 </CardGroup>
 
 ## Key features
 
 <AccordionGroup>
-  <Accordion title="OIDC authentication" icon="shield-check">
-    Enterprise SSO with Zitadel Cloud:
-    
-    - Single sign-on across all tools
-    - Multi-factor authentication
-    - Social login (Google, GitHub)
-    - SAML/OIDC for enterprise
-  </Accordion>
-
   <Accordion title="Single sign-on" icon="key">
-    Login once, access all tools seamlessly:
+    OIDC authentication with Zitadel:
     
-    ```
-    User → KombiSphere Cloud → Zitadel → Tool (KombiStack/KombiSim)
-    ```
-    
-    No need to login separately to each tool.
+    - One account for all tools
+    - Enterprise SSO support
+    - Multi-factor authentication
+    - Session management
   </Accordion>
 
-  <Accordion title="Stripe integration" icon="credit-card">
-    Subscription management with Free, Pro, and Enterprise plans:
+  <Accordion title="Subscription management" icon="credit-card">
+    Stripe-powered billing:
     
-    - Secure payment processing
-    - Customer portal
-    - Invoice management
-    - Usage tracking
+    - Free, Pro, Enterprise tiers
+    - Usage-based pricing
+    - Team management
+    - Invoice history
   </Accordion>
 
-  <Accordion title="Modern UI" icon="browser">
-    Built with SvelteKit and shadcn-svelte:
+  <Accordion title="Tool launcher" icon="rocket">
+    Unified access to all tools:
     
-    - Responsive design
-    - Dark mode
-    - Fast page loads
-    - Intuitive navigation
+    - KombiStack instances
+    - KombiSim environments
+    - One-click launch with SSO
+    - Resource monitoring
+  </Accordion>
+
+  <Accordion title="User dashboard" icon="chart-line">
+    Centralized management:
+    
+    - Usage analytics
+    - Resource quotas
+    - Team collaboration
+    - Audit logs
   </Accordion>
 </AccordionGroup>
-
-## Architecture
-
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    KombiSphere Cloud                         │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │   Landing   │    │  Dashboard  │    │   Settings  │     │
-│  │    Page     │───▶│   (Tools)   │───▶│   (Profile) │     │
-│  └─────────────┘    └─────────────┘    └─────────────┘     │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┤
-│  │                  Authentication Layer                    │
-│  │  ┌──────────────────────────────────────────────────┐   │
-│  │  │              Zitadel OIDC Provider               │   │
-│  │  │  • ID Tokens  • Access Tokens  • Refresh Tokens  │   │
-│  │  └──────────────────────────────────────────────────┘   │
-│  └─────────────────────────────────────────────────────────┘
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┤
-│  │                    Billing Layer                         │
-│  │  ┌──────────────────────────────────────────────────┐   │
-│  │  │                 Stripe Integration               │   │
-│  │  │  • Checkout  • Portal  • Webhooks  • Invoices    │   │
-│  │  └──────────────────────────────────────────────────┘   │
-│  └─────────────────────────────────────────────────────────┘
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┤
-│  │                    Tool Launcher                         │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
-│  │  │KombiStack│  │ KombiSim │  │StackKits │              │
-│  │  │   Tile   │  │   Tile   │  │   Tile   │              │
-│  │  └──────────┘  └──────────┘  └──────────┘              │
-│  └─────────────────────────────────────────────────────────┘
-└─────────────────────────────────────────────────────────────┘
-```
 
 ## Tech stack
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Framework** | SvelteKit | Modern web framework |
-| **Authentication** | Auth.js + Zitadel | Enterprise OIDC |
-| **Payments** | Stripe | Subscription management |
-| **Styling** | TailwindCSS + shadcn-svelte | UI components |
-| **Icons** | Lucide Svelte | Icon library |
-| **Database** | PostgreSQL | User and subscription data |
-
-## SSO flow
-
-When a user clicks on a tool tile:
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Cloud as KombiSphere Cloud
-    participant Zitadel
-    participant Tool as KombiStack/KombiSim
-    
-    User->>Cloud: Click tool tile
-    Cloud->>Cloud: Verify subscription
-    Cloud->>Zitadel: Get tokens
-    Zitadel-->>Cloud: ID + Access tokens
-    Cloud->>Tool: Redirect with tokens
-    Tool->>Zitadel: Validate tokens
-    Zitadel-->>Tool: Token valid
-    Tool->>Tool: Create session
-    Tool-->>User: Redirect to dashboard
-```
-
-**SSO URL structure:**
-
-```
-https://kombistack.kombisphere.io/auth/sso?
-  id_token=eyJ...
-  &access_token=eyJ...
-  &user_id=123
-  &email=user@example.com
-  &return_url=/dashboard
-```
-
-## Subscription plans
-
-| Feature | Free | Pro | Enterprise |
-|---------|------|-----|------------|
-| **KombiStack** | Basic | Full | Full |
-| **KombiSim** | ❌ | ✅ | ✅ |
-| **StackKits** | ❌ | ❌ | ✅ |
-| **Projects** | 1 | 10 | Unlimited |
-| **API Calls** | 100/mo | 10K/mo | Unlimited |
-| **Support** | Community | Priority | 24/7 Dedicated |
-| **Price** | $0 | $29/mo | $99/mo |
-
-See [Subscriptions](/saas/cloud/subscriptions) for detailed pricing.
-
-## Tool integration
-
-Each tool (KombiStack, KombiSim, StackKits) implements:
-
-### SSO endpoint
-
-```typescript
-// /auth/sso endpoint
-export async function GET({ url, cookies }) {
-  const idToken = url.searchParams.get('id_token');
-  const accessToken = url.searchParams.get('access_token');
-  
-  // Validate tokens with Zitadel
-  const user = await validateTokens(idToken, accessToken);
-  
-  // Create local session
-  cookies.set('session', createSession(user), {
-    httpOnly: true,
-    secure: true,
-    sameSite: 'lax'
-  });
-  
-  // Redirect to dashboard
-  return redirect(302, '/dashboard');
-}
-```
-
-### Token validation
-
-```typescript
-async function validateTokens(idToken: string, accessToken: string) {
-  // Verify ID token signature
-  const decoded = await verifyJWT(idToken, {
-    issuer: 'https://your-instance.zitadel.cloud',
-    audience: 'your-client-id'
-  });
-  
-  // Check token expiration
-  if (decoded.exp < Date.now() / 1000) {
-    throw new Error('Token expired');
-  }
-  
-  return decoded;
-}
-```
-
-## Features
-
-### Dashboard
-
-- **Tool tiles** - Quick access to all tools
-- **Recent activity** - View recent deployments
-- **Usage stats** - Track API usage
-- **Quick actions** - Common tasks
-
-### Settings
-
-- **Profile** - Update personal information
-- **Security** - MFA, password, sessions
-- **Billing** - Manage subscription
-- **API keys** - Generate API keys
-
-### Billing
-
-- **Subscription management** - Upgrade/downgrade
-- **Payment methods** - Add/remove cards
-- **Invoices** - Download past invoices
-- **Usage** - View current usage
-
-## Security
-
-<CardGroup cols={2}>
-  <Card title="OIDC authentication" icon="shield-check">
-    Industry-standard OAuth 2.0 / OIDC
-  </Card>
-  <Card title="MFA support" icon="mobile">
-    TOTP, SMS, and biometric
-  </Card>
-  <Card title="Session management" icon="clock">
-    Automatic timeout and refresh
-  </Card>
-  <Card title="Audit logging" icon="file-text">
-    Complete activity tracking
-  </Card>
-</CardGroup>
+| **Frontend** | SvelteKit 5 | User portal |
+| **Backend** | Prisma + PostgreSQL | Data management |
+| **Auth** | Zitadel | OIDC provider |
+| **Billing** | Stripe | Subscription management |
 
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card
-    title="Getting started"
-    icon="rocket"
-    href="/saas/cloud/getting-started"
-  >
-    Sign up and launch your first tool
+  <Card title="Getting started" icon="play" href="/saas/cloud/getting-started">
+    Sign up and get started
   </Card>
-  <Card
-    title="Authentication"
-    icon="key"
-    href="/saas/cloud/authentication"
-  >
-    Learn about SSO and security
-  </Card>
-  <Card
-    title="Subscriptions"
-    icon="credit-card"
-    href="/saas/cloud/subscriptions"
-  >
-    Choose your plan
-  </Card>
-  <Card
-    title="Tool launcher"
-    icon="rocket"
-    href="/saas/cloud/tool-launcher"
-  >
-    Access your tools
+  <Card title="Authentication" icon="lock" href="/saas/cloud/authentication">
+    Configure SSO
   </Card>
 </CardGroup>
