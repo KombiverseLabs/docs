@@ -1,0 +1,37 @@
+---
+title: Self-hosting with Docker Compose
+description: Deploy KombiSphere using Docker Compose
+---
+
+# Self-hosting with Docker Compose
+
+Deploy the complete KombiSphere stack using Docker Compose.
+
+## Quick start
+
+```bash
+# Clone KombiStack
+git clone https://github.com/KombiverseLabs/KombiStack
+cd KombiStack
+
+# Start services
+docker compose up -d
+
+# Access
+# KombiStack: http://localhost:5261
+# KombiSim: http://localhost:5271
+```
+
+## Services
+
+- KombiStack Core (API + PocketBase)
+- KombiStack UI
+- KombiSim API
+- KombiSim UI
+- Headscale (optional)
+
+## Next steps
+
+<Card title="Configuration" icon="gear" href="/tools/kombistack/configuration">
+  Configure KombiStack
+</Card>
