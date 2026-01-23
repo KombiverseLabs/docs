@@ -1,0 +1,38 @@
+---
+title: Authentication API
+description: Authentication endpoints
+---
+
+# Authentication API
+
+## Get JWT token
+
+```bash
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "client_credentials",
+  "client_id": "YOUR_CLIENT_ID",
+  "client_secret": "YOUR_CLIENT_SECRET"
+}
+```
+
+## Refresh token
+
+```bash
+POST /oauth/token
+Content-Type: application/json
+
+{
+  "grant_type": "refresh_token",
+  "refresh_token": "YOUR_REFRESH_TOKEN"
+}
+```
+
+## Validate token
+
+```bash
+GET /v1/auth/validate
+Authorization: Bearer $TOKEN
+```
