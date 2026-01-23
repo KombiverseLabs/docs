@@ -1,122 +1,215 @@
 {
-  "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
-  "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+  "name": "KombiSphere",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
   },
   "favicon": "/favicon.svg",
-  "navigation": {
-    "tabs": [
-      {
-        "tab": "Guides",
-        "groups": [
-          {
-            "group": "Getting started",
-            "pages": [
-              "index",
-              "quickstart",
-              "development"
-            ]
-          },
-          {
-            "group": "Customization",
-            "pages": [
-              "essentials/settings",
-              "essentials/navigation"
-            ]
-          },
-          {
-            "group": "Writing content",
-            "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
-            ]
-          },
-          {
-            "group": "AI tools",
-            "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
-            ]
-          }
-        ]
-      },
-      {
-        "tab": "API reference",
-        "groups": [
-          {
-            "group": "API documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          },
-          {
-            "group": "Endpoint examples",
-            "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
-            ]
-          }
-        ]
-      }
-    ],
-    "global": {
-      "anchors": [
+  "colors": {
+    "primary": "#0D9373",
+    "light": "#07C983",
+    "dark": "#0D9373",
+    "anchors": {
+      "from": "#0D9373",
+      "to": "#07C983"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:support@kombisphere.io"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Dashboard",
+    "url": "https://app.kombisphere.io"
+  },
+  "tabs": [
+    {
+      "tab": "Open Core Tools",
+      "icon": "box-open",
+      "pages": [
         {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
+          "group": "KombiStack",
+          "icon": "layer-group",
+          "pages": [
+            "tools/kombistack/overview",
+            "tools/kombistack/quickstart",
+            "tools/kombistack/installation",
+            "tools/kombistack/architecture",
+            "tools/kombistack/configuration",
+            "tools/kombistack/api-reference"
+          ]
         },
         {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
+          "group": "KombiSim",
+          "icon": "flask",
+          "pages": [
+            "tools/kombisim/overview",
+            "tools/kombisim/quickstart",
+            "tools/kombisim/installation",
+            "tools/kombisim/templates",
+            "tools/kombisim/api-reference"
+          ]
+        },
+        {
+          "group": "StackKits",
+          "icon": "boxes-stacked",
+          "pages": [
+            "tools/stackkits/overview",
+            "tools/stackkits/quickstart",
+            "tools/stackkits/available-kits",
+            "tools/stackkits/creating-stackkits",
+            "tools/stackkits/cli-reference"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "SaaS Platform",
+      "icon": "cloud",
+      "pages": [
+        {
+          "group": "KombiSphere Cloud",
+          "icon": "globe",
+          "pages": [
+            "saas/cloud/overview",
+            "saas/cloud/getting-started",
+            "saas/cloud/authentication",
+            "saas/cloud/subscriptions",
+            "saas/cloud/tool-launcher"
+          ]
+        },
+        {
+          "group": "Admin Center",
+          "icon": "shield-halved",
+          "pages": [
+            "saas/admin/overview",
+            "saas/admin/tool-evaluation",
+            "saas/admin/pattern-management",
+            "saas/admin/stackkit-management"
+          ]
+        },
+        {
+          "group": "API Gateway",
+          "icon": "route",
+          "pages": [
+            "saas/api/overview",
+            "saas/api/authentication",
+            "saas/api/rate-limits",
+            "saas/api/endpoints"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "Guides",
+      "icon": "book-open",
+      "pages": [
+        {
+          "group": "Getting started",
+          "pages": [
+            "guides/introduction",
+            "guides/architecture",
+            "guides/choosing-deployment"
+          ]
+        },
+        {
+          "group": "Self-hosting",
+          "pages": [
+            "guides/self-hosting/docker-compose",
+            "guides/self-hosting/kubernetes",
+            "guides/self-hosting/configuration",
+            "guides/self-hosting/security"
+          ]
+        },
+        {
+          "group": "Authentication",
+          "pages": [
+            "guides/auth/overview",
+            "guides/auth/zitadel-setup",
+            "guides/auth/sso-integration",
+            "guides/auth/api-keys"
+          ]
+        },
+        {
+          "group": "Deployment",
+          "pages": [
+            "guides/deployment/production-checklist",
+            "guides/deployment/coolify",
+            "guides/deployment/docker",
+            "guides/deployment/monitoring"
+          ]
+        }
+      ]
+    },
+    {
+      "tab": "API Reference",
+      "icon": "code",
+      "pages": [
+        {
+          "group": "KombiStack API",
+          "pages": [
+            "api/kombistack/overview",
+            "api/kombistack/stacks",
+            "api/kombistack/workers",
+            "api/kombistack/jobs"
+          ]
+        },
+        {
+          "group": "KombiSim API",
+          "pages": [
+            "api/kombisim/overview",
+            "api/kombisim/simulations",
+            "api/kombisim/nodes",
+            "api/kombisim/templates"
+          ]
+        },
+        {
+          "group": "KombiSphere API",
+          "pages": [
+            "api/kombisphere/overview",
+            "api/kombisphere/authentication",
+            "api/kombisphere/tools",
+            "api/kombisphere/subscriptions"
+          ]
         }
       ]
     }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
+  ],
+  "anchors": [
+    {
+      "anchor": "GitHub",
+      "icon": "github",
+      "href": "https://github.com/KombiverseLabs"
+    },
+    {
+      "anchor": "Community",
+      "icon": "slack",
+      "href": "https://discord.gg/kombisphere"
     }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
+  ],
+  "navigation": [
+    {
+      "group": "Getting started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "ecosystem"
+      ]
+    },
+    {
+      "group": "Core concepts",
+      "pages": [
+        "concepts/spec-driven-architecture",
+        "concepts/hybrid-infrastructure",
+        "concepts/stackkits-system",
+        "concepts/simulation-first"
+      ]
     }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/KombiverseLabs",
+    "twitter": "https://twitter.com/kombisphere"
   }
 }
