@@ -1,0 +1,114 @@
+---
+title: StackKits overview
+description: Declarative infrastructure blueprints with CUE validation and OpenTofu execution
+---
+
+# StackKits
+
+StackKits are **declarative infrastructure blueprints** that combine CUE validation with OpenTofu execution. They provide battle-tested configurations for common homelab scenarios.
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="rocket" href="/tools/stackkits/quickstart">
+    Deploy your first StackKit
+  </Card>
+  <Card title="Available kits" icon="boxes-stacked" href="/tools/stackkits/available-kits">
+    Browse all StackKits
+  </Card>
+  <Card title="Create custom" icon="hammer" href="/tools/stackkits/creating-stackkits">
+    Build your own StackKit
+  </Card>
+  <Card title="CLI reference" icon="terminal" href="/tools/stackkits/cli-reference">
+    Command-line tool
+  </Card>
+</CardGroup>
+
+## What is a StackKit?
+
+A StackKit is a complete infrastructure template that includes:
+
+- **CUE schemas** for type-safe validation
+- **OpenTofu templates** for provisioning
+- **Service definitions** for applications
+- **OS variants** for different distributions
+- **Default configurations** for quick starts
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="3-layer architecture" icon="layer-group">
+    StackKits use a strict 3-layer architecture:
+    
+    **Layer 1: Core** - Shared foundation (security, network, observability)
+    
+    **Layer 2: Platforms** - Container orchestration (Docker, Kubernetes)
+    
+    **Layer 3: StackKits** - Use-case specific configurations
+  </Accordion>
+
+  <Accordion title="CUE validation" icon="shield-check">
+    Constraint-based validation catches errors before deployment:
+    
+    ```cue
+    #BaseHomelabKit: {
+        nodes: [...#Node]
+        nodes: {
+            // At least one main node required
+            [_]: type: "main" | "worker"
+        }
+    }
+    ```
+  </Accordion>
+
+  <Accordion title="Multi-OS support" icon="ubuntu">
+    OS variants for different distributions:
+    
+    - Ubuntu 24.04, 22.04
+    - Debian 12, 11
+    - More coming soon
+  </Accordion>
+
+  <Accordion title="Deployment modes" icon="rocket">
+    **Simple mode:** Single OpenTofu file
+    
+    **Advanced mode:** Terramate-orchestrated stacks
+  </Accordion>
+</AccordionGroup>
+
+## Available StackKits
+
+<CardGroup cols={3}>
+  <Card title="base-homelab" icon="server">
+    **Single server, local only**
+    
+    - 1 node
+    - Docker + Dokploy
+    - Perfect for beginners
+  </Card>
+  
+  <Card title="modern-homelab" icon="network-wired">
+    **Multi-node Docker + Coolify**
+    
+    - 2+ nodes
+    - Docker Swarm
+    - Production-ready
+  </Card>
+  
+  <Card title="ha-homelab" icon="shield-check">
+    **Kubernetes high availability**
+    
+    - 3+ nodes
+    - k3s cluster
+    - Enterprise-grade
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quick start" icon="play" href="/tools/stackkits/quickstart">
+    Deploy your first StackKit
+  </Card>
+  <Card title="Available kits" icon="boxes-stacked" href="/tools/stackkits/available-kits">
+    Browse all StackKits
+  </Card>
+</CardGroup>

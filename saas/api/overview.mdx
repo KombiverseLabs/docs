@@ -1,0 +1,33 @@
+---
+title: KombiSphere API overview
+description: Unified API gateway built on Kong OSS
+---
+
+# KombiSphere API
+
+Central API gateway providing unified entry point for all microservices.
+
+## Features
+
+- JWT authentication (Zitadel OIDC)
+- API key management
+- Rate limiting per endpoint
+- gRPC support
+- Declarative configuration
+
+## Tech stack
+
+- **Gateway:** Kong OSS
+- **Auth:** Zitadel JWT
+- **Config:** decK
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="lock" href="/saas/api/authentication">
+    API authentication methods
+  </Card>
+  <Card title="Rate limits" icon="gauge" href="/saas/api/rate-limits">
+    Rate limiting policies
+  </Card>
+</CardGroup>

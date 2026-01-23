@@ -1,0 +1,83 @@
+---
+title: KombiSphere Cloud overview
+description: Managed SaaS platform for unified tool access and subscription management
+---
+
+# KombiSphere Cloud
+
+KombiSphere Cloud is the **managed SaaS portal** that provides unified access to all tools with enterprise-grade authentication and subscription management.
+
+<CardGroup cols={2}>
+  <Card title="Getting started" icon="rocket" href="/saas/cloud/getting-started">
+    Sign up and launch your first tool
+  </Card>
+  <Card title="Authentication" icon="lock" href="/saas/cloud/authentication">
+    SSO and security features
+  </Card>
+  <Card title="Subscriptions" icon="credit-card" href="/saas/cloud/subscriptions">
+    Plans and billing
+  </Card>
+  <Card title="Tool launcher" icon="rocket" href="/saas/cloud/tool-launcher">
+    Access KombiStack and KombiSim
+  </Card>
+</CardGroup>
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="Single sign-on" icon="key">
+    OIDC authentication with Zitadel:
+    
+    - One account for all tools
+    - Enterprise SSO support
+    - Multi-factor authentication
+    - Session management
+  </Accordion>
+
+  <Accordion title="Subscription management" icon="credit-card">
+    Stripe-powered billing:
+    
+    - Free, Pro, Enterprise tiers
+    - Usage-based pricing
+    - Team management
+    - Invoice history
+  </Accordion>
+
+  <Accordion title="Tool launcher" icon="rocket">
+    Unified access to all tools:
+    
+    - KombiStack instances
+    - KombiSim environments
+    - One-click launch with SSO
+    - Resource monitoring
+  </Accordion>
+
+  <Accordion title="User dashboard" icon="chart-line">
+    Centralized management:
+    
+    - Usage analytics
+    - Resource quotas
+    - Team collaboration
+    - Audit logs
+  </Accordion>
+</AccordionGroup>
+
+## Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | SvelteKit 5 | User portal |
+| **Backend** | Prisma + PostgreSQL | Data management |
+| **Auth** | Zitadel | OIDC provider |
+| **Billing** | Stripe | Subscription management |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Getting started" icon="play" href="/saas/cloud/getting-started">
+    Sign up and get started
+  </Card>
+  <Card title="Authentication" icon="lock" href="/saas/cloud/authentication">
+    Configure SSO
+  </Card>
+</CardGroup>

@@ -1,0 +1,30 @@
+---
+title: SSO integration
+description: Configure enterprise SSO
+---
+
+# SSO integration
+
+Integrate with enterprise identity providers.
+
+## Supported providers
+
+- **SAML 2.0:** Okta, Azure AD, Google Workspace
+- **OAuth 2.0:** GitHub, GitLab, Bitbucket
+- **OIDC:** Any OIDC-compliant provider
+
+## Configuration
+
+1. Configure provider in Zitadel
+2. Add redirect URIs
+3. Map user attributes
+4. Test authentication
+
+## Example: Azure AD
+
+```yaml
+provider: azure-ad
+client_id: your-client-id
+client_secret: your-client-secret
+tenant_id: your-tenant-id
+```

@@ -1,0 +1,40 @@
+---
+title: KombiStack API overview
+description: REST API for infrastructure management
+---
+
+# KombiStack API
+
+REST API for managing infrastructure stacks.
+
+## Base URL
+
+```
+http://localhost:5260/api/v1
+```
+
+## Authentication
+
+```bash
+# PocketBase auth
+curl -X POST http://localhost:5260/api/collections/users/auth-with-password \
+  -d '{"identity": "admin@example.com", "password": "password"}'
+
+# Use token
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:5260/api/v1/stacks
+```
+
+## Endpoints
+
+<CardGroup cols={2}>
+  <Card title="Stacks" icon="layer-group" href="/api/kombistack/stacks">
+    Manage infrastructure stacks
+  </Card>
+  <Card title="Workers" icon="server" href="/api/kombistack/workers">
+    Manage worker nodes
+  </Card>
+  <Card title="Jobs" icon="list-check" href="/api/kombistack/jobs">
+    Track deployment jobs
+  </Card>
+</CardGroup>

@@ -1,0 +1,30 @@
+---
+title: Templates API
+description: Use pre-built templates
+---
+
+# Templates API
+
+## List templates
+
+```bash
+GET /api/v1/templates
+```
+
+## Get template
+
+```bash
+GET /api/v1/templates/{name}
+```
+
+## Apply template
+
+```bash
+POST /api/v1/templates/{name}/apply
+Content-Type: application/json
+
+{
+  "simulation_name": "my-test",
+  "auto_start": true
+}
+```

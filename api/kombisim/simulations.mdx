@@ -1,0 +1,44 @@
+---
+title: Simulations API
+description: Manage simulations
+---
+
+# Simulations API
+
+## List simulations
+
+```bash
+GET /api/v1/simulations
+```
+
+## Create simulation
+
+```bash
+POST /api/v1/simulations
+Content-Type: application/json
+
+{
+  "name": "my-test",
+  "nodes": [
+    {"name": "web-server", "location": "local"}
+  ]
+}
+```
+
+## Start simulation
+
+```bash
+POST /api/v1/simulations/{id}/start
+```
+
+## Stop simulation
+
+```bash
+POST /api/v1/simulations/{id}/stop
+```
+
+## Delete simulation
+
+```bash
+DELETE /api/v1/simulations/{id}
+```

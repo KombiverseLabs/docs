@@ -1,0 +1,39 @@
+---
+title: API endpoints
+description: Available API endpoints
+---
+
+# API endpoints
+
+## Tools
+
+```bash
+# List tools
+GET /v1/tools
+
+# Get tool details
+GET /v1/tools/{id}
+
+# Launch tool
+POST /v1/tools/{id}/launch
+```
+
+## Subscriptions
+
+```bash
+# Get subscription
+GET /v1/subscriptions/me
+
+# Update subscription
+PUT /v1/subscriptions/me
+```
+
+## Users
+
+```bash
+# Get profile
+GET /v1/users/me
+
+# Update profile
+PUT /v1/users/me
+```
