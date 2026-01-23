@@ -1,0 +1,327 @@
+---
+title: KombiSphere Admin overview
+description: Administration platform for tool evaluation, pattern management, and StackKit configuration
+---
+
+# KombiSphere Admin
+
+KombiSphere Admin is the **management platform** for tool evaluation, pattern management, and StackKit configuration. It provides the "catalog" of available tools and configurations for the KombiSphere ecosystem.
+
+<CardGroup cols={2}>
+  <Card
+    title="Tool evaluation"
+    icon="flask"
+    href="/saas/admin/tool-evaluation"
+  >
+    Evaluate and categorize homelab tools
+  </Card>
+  <Card
+    title="Pattern management"
+    icon="diagram-project"
+    href="/saas/admin/pattern-management"
+  >
+    Manage infrastructure patterns
+  </Card>
+  <Card
+    title="StackKit management"
+    icon="boxes-stacked"
+    href="/saas/admin/stackkit-management"
+  >
+    Configure official StackKits
+  </Card>
+  <Card
+    title="Discovery engine"
+    icon="magnifying-glass"
+    href="/saas/admin/tool-evaluation#discovery-engine"
+  >
+    Automatic tool discovery
+  </Card>
+</CardGroup>
+
+## Key features
+
+<AccordionGroup>
+  <Accordion title="Tool & pattern evaluation" icon="flask">
+    Evaluate, categorize, and manage homelab tools:
+    
+    - Tool discovery from GitHub, npm, PyPI
+    - Category-based organization
+    - Version tracking
+    - Changelog monitoring
+    - Community ratings
+  </Accordion>
+
+  <Accordion title="StackKit management" icon="boxes-stacked">
+    Configure which tools are officially supported:
+    
+    - StackKit catalog
+    - Version management
+    - Compatibility matrix
+    - Documentation links
+    - Installation guides
+  </Accordion>
+
+  <Accordion title="Category-based organization" icon="folder-tree">
+    Organize tools by category:
+    
+    - Network (Traefik, Nginx, Caddy)
+    - Storage (Nextcloud, Minio, Syncthing)
+    - Auth (Zitadel, Authentik, Keycloak)
+    - Monitoring (Prometheus, Grafana, Uptime Kuma)
+    - Deployment (Dokploy, Coolify, Portainer)
+  </Accordion>
+
+  <Accordion title="Discovery engine" icon="magnifying-glass">
+    Automatic tool discovery:
+    
+    - GitHub crawler (stars, forks, issues)
+    - npm/PyPI tracking
+    - Awesome list parser
+    - Version monitoring
+    - Update alerts
+  </Accordion>
+</AccordionGroup>
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                   KombiSphere Admin                          │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┤
+│  │                    Admin Center                          │
+│  │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  │
+│  │  │Tool Eval UI  │  │Pattern Mgmt  │  │StackKit Mgmt │  │
+│  │  └──────────────┘  └──────────────┘  └──────────────┘  │
+│  └─────────────────────────────────────────────────────────┘
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┤
+│  │                   Service Layer                          │
+│  │  ┌──────────────────────────────────────────────────┐   │
+│  │  │              PocketBase (SQLite)                 │   │
+│  │  │  • Tools  • Patterns  • StackKits  • Categories  │   │
+│  │  └──────────────────────────────────────────────────┘   │
+│  └─────────────────────────────────────────────────────────┘
+│                                                             │
+│  ┌─────────────────────────────────────────────────────────┤
+│  │                  Discovery Engine                        │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐              │
+│  │  │  GitHub  │  │npm/PyPI  │  │ Awesome  │              │
+│  │  │ Crawler  │  │ Tracking │  │  Parser  │              │
+│  │  └──────────┘  └──────────┘  └──────────┘              │
+│  └─────────────────────────────────────────────────────────┘
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.22+ | Core services |
+| **Database** | PocketBase (SQLite) | Embedded database |
+| **Frontend** | SvelteKit 2.x | Admin UI |
+| **UI Components** | shadcn-svelte | Design system |
+| **Crawler** | Go (Colly) | Tool discovery |
+| **Search** | Meilisearch | Full-text search |
+
+## Data model
+
+### Tools collection
+
+```typescript
+interface Tool {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  
+  // Source
+  source_type: 'github' | 'npm' | 'pypi' | 'manual';
+  source_url: string;
+  
+  // Metadata
+  stars: number;
+  forks: number;
+  issues: number;
+  last_updated: string;
+  
+  // Versions
+  latest_version: string;
+  versions: Version[];
+  
+  // Status
+  status: 'active' | 'deprecated' | 'archived';
+  evaluation_status: 'pending' | 'approved' | 'rejected';
+}
+```
+
+### Patterns collection
+
+```typescript
+interface Pattern {
+  id: string;
+  name: string;
+  description: string;
+  
+  // Configuration
+  tools: string[];  // Tool IDs
+  architecture: string;
+  
+  // Metadata
+  use_cases: string[];
+  complexity: 'simple' | 'moderate' | 'complex';
+  
+  // Status
+  status: 'draft' | 'published' | 'archived';
+}
+```
+
+### StackKits collection
+
+```typescript
+interface StackKit {
+  id: string;
+  name: string;
+  description: string;
+  
+  // Configuration
+  tools: string[];  // Tool IDs
+  patterns: string[];  // Pattern IDs
+  
+  // Metadata
+  min_nodes: number;
+  max_nodes: number;
+  platforms: string[];
+  
+  // Status
+  status: 'available' | 'schema_only' | 'deprecated';
+}
+```
+
+## Tool categories
+
+| Category | Examples | Count |
+|----------|----------|-------|
+| **Network** | Traefik, Nginx, Caddy | 15+ |
+| **Storage** | Nextcloud, Minio, Syncthing | 20+ |
+| **Auth** | Zitadel, Authentik, Keycloak | 10+ |
+| **Monitoring** | Prometheus, Grafana, Uptime Kuma | 25+ |
+| **Deployment** | Dokploy, Coolify, Portainer | 12+ |
+| **Database** | PostgreSQL, MySQL, Redis | 18+ |
+| **Media** | Plex, Jellyfin, Emby | 8+ |
+| **Automation** | n8n, Huginn, Automatisch | 10+ |
+
+## Discovery engine
+
+### GitHub crawler
+
+```go
+type GitHubCrawler struct {
+    client *github.Client
+    db     *pocketbase.PocketBase
+}
+
+func (c *GitHubCrawler) Discover() error {
+    // Search for homelab tools
+    repos, err := c.client.Search.Repositories(context.Background(), 
+        "homelab self-hosted", nil)
+    
+    for _, repo := range repos.Repositories {
+        tool := &Tool{
+            Name:        repo.GetName(),
+            Description: repo.GetDescription(),
+            SourceURL:   repo.GetHTMLURL(),
+            Stars:       repo.GetStargazersCount(),
+            Forks:       repo.GetForksCount(),
+        }
+        
+        // Save to database
+        c.db.Create("tools", tool)
+    }
+    
+    return nil
+}
+```
+
+### Version monitoring
+
+```go
+func (c *GitHubCrawler) MonitorVersions() error {
+    tools, err := c.db.FindAll("tools")
+    
+    for _, tool := range tools {
+        // Get latest release
+        release, err := c.client.Repositories.GetLatestRelease(
+            context.Background(), tool.Owner, tool.Repo)
+        
+        if release.GetTagName() != tool.LatestVersion {
+            // New version detected
+            c.notifyNewVersion(tool, release)
+        }
+    }
+    
+    return nil
+}
+```
+
+## Authentication
+
+KombiSphere Admin integrates with KombiStack for centralized user management:
+
+```yaml
+# Configuration
+auth:
+  enabled: true
+  kombistack_url: http://kombistack:5260
+  
+  # Admin users
+  admins:
+    - admin@kombisphere.io
+    - ops@kombisphere.io
+```
+
+See [KombiStack Auth Integration](https://github.com/KombiverseLabs/KombiSphere-Admin/blob/main/docs/KOMBISTACK_AUTH_INTEGRATION.md) for details.
+
+## License
+
+Business Source License 1.1 (BSL-1.1):
+
+- **Use:** Unlimited for internal/non-production use
+- **Additional Use Grant:** Production use allowed for organizations with < $1M ARR
+- **Change Date:** 4 years from release → Apache 2.0
+
+See [LICENSE](https://github.com/KombiverseLabs/KombiSphere-Admin/blob/main/LICENSE.md) for details.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Tool evaluation"
+    icon="flask"
+    href="/saas/admin/tool-evaluation"
+  >
+    Evaluate and categorize tools
+  </Card>
+  <Card
+    title="Pattern management"
+    icon="diagram-project"
+    href="/saas/admin/pattern-management"
+  >
+    Manage infrastructure patterns
+  </Card>
+  <Card
+    title="StackKit management"
+    icon="boxes-stacked"
+    href="/saas/admin/stackkit-management"
+  >
+    Configure official StackKits
+  </Card>
+  <Card
+    title="Open core strategy"
+    icon="box-open"
+    href="/ecosystem#license-overview"
+  >
+    Understand the licensing model
+  </Card>
+</CardGroup>
