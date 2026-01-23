@@ -1,0 +1,43 @@
+---
+title: Stacks API
+description: Manage infrastructure stacks
+---
+
+# Stacks API
+
+## List stacks
+
+```bash
+GET /api/v1/stacks
+```
+
+## Create stack
+
+```bash
+POST /api/v1/stacks
+Content-Type: application/json
+
+{
+  "name": "my-homelab",
+  "kit": "base-homelab",
+  "spec": "..."
+}
+```
+
+## Get stack
+
+```bash
+GET /api/v1/stacks/{id}
+```
+
+## Update stack
+
+```bash
+PUT /api/v1/stacks/{id}
+```
+
+## Delete stack
+
+```bash
+DELETE /api/v1/stacks/{id}
+```
