@@ -1,0 +1,236 @@
+---
+title: kombify Sphere overview
+description: The managed SaaS platform for kombify
+icon: cloud
+---
+
+# kombify Sphere
+
+kombify Sphere is the managed SaaS platform that brings all kombify tools together with enterprise features like SSO, billing, and team collaboration.
+
+<Card title="What is kombify Sphere?" icon="circle-info">
+  kombify Sphere is the customer-facing portal that provides a unified dashboard, subscription management, SSO gateway, and tool launcher for kombify Stack, Sim, and other tools.
+</Card>
+
+## Key features
+
+<CardGroup cols={2}>
+  <Card title="User portal" icon="user">
+    Dashboard, profile, and settings management
+  </Card>
+  <Card title="SSO gateway" icon="key">
+    Zitadel OIDC for all tools
+  </Card>
+  <Card title="Subscription management" icon="credit-card">
+    Stripe integration for billing
+  </Card>
+  <Card title="Tool launcher" icon="rocket">
+    One-click access to Stack, Sim, and more
+  </Card>
+</CardGroup>
+
+## How it works
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      kombify Sphere                          │
+│  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐         │
+│  │  Marketing  │  │   User      │  │   Billing   │         │
+│  │   Pages     │  │   Portal    │  │   System    │         │
+│  └─────────────┘  └─────────────┘  └─────────────┘         │
+│         │                │                │                 │
+│         └────────────────┴────────────────┘                 │
+│                          │                                  │
+│         ┌────────────────┼────────────────┐                 │
+│         ▼                ▼                ▼                 │
+│  ┌──────────┐   ┌──────────┐   ┌──────────┐               │
+│  │ Zitadel  │   │PostgreSQL│   │  Stripe  │               │
+│  │ (Auth)   │   │(Database)│   │(Payments)│               │
+│  └──────────┘   └──────────┘   └──────────┘               │
+└─────────────────────────────────────────────────────────────┘
+                          │
+                          ▼
+                   ┌──────────────┐
+                   │  Core Tools  │
+                   │ (SSO Access) │
+                   └──────────────┘
+```
+
+## Core capabilities
+
+### User management
+
+- **Profile management** - Avatar, name, email, settings
+- **Activity logs** - Audit trail for user actions
+- **Team management** - Invite and manage team members
+- **Role-based access** - User, Manager, Admin roles
+
+### Authentication
+
+- **Single Sign-On** - Zitadel OIDC integration
+- **API tokens** - Generate tokens for API access
+- **SSO to tools** - One-click access to Stack, Sim, etc.
+- **Session management** - Secure session handling
+
+### Billing
+
+- **Subscription plans** - Free, Pro, Enterprise
+- **Stripe integration** - Secure payment processing
+- **Invoice management** - Download and view invoices
+- **Usage tracking** - Monitor API calls and resources
+
+### Tool launcher
+
+- **kombify Stack** - Launch with SSO
+- **kombify Sim** - Launch with SSO
+- **Admin Center** - For administrators
+- **Custom tools** - Add your own tools
+
+## Pricing plans
+
+<CardGroup cols={3}>
+  <Card title="Free" icon="gift">
+    **$0/month**
+    
+    - 1 homelab
+    - Community support
+    - Basic features
+  </Card>
+  <Card title="Pro" icon="star">
+    **$9/month**
+    
+    - 3 homelabs
+    - Priority support
+    - Advanced features
+    - Team collaboration
+  </Card>
+  <Card title="Enterprise" icon="building">
+    **Custom pricing**
+    
+    - Unlimited homelabs
+    - SLA
+    - Dedicated support
+    - Custom integrations
+  </Card>
+</CardGroup>
+
+## Architecture
+
+### Tech stack
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Frontend** | SvelteKit 2.x | Modern reactive UI |
+| **Database** | PostgreSQL | User data and state |
+| **Auth** | Zitadel | OIDC provider |
+| **Billing** | Stripe | Payment processing |
+| **API Gateway** | Kong OSS | Unified API entry |
+
+### Database schema
+
+```typescript
+// Core entities
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  avatarUrl?: string;
+  role: UserRole;
+}
+
+interface Subscription {
+  id: string;
+  userId: string;
+  plan: Plan;
+  status: SubscriptionStatus;
+  currentPeriodEnd: Date;
+}
+
+interface ActivityLog {
+  id: string;
+  userId: string;
+  action: string;
+  resource: string;
+  createdAt: Date;
+}
+```
+
+## SSO flow
+
+```
+┌────────────────┐     ┌────────────────┐     ┌────────────────┐
+│   User         │────▶│ kombify Sphere │────▶│    Zitadel     │
+│   (Browser)    │     │   (Auth.js)    │     │     OIDC       │
+└────────────────┘     └────────────────┘     └────────────────┘
+       │                                              │
+       │              ┌───────────────────────────────┘
+       │              ▼
+       │       ┌────────────────┐
+       └──────▶│  JWT Token     │
+               │  + Session     │
+               └────────────────┘
+```
+
+## Quick links
+
+<CardGroup cols={3}>
+  <Card title="Getting started" icon="rocket" href="/sphere/getting-started">
+    Create your account
+  </Card>
+  <Card title="SSO setup" icon="key" href="/sphere/auth/sso">
+    Configure SSO
+  </Card>
+  <Card title="Dashboard" icon="gauge" href="/sphere/dashboard">
+    Use the dashboard
+  </Card>
+  <Card title="Billing" icon="credit-card" href="/sphere/billing">
+    Manage subscription
+  </Card>
+  <Card title="Stacks" icon="server" href="/sphere/stacks">
+    Manage your stacks
+  </Card>
+  <Card title="API reference" icon="code" href="/api-reference/introduction">
+    Explore the API
+  </Card>
+</CardGroup>
+
+## Use cases
+
+<AccordionGroup>
+  <Accordion title="Team collaboration" icon="users">
+    Invite team members, share homelabs, and collaborate on infrastructure.
+  </Accordion>
+
+  <Accordion title="Enterprise SSO" icon="building">
+    Integrate with your existing OIDC provider for seamless authentication.
+  </Accordion>
+
+  <Accordion title="Managed infrastructure" icon="cloud">
+    Let Sphere handle updates, backups, and maintenance while you focus on your homelab.
+  </Accordion>
+
+  <Accordion title="Multi-tenant" icon="layer-group">
+    Manage multiple homelabs for different projects or clients.
+  </Accordion>
+</AccordionGroup>
+
+## License
+
+kombify Sphere is **proprietary software** (SaaS).
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Create account" icon="user-plus" href="https://app.kombisphere.io">
+    Sign up for free
+  </Card>
+  <Card title="Getting started" icon="play" href="/sphere/getting-started">
+    Learn the basics
+  </Card>
+  <Card title="SSO setup" icon="key" href="/sphere/auth/sso">
+    Configure authentication
+  </Card>
+  <Card title="Pricing" icon="tag" href="/sphere/billing">
+    View plans
+  </Card>
+</CardGroup>
