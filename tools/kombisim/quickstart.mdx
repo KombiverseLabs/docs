@@ -1,11 +1,11 @@
 ---
 title: KombiSim quickstart
-description: Create your first simulation in 5 minutes
+description: Create your first infrastructure simulation in 2 minutes
 ---
 
-# KombiSim quickstart
+# Quick start
 
-Get KombiSim running and create your first infrastructure simulation in under 5 minutes.
+Get KombiSim running and create your first infrastructure simulation in under 2 minutes.
 
 ## Prerequisites
 
@@ -21,52 +21,43 @@ Get KombiSim running and create your first infrastructure simulation in under 5 
 ## Installation
 
 <Tabs>
-  <Tab title="Docker (Recommended)">
+  <Tab title="Docker Compose (Recommended)">
+    ```bash
+    # Clone repository
+    git clone https://github.com/KombiverseLabs/KombiSim
+    cd KombiSim
+    
+    # Start services
+    docker compose up -d
+    
+    # Check status
+    docker compose ps
+    ```
+    
+    **Services started:**
+    - KombiSim API on port 5270
+    - KombiSim UI on port 5271
+  </Tab>
+
+  <Tab title="Docker (API only)">
     ```bash
     docker run -d \
       --name kombisim \
       -p 5270:5270 \
-      -p 5271:5271 \
-      -p 2222-2322:2222-2322 \
       -v /var/run/docker.sock:/var/run/docker.sock \
+      -v kombisim-data:/app/data \
       ghcr.io/kombiverselabs/kombisim:latest
     ```
   </Tab>
 
-  <Tab title="Docker Compose">
-    ```yaml
-    # docker-compose.yml
-    version: '3.8'
-    services:
-      kombisim:
-        image: ghcr.io/kombiverselabs/kombisim:latest
-        ports:
-          - "5270:5270"
-          - "5271:5271"
-          - "2222-2322:2222-2322"
-        volumes:
-          - /var/run/docker.sock:/var/run/docker.sock
-          - kombisim-data:/app/data
-    
-    volumes:
-      kombisim-data:
-    ```
-    
+  <Tab title="With KombiStack">
     ```bash
+    # KombiSim is included in KombiStack docker-compose.yml
+    cd KombiStack
     docker compose up -d
-    ```
-  </Tab>
-
-  <Tab title="From source">
-    ```bash
-    git clone https://github.com/KombiverseLabs/KombiSim
-    cd KombiSim
     
-    # Backend
-    go run ./cmd/kombisim
-    
-    # Frontend (in another terminal)
-    cd app && bun install && bun run dev
+    # Access KombiSim
+    open http://localhost:5270
     ```
   </Tab>
 </Tabs>
@@ -74,60 +65,63 @@ Get KombiSim running and create your first infrastructure simulation in under 5 
 ## Verify installation
 
 ```bash
-# Check API
+# Check API health
 curl http://localhost:5270/api/v1/health
 
-# Open Web UI
+# List templates
+curl http://localhost:5270/api/v1/templates
+
+# Access Web UI
 open http://localhost:5271
 ```
 
 ## Create your first simulation
 
 <Steps>
-  <Step title="Create simulation">
-    **Via API:**
+  <Step title="Choose a template">
+    Start with a pre-built template:
+    
     ```bash
-    curl -X POST http://localhost:5270/api/v1/simulations \
+    # List available templates
+    curl http://localhost:5270/api/v1/templates
+    
+    # Apply homelab-basic template (2 nodes)
+    curl -X POST http://localhost:5270/api/v1/templates/homelab-basic/apply \
       -H "Content-Type: application/json" \
       -d '{
-        "name": "my-first-simulation",
-        "nodes": [
-          {"name": "web-server", "location": "local"},
-          {"name": "database", "location": "local"}
-        ]
+        "simulation_name": "my-first-simulation",
+        "auto_start": true
       }'
     ```
     
-    **Via Web UI:**
-    1. Open http://localhost:5271
-    2. Click "New Simulation"
-    3. Enter name: "my-first-simulation"
-    4. Add nodes: web-server, database
-    5. Click "Create"
-  </Step>
-
-  <Step title="Start nodes">
-    ```bash
-    # Get simulation ID from response
-    SIMULATION_ID="<id-from-previous-step>"
-    
-    # Start all nodes
-    curl -X POST http://localhost:5270/api/v1/simulations/$SIMULATION_ID/start
+    **Response:**
+    ```json
+    {
+      "id": "sim_abc123",
+      "name": "my-first-simulation",
+      "status": "running",
+      "nodes": [
+        {
+          "id": "node_1",
+          "name": "web-server",
+          "ssh_port": 2222,
+          "status": "running"
+        },
+        {
+          "id": "node_2",
+          "name": "database",
+          "ssh_port": 2223,
+          "status": "running"
+        }
+      ]
+    }
     ```
-    
-    **What happens:**
-    - Docker containers are created
-    - SSH servers start on ports 2222, 2223
-    - Nodes become accessible
   </Step>
 
   <Step title="Get SSH details">
     ```bash
-    # List nodes
-    curl http://localhost:5270/api/v1/simulations/$SIMULATION_ID/nodes
-    
-    # Get SSH details for specific node
-    curl http://localhost:5270/api/v1/nodes/{node-id}/ssh
+    # Get node SSH information
+    curl http://localhost:5270/api/v1/nodes/node_1/ssh
     ```
     
     **Response:**
@@ -136,105 +130,176 @@ open http://localhost:5271
       "host": "localhost",
       "port": 2222,
       "user": "root",
-      "password": "kombisim"
+      "password": "kombisim",
+      "command": "ssh -p 2222 root@localhost"
     }
     ```
   </Step>
 
-  <Step title="SSH into nodes">
+  <Step title="SSH into simulated node">
     ```bash
-    # SSH to web-server (port 2222)
+    # Connect to web-server node
     ssh -p 2222 root@localhost
     # Password: kombisim
     
-    # Test commands
-    whoami
-    hostname
-    docker ps
-    exit
+    # You're now inside a simulated Ubuntu server!
+    root@web-server:~# uname -a
+    Linux web-server 5.15.0 #1 SMP x86_64 GNU/Linux
     
-    # SSH to database (port 2223)
-    ssh -p 2223 root@localhost
+    root@web-server:~# docker ps
+    CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
+    
+    # Install and test services
+    root@web-server:~# apt-get update
+    root@web-server:~# apt-get install -y nginx
+    root@web-server:~# systemctl start nginx
+    root@web-server:~# curl localhost
     ```
   </Step>
 
-  <Step title="Stop and clean up">
-    ```bash
-    # Stop simulation
-    curl -X POST http://localhost:5270/api/v1/simulations/$SIMULATION_ID/stop
+  <Step title="Test your configuration">
+    Deploy services and validate:
     
-    # Delete simulation
-    curl -X DELETE http://localhost:5270/api/v1/simulations/$SIMULATION_ID
+    ```bash
+    # On web-server node
+    docker run -d --name web -p 80:80 nginx
+    
+    # On database node (SSH to port 2223)
+    ssh -p 2223 root@localhost
+    docker run -d --name db -e POSTGRES_PASSWORD=secret postgres
+    
+    # Test connectivity between nodes
+    ping database  # Nodes can communicate via hostnames
+    ```
+  </Step>
+
+  <Step title="Export configuration">
+    Once validated, export for real deployment:
+    
+    ```bash
+    # Export simulation to kombination.yaml
+    curl http://localhost:5270/api/v1/simulations/sim_abc123/export \
+      > kombination.yaml
+    
+    # Deploy to real hardware with KombiStack
+    kombistack apply kombination.yaml
     ```
   </Step>
 </Steps>
 
-## Use a template
-
-Faster way to get started with pre-built templates:
-
-```bash
-# List available templates
-curl http://localhost:5270/api/v1/templates
-
-# Apply homelab-basic template
-curl -X POST http://localhost:5270/api/v1/templates/homelab-basic/apply \
-  -H "Content-Type: application/json" \
-  -d '{
-    "simulation_name": "my-homelab-test",
-    "auto_start": true
-  }'
-
-# Get simulation details
-curl http://localhost:5270/api/v1/simulations
-```
-
-## Test with KombiStack
-
-Integrate with KombiStack for automatic validation:
+## Using the Web UI
 
 <Steps>
-  <Step title="Configure KombiStack">
-    ```yaml
-    # kombistack.yaml
-    simulation:
-      enabled: true
-      endpoint: "http://localhost:5270"
-      auto_validate: true
-    ```
+  <Step title="Access dashboard">
+    Open [http://localhost:5271](http://localhost:5271)
   </Step>
 
-  <Step title="Create kombination.yaml">
-    ```yaml
-    version: "1.0"
-    name: test-stack
-    kit: base-homelab
-    
-    nodes:
-      - name: server-1
-        type: main
-        ssh:
-          host: 192.168.1.100
-          user: admin
-    
-    services:
-      - name: traefik
-      - name: dokploy
-    ```
+  <Step title="Create simulation">
+    1. Click **New Simulation**
+    2. Choose a template or create custom
+    3. Configure nodes
+    4. Click **Create & Start**
   </Step>
 
-  <Step title="Validate with simulation">
-    ```bash
-    # KombiStack will automatically:
-    # 1. Create simulation in KombiSim
-    # 2. Deploy to simulated nodes
-    # 3. Run validation checks
-    # 4. Report results
-    
-    kombistack validate kombination.yaml
-    ```
+  <Step title="Manage nodes">
+    - View node status (running, stopped, error)
+    - Get SSH connection details
+    - Start/stop individual nodes
+    - View logs
+  </Step>
+
+  <Step title="Export configuration">
+    Click **Export** to download `kombination.yaml` for KombiStack
   </Step>
 </Steps>
+
+## Quick examples
+
+### Example 1: Simple web server
+
+```bash
+# Create simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "web-test",
+    "category": "homelab",
+    "nodes": [
+      {"name": "web-server", "location": "local"}
+    ]
+  }'
+
+# Start simulation
+curl -X POST http://localhost:5270/api/v1/simulations/{id}/start
+
+# SSH and deploy
+ssh -p 2222 root@localhost
+docker run -d -p 80:80 nginx
+curl localhost
+```
+
+### Example 2: Database cluster
+
+```bash
+# Apply HA template
+curl -X POST http://localhost:5270/api/v1/templates/ha-setup/apply \
+  -d '{"simulation_name": "db-cluster", "auto_start": true}'
+
+# SSH to primary
+ssh -p 2222 root@localhost
+docker run -d --name postgres-primary \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_REPLICATION_MODE=master \
+  postgres
+
+# SSH to replica
+ssh -p 2223 root@localhost
+docker run -d --name postgres-replica \
+  -e POSTGRES_PASSWORD=secret \
+  -e POSTGRES_REPLICATION_MODE=slave \
+  -e POSTGRES_MASTER_HOST=db-primary \
+  postgres
+```
+
+### Example 3: Hybrid setup
+
+```bash
+# Create hybrid simulation (VPS + local)
+curl -X POST http://localhost:5270/api/v1/templates/hybrid-setup/apply \
+  -d '{"simulation_name": "hybrid-test", "auto_start": true}'
+
+# Test VPS node (public services)
+ssh -p 2222 root@localhost
+docker run -d -p 80:80 traefik
+
+# Test local node (private services)
+ssh -p 2223 root@localhost
+docker run -d nextcloud
+```
+
+## Integration with KombiStack
+
+Enable automatic simulation before deployment:
+
+```yaml
+# kombistack.yaml
+simulation:
+  enabled: true
+  endpoint: "http://localhost:5270"
+  auto_validate: true
+  timeout: 300s
+
+validation:
+  simulate_before_deploy: true
+```
+
+**Workflow:**
+1. User creates `kombination.yaml`
+2. KombiStack sends to KombiSim
+3. KombiSim creates simulation
+4. KombiStack deploys to simulation
+5. Validation tests run
+6. If successful, deploy to real hardware
 
 ## Common tasks
 
@@ -244,75 +309,61 @@ Integrate with KombiStack for automatic validation:
 curl http://localhost:5270/api/v1/simulations
 ```
 
-### Get simulation status
+### Get simulation details
 
 ```bash
 curl http://localhost:5270/api/v1/simulations/{id}
 ```
 
-### Add node to existing simulation
+### Stop simulation
 
 ```bash
-curl -X POST http://localhost:5270/api/v1/simulations/{id}/nodes \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "new-node",
-    "location": "local"
-  }'
+curl -X POST http://localhost:5270/api/v1/simulations/{id}/stop
 ```
 
-### Export simulation config
+### Delete simulation
 
 ```bash
-# Export as kombination.yaml
-curl http://localhost:5270/api/v1/simulations/{id}/export > kombination.yaml
+curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
 ```
 
-### View node logs
+### List nodes in simulation
 
 ```bash
-# Get Docker container logs
-docker logs kombisim-node-{id}
+curl http://localhost:5270/api/v1/simulations/{id}/nodes
+```
+
+### Get node logs
+
+```bash
+curl http://localhost:5270/api/v1/nodes/{id}/logs
 ```
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Port conflicts">
-    **Symptoms:** "address already in use"
+    **Symptoms:** "Port already in use" when starting nodes
     
     **Solutions:**
     ```bash
-    # Check what's using the port
-    lsof -i :5270
+    # Check what's using SSH ports
+    lsof -i :2222-2322
     
-    # Use different ports
-    docker run -p 5370:5270 -p 5371:5271 kombisphere/kombisim
+    # Stop conflicting containers
+    docker ps | grep 2222
+    docker stop <container_id>
+    
+    # Or configure different port range
+    # In docker-compose.yml
+    environment:
+      - SSH_PORT_START=3222
+      - SSH_PORT_END=3322
     ```
   </Accordion>
 
-  <Accordion title="SSH connection refused">
-    **Symptoms:** "Connection refused" when SSH'ing to node
-    
-    **Solutions:**
-    1. Check node is running:
-       ```bash
-       curl http://localhost:5270/api/v1/nodes/{id}
-       ```
-    
-    2. Check Docker container:
-       ```bash
-       docker ps | grep kombisim
-       ```
-    
-    3. Check SSH port mapping:
-       ```bash
-       docker port kombisim-node-{id}
-       ```
-  </Accordion>
-
   <Accordion title="Docker socket permission denied">
-    **Symptoms:** "permission denied" accessing Docker socket
+    **Symptoms:** "Permission denied" accessing Docker socket
     
     **Solutions:**
     ```bash
@@ -321,29 +372,44 @@ docker logs kombisim-node-{id}
     newgrp docker
     
     # Or run with sudo
-    sudo docker run ...
+    sudo docker compose up -d
     ```
   </Accordion>
 
   <Accordion title="Nodes not starting">
-    **Symptoms:** Nodes stuck in "starting" state
+    **Symptoms:** Nodes stuck in "starting" status
     
     **Solutions:**
-    1. Check Docker logs:
-       ```bash
-       docker logs kombisim
-       ```
+    ```bash
+    # Check Docker logs
+    docker logs kombisim
     
-    2. Check available resources:
-       ```bash
-       docker system df
-       docker system prune  # Clean up if needed
-       ```
+    # Check node container logs
+    docker ps -a | grep kombisim-node
+    docker logs <node_container_id>
     
-    3. Restart KombiSim:
-       ```bash
-       docker restart kombisim
-       ```
+    # Restart KombiSim
+    docker compose restart kombisim
+    ```
+  </Accordion>
+
+  <Accordion title="SSH connection refused">
+    **Symptoms:** Cannot SSH to simulated nodes
+    
+    **Solutions:**
+    ```bash
+    # Verify node is running
+    curl http://localhost:5270/api/v1/nodes/{id}
+    
+    # Check SSH port mapping
+    docker ps | grep kombisim-node
+    
+    # Test SSH connectivity
+    nc -zv localhost 2222
+    
+    # Check SSH service in container
+    docker exec <node_container_id> systemctl status ssh
+    ```
   </Accordion>
 </AccordionGroup>
 
@@ -351,14 +417,14 @@ docker logs kombisim-node-{id}
 
 <CardGroup cols={2}>
   <Card
-    title="Templates"
+    title="Explore templates"
     icon="file-code"
     href="/tools/kombisim/templates"
   >
-    Explore pre-built templates
+    Browse all 6 pre-built templates
   </Card>
   <Card
-    title="Installation"
+    title="Installation guide"
     icon="download"
     href="/tools/kombisim/installation"
   >
@@ -369,7 +435,7 @@ docker logs kombisim-node-{id}
     icon="code"
     href="/api/kombisim/overview"
   >
-    Full API documentation
+    Complete API documentation
   </Card>
   <Card
     title="KombiStack integration"
