@@ -1,0 +1,145 @@
+---
+title: API Authentication
+description: How to authenticate with the kombify API
+---
+
+kombify supports multiple authentication methods depending on your deployment model.
+
+## Authentication Methods
+
+### API Keys (Self-Hosted)
+
+For self-hosted deployments, use API keys for authentication.
+
+#### Generate an API Key
+
+```bash
+curl -X POST http://localhost:5260/api/v1/auth/keys \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "My API Key",
+    "scopes": ["stacks:read", "stacks:write"]
+  }'
+```
+
+Response:
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "key_abc123",
+    "key": "kbs_live_1234567890abcdef",
+    "name": "My API Key",
+    "scopes": ["stacks:read", "stacks:write"],
+    "created_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+<Warning>
+  Save the API key securely. It will only be shown once.
+</Warning>
+
+#### Use the API Key
+
+Include the API key in the `Authorization` header:
+
+```bash
+curl http://localhost:5260/api/v1/stacks \
+  -H "Authorization: Bearer kbs_live_1234567890abcdef"
+```
+
+### JWT Tokens (Sphere)
+
+When using kombify Sphere, authentication uses JWT tokens from Zitadel.
+
+#### Get a Token
+
+Tokens are automatically provided when you log in to Sphere. For programmatic access:
+
+```bash
+curl -X POST https://auth.kombisphere.io/oauth/v2/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "scope=openid profile email"
+```
+
+#### Use the Token
+
+```bash
+curl https://api.kombisphere.io/api/v1/stacks \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+## API Key Scopes
+
+| Scope | Description |
+|-------|-------------|
+| `stacks:read` | Read stack configurations and status |
+| `stacks:write` | Create, update, and delete stacks |
+| `nodes:read` | Read node information |
+| `nodes:write` | Manage nodes |
+| `sim:read` | Read simulation data |
+| `sim:write` | Create and manage simulations |
+| `stackkits:read` | Access StackKits |
+| `admin` | Full administrative access |
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Rotate keys regularly" icon="rotate">
+    Rotate API keys every 90 days:
+    
+    ```bash
+    # Revoke old key
+    curl -X DELETE http://localhost:5260/api/v1/auth/keys/key_abc123 \
+      -H "Authorization: Bearer kbs_live_old_key"
+    
+    # Create new key
+    curl -X POST http://localhost:5260/api/v1/auth/keys \
+      -H "Authorization: Bearer kbs_live_admin_key" \
+      -d '{"name": "Rotated Key", "scopes": ["stacks:read", "stacks:write"]}'
+    ```
+  </Accordion>
+
+  <Accordion title="Use environment variables" icon="terminal">
+    Never hardcode API keys in your code:
+    
+    ```bash
+    export KOMBIFY_API_KEY="kbs_live_1234567890abcdef"
+    ```
+    
+    ```python
+    import os
+    api_key = os.environ.get("KOMBIFY_API_KEY")
+    ```
+  </Accordion>
+
+  <Accordion title="Limit scopes" icon="shield">
+    Only grant the minimum required scopes:
+    
+    ```json
+    {
+      "name": "Read-only monitoring",
+      "scopes": ["stacks:read", "nodes:read"]
+    }
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Stack API" icon="server" href="/api/stack/overview">
+    Manage infrastructure
+  </Card>
+  <Card title="Sim API" icon="flask" href="/api/sim/overview">
+    Create simulations
+  </Card>
+  <Card title="StackKits API" icon="boxes-stacked" href="/api/stackkits/overview">
+    Validate configurations
+  </Card>
+</CardGroup>
