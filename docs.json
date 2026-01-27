@@ -294,8 +294,10 @@
             "api/stackkits/validate",
             "api/stackkits/generate"
           ]
+        }
       ]
     }
+  ]
   ],
   "footerSocials": {
     "x": "https://x.com/kombifydev",
