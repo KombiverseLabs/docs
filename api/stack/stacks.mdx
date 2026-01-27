@@ -1,0 +1,101 @@
+---
+title: Stacks API
+description: Manage stack configurations
+---
+
+Manage your infrastructure stacks via the API.
+
+## List Stacks
+
+```bash
+GET /api/v1/stacks
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "stacks": [
+      {
+        "id": "stack_abc123",
+        "name": "my-homelab",
+        "stackkit": "base-homelab",
+        "status": "running",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T11:00:00Z"
+      }
+    ],
+    "total": 1
+  }
+}
+```
+
+## Create Stack
+
+```bash
+POST /api/v1/stacks
+```
+
+### Request Body
+
+```json
+{
+  "name": "my-homelab",
+  "stackkit": "base-homelab",
+  "config": {
+    "nodes": [
+      {
+        "name": "server-01",
+        "type": "docker",
+        "connection": {
+          "host": "192.168.1.100"
+        }
+      }
+    ],
+    "services": ["traefik", "immich", "uptime-kuma"]
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "stack_abc123",
+    "name": "my-homelab",
+    "stackkit": "base-homelab",
+    "status": "pending",
+    "created_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+## Get Stack
+
+```bash
+GET /api/v1/stacks/{id}
+```
+
+## Update Stack
+
+```bash
+PUT /api/v1/stacks/{id}
+```
+
+## Delete Stack
+
+```bash
+DELETE /api/v1/stacks/{id}
+```
+
+## Apply Stack
+
+```bash
+POST /api/v1/stacks/{id}/apply
+```
+
+Triggers a deployment of the stack configuration.
