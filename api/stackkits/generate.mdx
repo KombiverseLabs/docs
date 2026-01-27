@@ -1,0 +1,83 @@
+---
+title: Generate API
+description: Generate OpenTofu infrastructure code
+---
+
+Generate OpenTofu (Terraform) code from your configuration.
+
+## Generate Code
+
+```bash
+POST /api/v1/stackkits/generate
+```
+
+### Request Body
+
+```json
+{
+  "stackkit": "base-homelab",
+  "config": {
+    "nodes": [
+      {
+        "name": "server-01",
+        "type": "docker"
+      }
+    ],
+    "services": ["traefik", "immich"]
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "files": {
+      "main.tf": "terraform {\n  required_version = \">= 1.6.0\"\n  ...",
+      "variables.tf": "variable \"node_host\" {\n  type = string\n  ...",
+      "outputs.tf": "output \"service_urls\" {\n  value = {\n    ..."
+    },
+    "tfvars": {
+      "node_host": "192.168.1.100",
+      "services": ["traefik", "immich"]
+    }
+  }
+}
+```
+
+## Generated Files
+
+The API generates:
+
+- **main.tf**: Main infrastructure definition
+- **variables.tf**: Input variables
+- **outputs.tf**: Output values
+- **tfvars.json**: Variable values
+
+## Example Usage
+
+```bash
+# Generate code
+curl -X POST http://localhost:5260/api/v1/stackkits/generate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d @kombination.json \
+  -o generated.json
+
+# Extract files
+jq -r '.data.files["main.tf"]' generated.json > main.tf
+jq -r '.data.files["variables.tf"]' generated.json > variables.tf
+
+# Apply with OpenTofu
+tofu init
+tofu plan
+tofu apply
+```
+
+## Next Steps
+
+<Card title="Validate First" icon="check" href="/api/stackkits/validate">
+  Always validate before generating code
+</Card>
