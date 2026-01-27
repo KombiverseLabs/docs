@@ -1,0 +1,90 @@
+---
+title: Validate API
+description: Validate configurations against CUE schemas
+---
+
+Validate your `kombination.yaml` configuration before deployment.
+
+## Validate Configuration
+
+```bash
+POST /api/v1/stackkits/validate
+```
+
+### Request Body
+
+```json
+{
+  "stackkit": "base-homelab",
+  "config": {
+    "nodes": [
+      {
+        "name": "server-01",
+        "type": "docker",
+        "connection": {
+          "host": "192.168.1.100"
+        }
+      }
+    ],
+    "services": ["traefik", "immich", "uptime-kuma"]
+  }
+}
+```
+
+### Success Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "warnings": [],
+    "suggestions": [
+      "Consider adding 'authelia' for authentication"
+    ]
+  }
+}
+```
+
+### Error Response
+
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Configuration validation failed",
+    "details": {
+      "errors": [
+        {
+          "path": "nodes[0].connection.host",
+          "message": "Invalid IP address format"
+        },
+        {
+          "path": "services[2]",
+          "message": "Service 'unknown-service' not found in stackkit"
+        }
+      ]
+    }
+  }
+}
+```
+
+## Validation Rules
+
+The validator checks:
+
+- **Schema compliance**: Configuration matches CUE schema
+- **Service dependencies**: Required services are included
+- **Resource constraints**: CPU/memory limits are reasonable
+- **Network configuration**: Ports don't conflict
+- **Security**: No insecure defaults
+
+## Example with cURL
+
+```bash
+curl -X POST http://localhost:5260/api/v1/stackkits/validate \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -d @kombination.json
+```
