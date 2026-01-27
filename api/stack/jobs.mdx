@@ -1,0 +1,66 @@
+---
+title: Jobs API
+description: Track deployment jobs
+---
+
+Monitor deployment jobs and their progress.
+
+## List Jobs
+
+```bash
+GET /api/v1/jobs
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "jobs": [
+      {
+        "id": "job_def456",
+        "stack_id": "stack_abc123",
+        "type": "apply",
+        "status": "running",
+        "progress": 65,
+        "started_at": "2024-01-15T11:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+## Get Job
+
+```bash
+GET /api/v1/jobs/{id}
+```
+
+## Get Job Logs
+
+```bash
+GET /api/v1/jobs/{id}/logs
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "logs": [
+      {
+        "timestamp": "2024-01-15T11:00:05Z",
+        "level": "info",
+        "message": "Validating configuration..."
+      },
+      {
+        "timestamp": "2024-01-15T11:00:10Z",
+        "level": "info",
+        "message": "Connecting to node: server-01"
+      }
+    ]
+  }
+}
+```
