@@ -1,0 +1,66 @@
+---
+title: Nodes API
+description: Manage infrastructure nodes
+---
+
+Manage nodes (servers) in your infrastructure.
+
+## List Nodes
+
+```bash
+GET /api/v1/nodes
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "nodes": [
+      {
+        "id": "node_xyz789",
+        "name": "server-01",
+        "type": "docker",
+        "status": "online",
+        "agent_version": "1.0.0",
+        "last_seen": "2024-01-15T11:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+## Get Node
+
+```bash
+GET /api/v1/nodes/{id}
+```
+
+## Get Node Status
+
+```bash
+GET /api/v1/nodes/{id}/status
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "status": "online",
+    "cpu_usage": 45.2,
+    "memory_usage": 62.8,
+    "disk_usage": 38.5,
+    "uptime": 86400,
+    "services": [
+      {
+        "name": "traefik",
+        "status": "running",
+        "health": "healthy"
+      }
+    ]
+  }
+}
+```
