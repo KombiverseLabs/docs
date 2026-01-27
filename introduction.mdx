@@ -129,6 +129,7 @@ flowchart LR
 
 ## The kombify Ecosystem
 
+<div className="dark:hidden">
 ```mermaid
 graph TB
     subgraph Sphere["☁️ kombify Sphere (SaaS)"]
@@ -161,11 +162,52 @@ graph TB
     Stack --> StackKits
     Sim --> StackKits
     
-    style Sphere fill:#dbeafe,stroke:#2563eb
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Sim fill:#d1fae5,stroke:#059669
-    style StackKits fill:#fce7f3,stroke:#db2777
+    style Sphere fill:#dbeafe,stroke:#2563eb,color:#000
+    style Stack fill:#fef3c7,stroke:#d97706,color:#000
+    style Sim fill:#d1fae5,stroke:#059669,color:#000
+    style StackKits fill:#fce7f3,stroke:#db2777,color:#000
 ```
+</div>
+
+<div className="hidden dark:block">
+```mermaid
+graph TB
+    subgraph Sphere["☁️ kombify Sphere (SaaS)"]
+        SSO["Single Sign-On"]
+        Billing["Billing"]
+        Teams["Team Management"]
+    end
+    
+    subgraph Stack["🖥️ kombify Stack"]
+        direction TB
+        Unifier["Unifier Engine"]
+        gRPC["gRPC Server"]
+        ToFu["OpenTofu Runner"]
+        API["REST API"]
+    end
+    
+    subgraph Sim["🧪 kombify Sim"]
+        Docker["Docker Engine"]
+        Templates["Templates"]
+        SSH["SSH Access"]
+    end
+    
+    subgraph StackKits["📦 StackKits"]
+        Base["base-homelab"]
+        HA["ha-homelab"]
+        Modern["modern-homelab"]
+    end
+    
+    Sphere --> Stack
+    Stack --> StackKits
+    Sim --> StackKits
+    
+    style Sphere fill:#1e3a8a,stroke:#60a5fa,color:#fff
+    style Stack fill:#78350f,stroke:#fbbf24,color:#fff
+    style Sim fill:#064e3b,stroke:#34d399,color:#fff
+    style StackKits fill:#831843,stroke:#f472b6,color:#fff
+```
+</div>
 
 <AccordionGroup>
   <Accordion title="kombify Stack — Infrastructure Control Plane" icon="server">
