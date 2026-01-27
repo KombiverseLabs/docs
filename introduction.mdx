@@ -48,6 +48,7 @@ services:
 
 ## How It Works
 
+<div className="dark:hidden">
 ```mermaid
 flowchart LR
     subgraph User["👤 You"]
@@ -73,10 +74,43 @@ flowchart LR
     Apply --> Node1 & Node2
     Node1 & Node2 --> Services
     
-    style User fill:#f0f9ff,stroke:#0369a1
-    style Kombify fill:#fef3c7,stroke:#d97706
-    style Infrastructure fill:#dcfce7,stroke:#16a34a
+    style User fill:#dbeafe,stroke:#0369a1,color:#000
+    style Kombify fill:#fef3c7,stroke:#d97706,color:#000
+    style Infrastructure fill:#dcfce7,stroke:#16a34a,color:#000
 ```
+</div>
+
+<div className="hidden dark:block">
+```mermaid
+flowchart LR
+    subgraph User["👤 You"]
+        YAML["kombination.yaml"]
+    end
+    
+    subgraph Kombify["⚙️ kombify Stack"]
+        direction TB
+        Parse["Parse"]
+        Validate["Validate"]
+        Generate["Generate"]
+        Apply["Apply"]
+        Parse --> Validate --> Generate --> Apply
+    end
+    
+    subgraph Infrastructure["🖥️ Your Infrastructure"]
+        Node1["Server 1"]
+        Node2["Server 2"]
+        Services["Services"]
+    end
+    
+    YAML --> Parse
+    Apply --> Node1 & Node2
+    Node1 & Node2 --> Services
+    
+    style User fill:#1e3a8a,stroke:#60a5fa,color:#fff
+    style Kombify fill:#78350f,stroke:#fbbf24,color:#fff
+    style Infrastructure fill:#14532d,stroke:#4ade80,color:#fff
+```
+</div>
 
 <Steps>
   <Step title="Define" icon="file-code">
