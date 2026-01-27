@@ -46,7 +46,8 @@
       "href": "https://kombify.dev/blog"
     }
   ],
-  "tabs": [
+  "navigation": {
+    "tabs": [
     {
       "tab": "Documentation",
       "icon": "book-open",
