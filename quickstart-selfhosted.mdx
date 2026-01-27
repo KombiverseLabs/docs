@@ -1,11 +1,15 @@
 ---
-title: Quick start (Self-hosted)
-description: Run kombify Stack on your own infrastructure in 5 minutes
+title: Quick start (self-hosted)
+description: Run kombify Stack on your own infrastructure in 10 minutes
 ---
 
-# Quick start (Self-hosted)
+# Quick start (self-hosted)
 
-Run kombify Stack on your own infrastructure without any SaaS dependencies.
+Run kombify Stack on your own infrastructure with full control and no SaaS dependencies. This guide walks you through setting up a complete homelab management system.
+
+<Note>
+  **What you'll get:** A self-hosted kombify Stack instance that can manage your homelab, deploy StackKits, and monitor your infrastructure — all running on your own hardware.
+</Note>
 
 ## Prerequisites
 
@@ -14,14 +18,18 @@ Run kombify Stack on your own infrastructure without any SaaS dependencies.
     Docker Engine 24.0+ with Compose v2.20+
   </Card>
   <Card title="System resources" icon="microchip">
-    4GB RAM, 10GB disk space
+    4GB RAM minimum, 10GB disk space
   </Card>
 </CardGroup>
 
-## Installation
+<Tip>
+  If you prefer a managed experience without self-hosting, see [Quick start (SaaS)](/quickstart).
+</Tip>
+
+## Step 1: Install kombify Stack
 
 <Steps>
-  <Step title="Download Docker Compose">
+  <Step title="Create directory and download compose file">
     ```bash
     mkdir ~/kombify && cd ~/kombify
     curl -O https://raw.githubusercontent.com/soulcreek/KombiStack/main/docker-compose.yml
@@ -35,10 +43,10 @@ Run kombify Stack on your own infrastructure without any SaaS dependencies.
     
     This starts:
     - **kombify Stack Core** (API + PocketBase) on port 5260
-    - **kombify Stack UI** (SvelteKit) on port 5261
+    - **kombify Stack UI** (SvelteKit dashboard) on port 5261
   </Step>
 
-  <Step title="Access dashboard">
+  <Step title="Access the dashboard">
     Open [http://localhost:5261](http://localhost:5261)
     
     Default credentials:
@@ -46,28 +54,33 @@ Run kombify Stack on your own infrastructure without any SaaS dependencies.
     - Password: `admin123`
     
     <Warning>
-      Change the default password immediately!
+      Change the default password immediately after first login. Go to **Settings** → **Security** → **Change Password**.
     </Warning>
   </Step>
 </Steps>
 
-## Verify installation
+## Step 2: Verify installation
+
+Check that all services are running:
 
 <CodeGroup>
 ```bash Health check
 curl http://localhost:5260/api/v1/health
+# Expected: {"status":"healthy","version":"1.0.0"}
 ```
 
 ```bash List stacks
 curl http://localhost:5260/api/v1/stacks
+# Expected: {"stacks":[]}
 ```
 
 ```bash PocketBase admin
 # Open http://localhost:5260/_/
+# Use the same admin credentials
 ```
 </CodeGroup>
 
-## Service ports
+### Service ports
 
 | Service | Port | Protocol | Description |
 |---------|------|----------|-------------|
@@ -75,22 +88,27 @@ curl http://localhost:5260/api/v1/stacks
 | Frontend | 5261 | HTTP | SvelteKit Dashboard |
 | gRPC | 5263 | gRPC/mTLS | Agent communication |
 
-## Create your first stack
+## Step 3: Create your first stack
 
 <Steps>
-  <Step title="Start wizard">
+  <Step title="Start the Easy Wizard">
     In the dashboard, click **"New Homelab"** → **"Easy Wizard"**.
+    
+    <Tip>
+      The Easy Wizard asks simple questions about what you want to build. For granular control, use the **Technical Wizard** instead.
+    </Tip>
   </Step>
 
-  <Step title="Configure">
-    Answer the wizard questions:
-    - Stack name: `my-homelab`
-    - StackKit: `base-homelab`
-    - Domain: `home.local` (or your domain)
+  <Step title="Answer wizard questions">
+    | Question | Example | What it affects |
+    |----------|---------|-----------------|
+    | Stack name | `my-homelab` | Identifier for this stack |
+    | StackKit | `base-homelab` | Base blueprint to use |
+    | Domain | `home.local` | SSL and routing |
   </Step>
 
-  <Step title="Add nodes">
-    Add your server(s):
+  <Step title="Add your nodes">
+    Add the server(s) you want to manage:
     
     ```yaml
     nodes:
@@ -101,45 +119,71 @@ curl http://localhost:5260/api/v1/stacks
           user: root
           ssh_key: ~/.ssh/id_rsa
     ```
+    
+    <Note>
+      You can add multiple nodes. kombify Stack will distribute services across them based on available resources.
+    </Note>
   </Step>
 
   <Step title="Select services">
-    Choose services to deploy:
-    - ✅ Traefik (reverse proxy)
+    Choose services to deploy from the StackKit:
+    - ✅ Traefik (reverse proxy with auto-SSL)
     - ✅ Uptime Kuma (monitoring)
-    - ✅ Immich (photos)
+    - ✅ Immich (photo management)
+    - ✅ Homepage (dashboard)
   </Step>
 </Steps>
 
-## Install agent on target server
+## Step 4: Install agent on target server
+
+The kombify agent runs on each server you want to manage. It communicates with Stack via mTLS-secured gRPC.
 
 <Steps>
   <Step title="Generate agent credentials">
     In the dashboard, go to **"Agents"** → **"Add Agent"**.
     
+    You'll receive:
+    - A unique agent token
+    - An installation command
+    
     Copy the installation command.
   </Step>
 
   <Step title="Run on target server">
-    SSH into your server and run:
+    SSH into your target server and run the installation:
     
     ```bash
     curl -sSL https://install.kombify.io/agent | sudo sh -s -- \
       --token YOUR_AGENT_TOKEN \
       --server http://your-kombistack-ip:5260
     ```
+    
+    <Note>
+      The agent is a lightweight Go binary (~15MB). It connects outbound to Stack, so no inbound ports are required on the target server.
+    </Note>
   </Step>
 
   <Step title="Verify connection">
-    The dashboard will show **"Agent Connected"** with a green indicator.
+    The dashboard will show **"Agent Connected"** with a green status indicator.
+    
+    You can also check agent status on the server:
+    ```bash
+    sudo systemctl status kombify-agent
+    ```
   </Step>
 </Steps>
 
-## Deploy
+## Step 5: Deploy
 
 <Steps>
-  <Step title="Review configuration">
+  <Step title="Review your configuration">
     Click **"Review"** to see the generated `kombination.yaml`.
+    
+    This is your single source of truth — version-controlled, shareable, and fully reproducible.
+  </Step>
+
+  <Step title="Simulate first (optional but recommended)">
+    Click **"Simulate"** to test the configuration in kombify Sim before deploying to real hardware.
   </Step>
 
   <Step title="Apply">

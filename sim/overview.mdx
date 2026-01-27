@@ -1,101 +1,128 @@
 ---
-title: kombify Sim Overview
-description: Test homelab configurations in isolated Docker environments
+title: kombify Sim
+description: Test your homelab safely before deploying
 sidebarTitle: Overview
 icon: flask-vial
 ---
 
 # kombify Sim
 
-**Sim** is kombify's infrastructure simulation engine. It creates isolated, disposable environments for testing homelab configurations before deploying to real hardware.
+**kombify Sim** lets you test your homelab configuration in a safe sandbox. Make mistakes, break things, learn — without risking your real servers.
 
-## Why Sim?
+## The simple version
+
+<Card title="What is Sim?" icon="lightbulb">
+  Sim creates virtual servers on your computer using Docker. These virtual servers look and act like real servers — you can SSH into them, install software, and test your entire homelab setup. When something breaks, just delete it and start over in seconds.
+</Card>
+
+## Why use Sim?
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph Without["Without Sim ❌"]
         direction TB
-        W1["Write config"]
-        W2["Deploy to hardware"]
-        W3["Something breaks"]
-        W4["Debug on live system"]
-        W5["Repeat..."]
+        W1["💡 Have an idea"]
+        W2["🖥️ Deploy to server"]
+        W3["💥 Something breaks"]
+        W4["😰 Debug live system"]
+        W5["🔄 Hours of frustration"]
         
         W1 --> W2 --> W3 --> W4 --> W5
-        W5 --> W1
     end
     
     subgraph With["With Sim ✅"]
         direction TB
-        S1["Write config"]
-        S2["Test in Sim"]
-        S3["Fix issues safely"]
-        S4["Deploy with confidence"]
+        S1["💡 Have an idea"]
+        S2["🧪 Test in Sim"]
+        S3["✨ Works perfectly"]
+        S4["🚀 Deploy with confidence"]
         
-        S1 --> S2
-        S2 -->|Issues| S3
-        S3 --> S2
-        S2 -->|Works| S4
+        S1 --> S2 --> S3 --> S4
     end
     
     style Without fill:#fee2e2,stroke:#dc2626
     style With fill:#d1fae5,stroke:#059669
 ```
 
-<Info>
-  **Save Time, Reduce Risk**: Test complex multi-node setups in minutes instead of hours, without risking your production environment.
-</Info>
+<Accordion title="🔧 Technical details" icon="code">
+  Sim uses Docker containers with full init systems (systemd/OpenRC) to simulate real Linux servers. Each simulated node:
+  - Runs a complete Linux distribution (Ubuntu, Debian, Rocky, Alpine)
+  - Has its own SSH server accessible on unique ports (2222-2322)
+  - Can be networked together in custom topologies
+  - Supports resource limits matching real hardware specs
+  
+  **Architecture:** Go backend with SvelteKit dashboard, REST API for automation
+</Accordion>
 
-## Key Features
+## Key features
 
 <CardGroup cols={2}>
-  <Card title="Instant Nodes" icon="bolt">
-    Spin up simulated servers in seconds using Docker containers
+  <Card title="Instant servers" icon="bolt">
+    Spin up simulated servers in seconds — no ISO downloads or VM setup
   </Card>
-  <Card title="Real SSH Access" icon="terminal">
-    Full SSH access to every simulated node
+  <Card title="Real SSH access" icon="terminal">
+    SSH into any simulated server just like a real one
   </Card>
-  <Card title="Network Simulation" icon="network-wired">
-    Realistic network topologies with custom subnets
+  <Card title="Safe experimentation" icon="flask">
+    Break things without consequences — delete and recreate in seconds
   </Card>
-  <Card title="Snapshot & Restore" icon="camera">
-    Save and restore simulation states instantly
+  <Card title="Network simulation" icon="network-wired">
+    Test multi-node setups with custom networks and topologies
   </Card>
 </CardGroup>
 
-## How It Works
+## How it works
 
 ```mermaid
-graph TB
-    subgraph User["Your Workflow"]
-        Spec["kombination.yaml"]
-        UI["Web Dashboard"]
-        API["REST API"]
+flowchart TB
+    subgraph You["👤 You"]
+        direction LR
+        Dashboard["🖥️ Dashboard"]
+        CLI["💻 CLI"]
+        API["🔌 API"]
     end
     
-    subgraph SimEngine["Sim Engine"]
+    subgraph Sim["🧪 Sim Engine"]
         Controller["Controller"]
         NodeMgr["Node Manager"]
         NetMgr["Network Manager"]
     end
     
-    subgraph Runtime["Container Runtime"]
-        D1["node-1<br/>Ubuntu 22.04"]
-        D2["node-2<br/>Debian 12"]
-        D3["node-3<br/>Rocky 9"]
-        Net["Virtual Networks"]
+    subgraph Docker["🐳 Docker"]
+        N1["<b>node-1</b><br/>Ubuntu 22.04<br/><small>SSH: 2222</small>"]
+        N2["<b>node-2</b><br/>Debian 12<br/><small>SSH: 2223</small>"]
+        N3["<b>node-3</b><br/>Rocky 9<br/><small>SSH: 2224</small>"]
+        Net["🌐 Virtual Networks"]
     end
     
-    User --> Controller
-    Controller --> NodeMgr
-    Controller --> NetMgr
-    NodeMgr --> Runtime
+    You --> Controller
+    Controller --> NodeMgr & NetMgr
+    NodeMgr --> N1 & N2 & N3
     NetMgr --> Net
+    Net --- N1 & N2 & N3
     
-    style User fill:#dbeafe,stroke:#2563eb
-    style SimEngine fill:#fef3c7,stroke:#d97706
-    style Runtime fill:#d1fae5,stroke:#059669
+    style You fill:#dbeafe,stroke:#2563eb
+    style Sim fill:#fef3c7,stroke:#d97706
+    style Docker fill:#d1fae5,stroke:#059669
 ```
+
+<Steps>
+  <Step title="Start Sim" icon="play">
+    Run Sim via Docker — it needs access to Docker socket to create containers
+  </Step>
+  <Step title="Create simulation" icon="plus">
+    Name your simulation and choose which nodes you want
+  </Step>
+  <Step title="Add nodes" icon="server">
+    Add virtual servers with your choice of OS and resources
+  </Step>
+  <Step title="Connect and test" icon="terminal">
+    SSH into nodes, install software, test your configuration
+  </Step>
+  <Step title="Clean up" icon="trash">
+    Delete the simulation when done — everything disappears
+  </Step>
+</Steps>
 
 ## Quick Start
 

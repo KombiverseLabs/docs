@@ -1,0 +1,14 @@
+{
+  "name": "mintlify-mcp",
+  "version": "1.0.0",
+  "description": "Mintlify MCP Server for documentation updates",
+  "type": "module",
+  "main": "server.js",
+  "bin": {
+    "mintlify-mcp": "server.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "node-fetch": "^3.3.0"
+  }
+}

@@ -1,6 +1,6 @@
-# KombiSphere Documentation
+# kombify Documentation
 
-Production-ready Mintlify documentation for the KombiSphere multi-repo SaaS platform.
+Production-ready Mintlify documentation for the kombify multi-repo platform.
 
 ## Documentation Structure
 
@@ -15,7 +15,7 @@ Production-ready Mintlify documentation for the KombiSphere multi-repo SaaS plat
 - `concepts/stackkits-system.mdx` - 3-layer architecture
 - `concepts/simulation-first.mdx` - Testing philosophy
 
-### ✅ KombiStack (Open Core Tool)
+### ✅ kombifyStack (Open Core Tool)
 - `tools/kombistack/overview.mdx` - Complete overview
 - `tools/kombistack/quickstart.mdx` - Deployment guide
 - `tools/kombistack/installation.mdx` - Installation methods
@@ -23,7 +23,7 @@ Production-ready Mintlify documentation for the KombiSphere multi-repo SaaS plat
 - `tools/kombistack/configuration.mdx` - Configuration reference
 - `tools/kombistack/api-reference.mdx` - ⚠️ TODO
 
-### ✅ KombiSim (Open Core Tool)
+### ✅ kombifySim (Open Core Tool)
 - `tools/kombisim/overview.mdx` - Complete overview
 - `tools/kombisim/quickstart.mdx` - Quick start guide
 - `tools/kombisim/installation.mdx` - Installation guide
@@ -37,14 +37,14 @@ Production-ready Mintlify documentation for the KombiSphere multi-repo SaaS plat
 - `tools/stackkits/creating-stackkits.mdx` - ⚠️ TODO
 - `tools/stackkits/cli-reference.mdx` - ⚠️ TODO
 
-### ✅ SaaS Platform - Cloud
+### ✅ SaaS Platform - kombify Cloud
 - `saas/cloud/overview.mdx` - Complete overview
 - `saas/cloud/getting-started.mdx` - ⚠️ TODO
 - `saas/cloud/authentication.mdx` - ⚠️ TODO
 - `saas/cloud/subscriptions.mdx` - ⚠️ TODO
 - `saas/cloud/tool-launcher.mdx` - ⚠️ TODO
 
-### ✅ SaaS Platform - Admin
+### ✅ SaaS Platform - kombify Administration
 - `saas/admin/overview.mdx` - Complete overview
 - `saas/admin/tool-evaluation.mdx` - ⚠️ TODO
 - `saas/admin/pattern-management.mdx` - ⚠️ TODO

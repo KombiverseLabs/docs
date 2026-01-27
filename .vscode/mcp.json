@@ -3,14 +3,25 @@
 		"mintlify": {
 			"type": "stdio",
 			"command": "npx",
-			"args": [
-				"-y",
-				"@mintlify/mcp-server"
-			],
+			"args": ["-y", "@open-mcp/mintlify"],
 			"env": {
-				"MINTLIFY_API_KEY": "mint_PZeaENHj5kbmzjLXpjXhyS",
-				"MINTLIFY_PROJECT_ID": "6970db25e5c3dab2b5596acc"
+				"MINTLIFY_API_KEY": "${input:mintlify_api_key}",
+				"MINTLIFY_PROJECT_ID": "${input:mintlify_project_id}"
 			}
 		}
-	}
+	},
+	"inputs": [
+		{
+			"id": "mintlify_api_key",
+			"type": "promptString",
+			"description": "Mintlify API Key",
+			"password": true
+		},
+		{
+			"id": "mintlify_project_id",
+			"type": "promptString",
+			"description": "Mintlify Project ID",
+			"password": false
+		}
+	]
 }

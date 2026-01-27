@@ -66,6 +66,7 @@
           "pages": [
             "concepts/architecture",
             "concepts/spec-driven",
+            "concepts/identity",
             "concepts/stackkits",
             "concepts/simulation-first"
           ]
@@ -270,20 +271,30 @@
           "group": "Stack API",
           "icon": "server",
           "pages": [
-            "api/stack/overview",
-            "api/stack/stacks",
-            "api/stack/nodes",
-            "api/stack/jobs"
+            "api/kombistack/overview",
+            "api/kombistack/stacks",
+            "api/kombistack/workers",
+            "api/kombistack/jobs"
           ]
         },
         {
           "group": "Sim API",
           "icon": "flask",
           "pages": [
-            "api/sim/overview",
-            "api/sim/simulations",
-            "api/sim/nodes",
-            "api/sim/templates"
+            "api/kombisim/overview",
+            "api/kombisim/simulations",
+            "api/kombisim/nodes",
+            "api/kombisim/templates"
+          ]
+        },
+        {
+          "group": "Sphere API",
+          "icon": "cloud",
+          "pages": [
+            "api/kombisphere/overview",
+            "api/kombisphere/authentication",
+            "api/kombisphere/tools",
+            "api/kombisphere/subscriptions"
           ]
         },
         {

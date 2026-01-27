@@ -5,16 +5,20 @@ description: Get started with kombify Sphere in 5 minutes
 
 # Quick start with kombify Sphere
 
-Get your first homelab running in under 5 minutes using the managed kombify Sphere platform.
+Get your first homelab running in under 5 minutes using the managed kombify Sphere platform. No installation required — just sign up, answer a few questions, and deploy.
+
+<Note>
+  **What you'll build:** A private photo cloud with reverse proxy, monitoring, and photo management — all configured automatically based on your answers.
+</Note>
 
 ## Prerequisites
 
 <CardGroup cols={2}>
   <Card title="A server" icon="server">
-    Any Linux server (VPS, old PC, Raspberry Pi)
+    Any Linux server with 4GB+ RAM (VPS, old PC, Raspberry Pi 4+, Mini PC)
   </Card>
   <Card title="SSH access" icon="terminal">
-    SSH access to your server
+    SSH access to your server with sudo privileges
   </Card>
 </CardGroup>
 
@@ -22,15 +26,19 @@ Get your first homelab running in under 5 minutes using the managed kombify Sphe
 
 <Steps>
   <Step title="Sign up">
-    Go to [app.kombisphere.io](https://app.kombisphere.io) and create a free account.
+    Go to [app.kombisphere.io](https://app.kombisphere.io) and create a free account using your email or GitHub.
   </Step>
 
   <Step title="Verify email">
-    Check your email and verify your account.
+    Check your email and click the verification link.
   </Step>
 
-  <Step title="Access dashboard">
-    You'll be redirected to the kombify Sphere dashboard.
+  <Step title="Set up passkey (recommended)">
+    For passwordless login, register a passkey using your device's biometrics or a hardware key.
+    
+    <Tip>
+      Passkeys are more secure than passwords and faster to use. kombify recommends registering at least two passkeys for recovery.
+    </Tip>
   </Step>
 </Steps>
 
@@ -38,39 +46,51 @@ Get your first homelab running in under 5 minutes using the managed kombify Sphe
 
 <Steps>
   <Step title="Open tool launcher">
-    Click **"Launch Stack"** in the dashboard.
+    From the dashboard, click **"Launch Stack"** in the tool launcher.
   </Step>
 
-  <Step title="Choose deployment">
+  <Step title="Choose deployment mode">
     Select **"Managed"** to use Sphere's hosted Stack instance.
     
     <Note>
-      You can also choose **"Self-hosted"** to run Stack on your own infrastructure.
+      **Managed:** Stack runs in the cloud, your data stays on your server.
+      **Self-hosted:** You run Stack yourself — see [self-hosted quickstart](/quickstart-selfhosted).
     </Note>
   </Step>
 
   <Step title="Access Stack">
-    You'll be automatically logged in via SSO.
+    You'll be automatically logged in via SSO — no separate credentials needed.
   </Step>
 </Steps>
 
 ## Step 3: Create your first stack
 
+This is where the magic happens. The wizard translates your goals into a complete infrastructure configuration.
+
 <Steps>
-  <Step title="Start wizard">
+  <Step title="Start the Easy Wizard">
     Click **"New Homelab"** and select **"Easy Wizard"**.
+    
+    <Tip>
+      **Easy Wizard** asks simple questions about what you want to build.
+      **Technical Wizard** is for experts who want granular control over every setting.
+    </Tip>
   </Step>
 
-  <Step title="Answer questions">
-    The wizard will ask:
-    - What do you want to build? (e.g., "Photo Cloud")
-    - How many users? (e.g., "4 (Family)")
-    - Where should it run? (e.g., "Local Server")
-    - Do you have a domain? (optional)
+  <Step title="Answer the wizard questions">
+    The wizard will guide you through a few simple questions:
+    
+    | Question | Example Answer | What it affects |
+    |----------|----------------|-----------------|
+    | What do you want to build? | "Photo Cloud" | Services installed |
+    | How many users? | "4 (Family)" | Resource allocation |
+    | Where should it run? | "Local Server" | Connection method |
+    | Do you have a domain? | "photos.mydomain.com" | SSL and DNS setup |
+    | Backup level? | "Daily" | Backup configuration |
   </Step>
 
-  <Step title="Review configuration">
-    The wizard generates a `kombination.yaml` file:
+  <Step title="Review the generated spec">
+    The wizard generates a complete `kombination.yaml` file:
     
     ```yaml
     stackkit: base-homelab
@@ -78,46 +98,82 @@ Get your first homelab running in under 5 minutes using the managed kombify Sphe
     
     meta:
       name: "My Photo Cloud"
+      description: "Private photo cloud for family"
     
     nodes:
       - name: main-server
         type: local
         connection:
           host: 192.168.1.100
+          user: kombify
     
     services:
-      - traefik
-      - uptime-kuma
-      - immich
+      - traefik      # Reverse proxy with auto-SSL
+      - uptime-kuma  # Service monitoring
+      - immich       # Photo management with AI
+    
+    backup:
+      enabled: true
+      schedule: "0 3 * * *"  # Daily at 3 AM
     ```
+    
+    <Note>
+      This file is your **single source of truth**. It's version-controlled, shareable, and fully reproducible. You can edit it manually or use the wizard to make changes.
+    </Note>
   </Step>
 </Steps>
 
-## Step 4: Simulate (optional)
+## Step 4: Simulate first (recommended)
+
+Before deploying to real hardware, test your configuration in a safe virtual environment.
 
 <Steps>
   <Step title="Start simulation">
-    Click **"Simulate"** to test your config in a virtual environment.
+    Click **"Simulate"** to launch kombify Sim. This creates Docker containers that behave like real servers.
   </Step>
 
-  <Step title="Test services">
-    Access the simulated services:
-    - Traefik: `http://localhost:8080`
-    - Immich: `http://localhost:2283`
-    - Uptime Kuma: `http://localhost:3001`
+  <Step title="Wait for startup">
+    The simulation typically takes 30-60 seconds to start. You'll see:
+    ```
+    ✅ Creating virtual network...
+    ✅ Starting simulation node: main-server
+    ✅ Installing services...
+       ├─ traefik: ready
+       ├─ uptime-kuma: ready
+       └─ immich: ready
+    ✅ Simulation ready!
+    ```
   </Step>
 
-  <Step title="SSH into simulation">
+  <Step title="Test your services">
+    Access the simulated services to verify everything works:
+    
+    | Service | URL | What to check |
+    |---------|-----|---------------|
+    | **Traefik** | `http://localhost:8080` | Dashboard loads, routing configured |
+    | **Uptime Kuma** | `http://localhost:3001` | Monitoring UI accessible |
+    | **Immich** | `http://localhost:2283` | Photo upload works |
+  </Step>
+
+  <Step title="SSH into simulation (optional)">
+    For debugging, you can SSH into the simulated server:
+    
     ```bash
     ssh -p 2222 root@localhost
     # Password: kombisim
     ```
+    
+    This gives you a real shell to inspect logs, check configurations, and troubleshoot.
   </Step>
 
   <Step title="Stop simulation">
-    When satisfied, click **"Stop Simulation"**.
+    When satisfied that everything works, click **"Stop Simulation"** to clean up.
   </Step>
 </Steps>
+
+<Tip>
+  Simulation is optional but **strongly recommended** for your first deployment. It catches configuration errors before they affect real infrastructure.
+</Tip>
 
 ## Step 5: Deploy to real hardware
 

@@ -1,176 +1,287 @@
 ---
 title: kombify Stack
-description: Hybrid infrastructure control plane for homelabs and cloud
+description: The brain of your homelab — orchestration made simple
 sidebarTitle: Overview
 icon: server
 ---
 
 # kombify Stack
 
-**kombify Stack** is an open-source infrastructure control plane that manages your homelab nodes through a unified spec-driven workflow.
+**kombify Stack** is your homelab's control center. Tell it what you want, and it figures out how to make it happen — from a single server to a multi-node cluster.
 
-<Card title="What is kombify Stack?" icon="circle-info">
-  Stack orchestrates your infrastructure by reading a single `kombination.yaml` file, validating it with CUE schemas, and deploying using OpenTofu. It manages both local servers and cloud VPS through lightweight gRPC agents.
+## The simple version
+
+<Card title="What does Stack do?" icon="lightbulb">
+  Imagine you want a private photo cloud for your family. Instead of spending days researching Docker, reverse proxies, and SSL certificates, you write a simple configuration file describing *what* you want. Stack handles *everything else* — validation, setup, deployment, and ongoing maintenance.
 </Card>
 
-## Key Features
+```yaml kombination.yaml
+# This is all you write
+stackkit: base-homelab
+services:
+  - traefik    # Handles web traffic
+  - immich     # Your photo cloud
+```
+
+Stack transforms this into hundreds of lines of configuration and deploys it to your server automatically.
+
+<Accordion title="🔧 Technical details" icon="code">
+  Stack is a Go-based orchestration engine that:
+  - Reads your `kombination.yaml` specification
+  - Validates it against CUE schemas from StackKits
+  - Generates OpenTofu/Docker configurations
+  - Deploys via mTLS-secured gRPC agents on your nodes
+  - Continuously monitors for drift between desired and actual state
+  
+  **Tech stack:** Go 1.24+, PocketBase (SQLite), OpenTofu, CUE, gRPC with mTLS
+</Accordion>
+
+## Key features
 
 <CardGroup cols={2}>
-  <Card title="Spec-Driven" icon="file-code">
-    Define your infrastructure in YAML — Stack handles validation, generation, and deployment
+  <Card title="Write once, deploy anywhere" icon="file-code">
+    Your entire homelab configuration lives in one YAML file — version-controlled, shareable, reproducible
   </Card>
-  <Card title="Agent-Based" icon="robot">
-    Lightweight agents connect your nodes to the control plane via secure mTLS
+  <Card title="Test before you break things" icon="flask">
+    Simulate deployments in Docker before touching real hardware
   </Card>
-  <Card title="Multi-Engine" icon="gears">
-    Support for Proxmox, Docker, Kubernetes, and cloud providers
+  <Card title="Works with what you have" icon="arrows-rotate">
+    Already running servers? Stack discovers them and lets you adopt gradually
   </Card>
-  <Card title="Open Source" icon="code-branch">
-    MIT licensed core with optional enterprise features
+  <Card title="Self-healing" icon="shield-check">
+    Detects when reality drifts from your configuration and can fix it automatically
   </Card>
 </CardGroup>
 
-## How It Works
+## How it works
 
 ```mermaid
 flowchart LR
-    subgraph Input["Your Intent"]
-        YAML["kombination.yaml"]
+    subgraph You["👤 You"]
+        YAML["<b>kombination.yaml</b><br/>Your wishlist"]
     end
 
-    subgraph Stack["kombify Stack"]
+    subgraph Stack["⚙️ kombify Stack"]
         direction TB
-        API["REST API"]
-        Unifier["Unifier Engine"]
-        ToFu["OpenTofu"]
-        gRPC["gRPC Server"]
+        Wizard["Wizard<br/><i>or manual edit</i>"]
+        Validate["Validate<br/><i>against rules</i>"]
+        Generate["Generate<br/><i>real configs</i>"]
+        Deploy["Deploy<br/><i>to servers</i>"]
         
-        API --> Unifier
-        Unifier --> ToFu
-        API --> gRPC
+        Wizard --> Validate --> Generate --> Deploy
     end
 
-    subgraph Infra["Your Infrastructure"]
-        Agent1["Agent 1<br/><i>proxmox-01</i>"]
-        Agent2["Agent 2<br/><i>docker-01</i>"]
-        Services["Deployed<br/>Services"]
+    subgraph Result["🏠 Your Homelab"]
+        S1["📸 Immich<br/>Photo Cloud"]
+        S2["🔐 Authelia<br/>Login Portal"]
+        S3["📊 Homepage<br/>Dashboard"]
     end
 
-    YAML --> API
-    ToFu --> Agent1 & Agent2
-    Agent1 & Agent2 --> Services
-    gRPC <-.->|mTLS| Agent1 & Agent2
+    YAML --> Wizard
+    Deploy --> Result
 
-    style Input fill:#e0f2fe,stroke:#0284c7
+    style You fill:#dbeafe,stroke:#2563eb
     style Stack fill:#fef3c7,stroke:#d97706
-    style Infra fill:#d1fae5,stroke:#059669
+    style Result fill:#d1fae5,stroke:#059669
 ```
 
 <Steps>
-  <Step title="Define" icon="file-code">
-    Write your desired state in `kombination.yaml`
+  <Step title="Describe what you want" icon="wand-magic-sparkles">
+    Use the Easy Wizard or write a simple YAML file — no need to understand Docker, networking, or certificates
   </Step>
-  <Step title="Validate" icon="check">
-    Stack validates against StackKit CUE schemas
+  <Step title="Stack validates your choices" icon="check">
+    Your configuration is checked against proven patterns to catch errors before deployment
   </Step>
-  <Step title="Generate" icon="code">
-    OpenTofu code is generated automatically
+  <Step title="Infrastructure code is generated" icon="code">
+    Stack creates all the complex configuration files you'd otherwise write by hand
   </Step>
-  <Step title="Deploy" icon="rocket">
-    Infrastructure is provisioned via agents
+  <Step title="Services are deployed" icon="rocket">
+    Lightweight agents on your servers apply the changes and report back
   </Step>
 </Steps>
 
-## Architecture
+<Accordion title="🔧 Under the hood: The complete data flow" icon="diagram-project">
 
 ```mermaid
-graph TB
-    subgraph UI["User Interface"]
-        Dashboard["SvelteKit Dashboard<br/>Port: 5261"]
+flowchart TB
+    subgraph Input["Input Layer"]
+        UI["Web Dashboard<br/><small>Port 5261</small>"]
         CLI["CLI Tool"]
+        YAML["kombination.yaml"]
     end
 
     subgraph Core["kombify Stack Core"]
-        API["REST API<br/>Port: 5260"]
-        Unifier["Unifier Engine"]
-        ToFu["OpenTofu Runner"]
-        gRPC["gRPC Server<br/>Port: 5263"]
-        PB["PocketBase<br/>(SQLite)"]
+        API["REST API<br/><small>Port 5260</small>"]
         
-        API --> Unifier
-        Unifier --> ToFu
-        API --> PB
-        gRPC --> PB
+        subgraph Unifier["Unifier Engine"]
+            Parse["Parse YAML"]
+            Validate["CUE Validation"]
+            Resolve["Resolve Dependencies"]
+            Generate["Generate IaC"]
+        end
+        
+        PB[("PocketBase<br/><small>SQLite State</small>")]
+        gRPC["gRPC Server<br/><small>Port 5263</small>"]
+        ToFu["OpenTofu<br/>Runner"]
     end
 
     subgraph Agents["Node Agents"]
-        A1["proxmox-01"]
-        A2["docker-01"]
-        A3["k8s-01"]
+        A1["Agent<br/><small>proxmox-01</small>"]
+        A2["Agent<br/><small>docker-01</small>"]
+        A3["Agent<br/><small>nas-01</small>"]
     end
 
-    Dashboard --> API
-    CLI --> API
-    gRPC <-->|mTLS| A1 & A2 & A3
+    subgraph Infra["Deployed Infrastructure"]
+        Docker["Docker Containers"]
+        VMs["Virtual Machines"]
+        Services["Running Services"]
+    end
 
-    style UI fill:#e0f2fe,stroke:#0284c7
+    UI & CLI --> API
+    YAML --> API
+    API --> Unifier
+    API <--> PB
+    Unifier --> ToFu
+    ToFu --> gRPC
+    gRPC <-->|"mTLS encrypted"| A1 & A2 & A3
+    A1 & A2 & A3 --> Docker & VMs
+    Docker & VMs --> Services
+
+    style Input fill:#e0f2fe,stroke:#0284c7
     style Core fill:#fef3c7,stroke:#d97706
-    style Agents fill:#d1fae5,stroke:#059669
-```
-
-### Service Ports
-
-| Service | Port | Protocol | Description |
-|---------|------|----------|-------------|
-| Core API | 5260 | HTTP | REST API + PocketBase Admin |
-| Frontend | 5261 | HTTP | SvelteKit Dashboard |
-| gRPC | 5263 | gRPC/mTLS | Agent communication |
-
-### Tech Stack
-
-| Component | Technology | Purpose |
-|-----------|------------|---------|
-| **Backend** | Go 1.24+ | Core services and agents |
-| **Frontend** | SvelteKit 2.x | Modern reactive UI |
-| **Database** | PocketBase (SQLite) | Embedded state management |
-| **IaC Engine** | OpenTofu 1.6+ | Infrastructure provisioning |
-| **Validation** | CUE 0.15+ | Type-safe configuration |
-| **Networking** | gRPC + mTLS | Secure agent communication |
-
-## Core Principles
-
-### 1. Spec-Driven Flow
-
-```mermaid
-flowchart LR
-    Intent["kombination.yaml<br/><i>(Intent)</i>"]
-    CUE["Unifier + CUE<br/><i>(Validation)</i>"]
-    IaC["OpenTofu<br/><i>(IaC)</i>"]
-    Infra["Infrastructure<br/><i>(Reality)</i>"]
-
-    Intent --> CUE --> IaC --> Infra
-
-    style Intent fill:#e0f2fe,stroke:#0284c7
-    style CUE fill:#fce7f3,stroke:#db2777
-    style IaC fill:#fef3c7,stroke:#d97706
+    style Agents fill:#f3e8ff,stroke:#9333ea
     style Infra fill:#d1fae5,stroke:#059669
 ```
 
-User intent is **never** automatically modified. All transformations create separate artifacts.
+**Data flow explained:**
+1. **Input** — Configuration enters via Web UI, CLI, or direct YAML file
+2. **Unifier Engine** — Parses, validates against CUE schemas, resolves dependencies, generates OpenTofu code
+3. **State Management** — PocketBase stores stack state, job history, and agent registry
+4. **Agent Communication** — gRPC with mutual TLS ensures secure, authenticated communication
+5. **Deployment** — Agents execute changes on their respective nodes
 
-### 2. Single-Stack Architecture
+</Accordion>
+
+## Architecture at a glance
+
+```mermaid
+graph TB
+    subgraph Users["Users"]
+        Admin["👤 Admin"]
+        Dev["👤 Developer"]
+    end
+
+    subgraph Stack["kombify Stack"]
+        Dashboard["🖥️ Dashboard<br/><small>SvelteKit</small>"]
+        API["🔌 API<br/><small>Go + PocketBase</small>"]
+        Agents["🤖 Agents<br/><small>Go + gRPC</small>"]
+    end
+
+    subgraph Nodes["Your Servers"]
+        N1["🖥️ Server 1"]
+        N2["🖥️ Server 2"]
+        N3["🖥️ Server 3"]
+    end
+
+    Users --> Dashboard
+    Dashboard --> API
+    API <-->|"Secure tunnel"| Agents
+    Agents --> Nodes
+
+    style Users fill:#dbeafe,stroke:#2563eb
+    style Stack fill:#fef3c7,stroke:#d97706
+    style Nodes fill:#d1fae5,stroke:#059669
+```
+
+### Ports and services
+
+| Service | Port | What it does |
+|---------|------|--------------|
+| **Dashboard** | 5261 | Web interface for managing your homelab |
+| **API** | 5260 | REST API + PocketBase admin panel |
+| **gRPC** | 5263 | Secure communication with agents |
+
+<Accordion title="🔧 Technical specifications" icon="microchip">
+
+| Component | Technology | Purpose |
+|-----------|------------|---------|
+| **Backend** | Go 1.24+ | Core services, agents, CLI |
+| **Frontend** | SvelteKit 2.x | Modern reactive dashboard |
+| **Database** | PocketBase (SQLite) | Embedded state management |
+| **IaC Engine** | OpenTofu 1.6+ | Infrastructure provisioning |
+| **Validation** | CUE 0.15+ | Type-safe schema validation |
+| **Networking** | gRPC + mTLS | Encrypted agent communication |
+
+**Why these choices?**
+- **Go** — Single binary, low memory, cross-platform
+- **PocketBase** — Zero-config embedded database with auth
+- **OpenTofu** — Open-source Terraform fork, battle-tested
+- **CUE** — Catch configuration errors before deployment
+- **mTLS** — Every connection is encrypted and authenticated
+
+</Accordion>
+
+## Core principles
+
+### 1. Your intent stays untouched
+
+```mermaid
+flowchart LR
+    Intent["📝 Your File<br/><i>kombination.yaml</i>"]
+    Generated["⚙️ Generated<br/><i>docker-compose.yml<br/>traefik.yml<br/>...</i>"]
+    Infra["🖥️ Running<br/><i>Your servers</i>"]
+
+    Intent -->|"read only"| Generated
+    Generated -->|"deployed"| Infra
+
+    style Intent fill:#dbeafe,stroke:#2563eb
+    style Generated fill:#fef3c7,stroke:#d97706
+    style Infra fill:#d1fae5,stroke:#059669
+```
+
+Stack never modifies your configuration file. All transformations create separate artifacts that you can inspect.
+
+### 2. One Stack = one homelab
 
 <Note>
-  **1 kombify Stack = 1 Homelab**
+  A single kombify Stack instance manages one homelab. That homelab can include multiple physical servers (nodes), but they belong to one logical unit.
 </Note>
 
-- One instance manages exactly one homelab
-- A homelab can include multiple physical servers (nodes)
-- Multi-homelab scenarios require multiple Stack instances
+Need multiple homelabs? Use [kombify Sphere](/sphere/overview) to manage several Stack instances from one dashboard.
 
-### 3. Interface-First Design
+### 3. Brownfield-friendly
 
-Business logic changes begin with `pkg/core` interfaces. Implementations follow the contracts.
+Already have servers running? Stack doesn't force you to start from scratch:
+
+```mermaid
+flowchart LR
+    subgraph Existing["Existing Setup"]
+        E1["🖥️ NAS Server<br/><i>unmanaged</i>"]
+        E2["🖥️ Docker Host<br/><i>unmanaged</i>"]
+    end
+
+    subgraph Discovery["Stack Discovery"]
+        Scan["🔍 Scan network"]
+        Classify["📋 Classify devices"]
+    end
+
+    subgraph Adoption["Gradual Adoption"]
+        M1["✅ Docker Host<br/><i>managed</i>"]
+        U1["📋 NAS Server<br/><i>monitored only</i>"]
+    end
+
+    Existing --> Scan
+    Scan --> Classify
+    Classify --> Adoption
+
+    style Existing fill:#fee2e2,stroke:#dc2626
+    style Discovery fill:#fef3c7,stroke:#d97706
+    style Adoption fill:#d1fae5,stroke:#059669
+```
+
+- **Managed** — Stack fully controls configuration and deployment
+- **Unmanaged** — Stack sees the device but doesn't touch it
+- You can gradually move devices from unmanaged to managed as you're ready
 
 ## Quick Example
 

@@ -1,0 +1,272 @@
+---
+title: API authentication
+description: Authentication methods for kombify APIs
+---
+
+# API authentication
+
+Different kombify APIs support different authentication methods depending on the use case and security requirements.
+
+## Authentication methods by API
+
+| API | API Key | JWT Token | mTLS | No Auth |
+|-----|---------|-----------|------|---------|
+| Stack API | ✅ | ✅ | ✅ | ❌ |
+| Sim API | ❌ | ❌ | ❌ | ✅ (local) |
+| Sphere API | ✅ | ✅ | ❌ | ❌ |
+
+## API key authentication
+
+Best for: Scripts, CI/CD pipelines, server-to-server integrations.
+
+### Generate an API key
+
+1. Go to your [kombify dashboard](https://app.kombify.io/settings/api-keys)
+2. Click **Create API key**
+3. Name your key and set permissions
+4. Copy the key (you won't see it again!)
+
+### Use the API key
+
+Include the key in the `X-API-Key` header:
+
+```bash
+curl https://api.kombify.io/v1/me \
+  -H "X-API-Key: kb_live_abc123..."
+```
+
+### Key format
+
+API keys follow this format:
+
+```
+kb_<environment>_<random>
+```
+
+| Prefix | Environment |
+|--------|-------------|
+| `kb_live_` | Production |
+| `kb_test_` | Staging/test |
+| `kb_dev_` | Development |
+
+<Warning>
+  Never commit API keys to version control. Use environment variables or secret managers.
+</Warning>
+
+## JWT token authentication
+
+Best for: Web applications, user-facing integrations.
+
+### Obtain a token
+
+**Option 1: Login endpoint**
+
+```bash
+curl -X POST https://api.kombify.io/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email": "you@example.com", "password": "your-password"}'
+```
+
+**Response:**
+
+```json
+{
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "refresh_token": "refresh_abc123..."
+}
+```
+
+**Option 2: OAuth 2.0 flow**
+
+```bash
+# Redirect user to authorize
+https://auth.kombify.io/oauth/authorize?
+  client_id=YOUR_CLIENT_ID&
+  redirect_uri=https://your-app.com/callback&
+  response_type=code&
+  scope=stacks:read stacks:write
+```
+
+### Use the token
+
+Include the token in the `Authorization` header:
+
+```bash
+curl https://api.kombify.io/v1/me \
+  -H "Authorization: Bearer eyJhbGciOiJSUzI1NiIs..."
+```
+
+### Refresh the token
+
+Tokens expire after 1 hour. Use the refresh token to get a new access token:
+
+```bash
+curl -X POST https://api.kombify.io/v1/auth/refresh \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token": "refresh_abc123..."}'
+```
+
+## mTLS authentication
+
+Best for: Zero-trust environments, machine-to-machine in homelabs.
+
+<Accordion title="About mTLS" icon="shield">
+
+mTLS (mutual TLS) requires both client and server to present certificates. This provides:
+
+- **Identity verification**: Both sides prove who they are
+- **Encryption**: All traffic is encrypted
+- **No shared secrets**: No API keys to rotate
+
+kombify uses [step-ca](https://smallstep.com/docs/step-ca/) for certificate management.
+
+</Accordion>
+
+### Set up mTLS
+
+1. **Install step-cli:**
+
+```bash
+brew install step
+# or
+wget https://dl.step.sm/gh-release/cli/gh-release-header/v0.25.0/step_linux_0.25.0_amd64.tar.gz
+```
+
+2. **Get your client certificate:**
+
+```bash
+step ca certificate "api-client" client.crt client.key \
+  --ca-url https://ca.your-homelab.local \
+  --provisioner "api-clients"
+```
+
+3. **Use the certificate:**
+
+```bash
+curl https://stack.your-homelab.local/api/v1/stacks \
+  --cert client.crt \
+  --key client.key \
+  --cacert ca.crt
+```
+
+### Certificate rotation
+
+Certificates expire (typically 24 hours for short-lived certs). Use automatic renewal:
+
+```bash
+# Install renewal daemon
+step-ca renew client.crt client.key --daemon
+```
+
+## Scopes and permissions
+
+JWT tokens and API keys can have limited scopes:
+
+| Scope | Description |
+|-------|-------------|
+| `stacks:read` | List and view stacks |
+| `stacks:write` | Create, update, delete stacks |
+| `stacks:deploy` | Deploy stacks |
+| `workers:read` | List and view workers |
+| `workers:write` | Manage workers |
+| `simulations:*` | Full simulation access |
+| `admin:*` | Full administrative access |
+
+### Check token scopes
+
+```bash
+curl https://api.kombify.io/v1/auth/introspect \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+**Response:**
+
+```json
+{
+  "active": true,
+  "sub": "usr_abc123",
+  "scopes": ["stacks:read", "stacks:write"],
+  "exp": 1706270400
+}
+```
+
+## Error responses
+
+### Invalid or missing authentication
+
+```json
+{
+  "error": {
+    "code": "UNAUTHORIZED",
+    "message": "Missing or invalid authentication"
+  }
+}
+```
+**HTTP Status:** 401
+
+### Insufficient permissions
+
+```json
+{
+  "error": {
+    "code": "FORBIDDEN",
+    "message": "Token lacks required scope: stacks:deploy"
+  }
+}
+```
+**HTTP Status:** 403
+
+### Expired token
+
+```json
+{
+  "error": {
+    "code": "TOKEN_EXPIRED",
+    "message": "Access token has expired"
+  }
+}
+```
+**HTTP Status:** 401
+
+## Best practices
+
+<Accordion title="Security recommendations" icon="shield-check">
+
+1. **Use the principle of least privilege**
+   - Create keys with only the scopes you need
+   - Use separate keys for different services
+
+2. **Rotate credentials regularly**
+   - API keys: Every 90 days
+   - JWT refresh tokens: Stored securely, rotated on use
+   - mTLS certs: Automatic with short-lived certs (24h)
+
+3. **Store secrets securely**
+   - Use environment variables, not config files
+   - Use secret managers (Vault, AWS Secrets Manager)
+   - Never log or expose credentials
+
+4. **Monitor API usage**
+   - Review API logs for unusual activity
+   - Set up alerts for failed auth attempts
+
+</Accordion>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Stack API" icon="server" href="/api/kombistack/overview">
+    Manage stacks and deployments
+  </Card>
+  <Card title="Sphere API" icon="cloud" href="/api/kombisphere/overview">
+    Access managed SaaS features
+  </Card>
+  <Card title="Identity concepts" icon="fingerprint" href="/concepts/identity">
+    Learn about kombify's identity architecture
+  </Card>
+  <Card title="SSO integration" icon="key" href="/guides/auth/sso-integration">
+    Set up single sign-on
+  </Card>
+</CardGroup>

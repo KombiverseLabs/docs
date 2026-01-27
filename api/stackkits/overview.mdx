@@ -1,0 +1,366 @@
+---
+title: StackKits API overview
+description: Validate, generate, and manage StackKit blueprints
+---
+
+# StackKits API
+
+The StackKits API lets you programmatically validate configurations, generate infrastructure code, and manage blueprint versions.
+
+## Base URL
+
+| Environment | Base URL |
+|-------------|----------|
+| Local (CLI) | `http://localhost:8080/api/v1/stackkits` |
+| Sphere Cloud | `https://api.kombify.io/v1/stackkits` |
+
+## Quick start
+
+### 1. List available StackKits
+
+```bash
+curl http://localhost:8080/api/v1/stackkits
+```
+
+**Response:**
+
+```json
+{
+  "stackkits": [
+    {
+      "id": "base-homelab",
+      "name": "Base Homelab",
+      "version": "1.2.0",
+      "description": "Essential homelab services",
+      "categories": ["infrastructure", "networking"]
+    },
+    {
+      "id": "ha-homelab",
+      "name": "HA Homelab",
+      "version": "1.0.0",
+      "description": "High-availability homelab with failover",
+      "categories": ["infrastructure", "ha"]
+    }
+  ]
+}
+```
+
+### 2. Validate your configuration
+
+```bash
+curl -X POST http://localhost:8080/api/v1/stackkits/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "stackkit": "base-homelab",
+    "config": {
+      "domain": "home.example.com",
+      "services": ["traefik", "portainer", "homepage"]
+    }
+  }'
+```
+
+### 3. Generate infrastructure code
+
+```bash
+curl -X POST http://localhost:8080/api/v1/stackkits/generate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "stackkit": "base-homelab",
+    "config": {
+      "domain": "home.example.com",
+      "services": ["traefik", "portainer"]
+    },
+    "output": "docker-compose"
+  }'
+```
+
+## Endpoint reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| **Registry** |||
+| GET | `/stackkits` | List available StackKits |
+| GET | `/stackkits/{id}` | Get StackKit details |
+| GET | `/stackkits/{id}/versions` | List available versions |
+| GET | `/stackkits/{id}/schema` | Get configuration schema |
+| **Validation** |||
+| POST | `/stackkits/validate` | Validate a configuration |
+| POST | `/stackkits/{id}/validate` | Validate against specific kit |
+| **Generation** |||
+| POST | `/stackkits/generate` | Generate infrastructure code |
+| GET | `/stackkits/generate/targets` | List output targets |
+
+## Validate configuration
+
+Validates your configuration against the StackKit schema.
+
+```bash
+POST /api/v1/stackkits/validate
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "stackkit": "base-homelab",
+  "version": "1.2.0",
+  "config": {
+    "domain": "home.example.com",
+    "timezone": "Europe/Berlin",
+    "services": ["traefik", "portainer", "homepage"],
+    "network": {
+      "subnet": "172.20.0.0/24"
+    }
+  }
+}
+```
+
+**Success response:**
+
+```json
+{
+  "valid": true,
+  "stackkit": "base-homelab",
+  "version": "1.2.0",
+  "warnings": [
+    {
+      "path": "services",
+      "message": "Consider adding 'watchtower' for automatic updates"
+    }
+  ]
+}
+```
+
+**Validation error response:**
+
+```json
+{
+  "valid": false,
+  "errors": [
+    {
+      "path": "domain",
+      "code": "INVALID_FORMAT",
+      "message": "Domain must be a valid FQDN"
+    },
+    {
+      "path": "network.subnet",
+      "code": "RESERVED_RANGE",
+      "message": "172.17.0.0/16 conflicts with Docker default"
+    }
+  ]
+}
+```
+
+## Generate infrastructure code
+
+Generates deployment artifacts from your configuration.
+
+```bash
+POST /api/v1/stackkits/generate
+Content-Type: application/json
+```
+
+**Request body:**
+
+```json
+{
+  "stackkit": "base-homelab",
+  "version": "1.2.0",
+  "config": {
+    "domain": "home.example.com",
+    "services": ["traefik", "portainer"]
+  },
+  "output": "docker-compose",
+  "options": {
+    "include_env_example": true
+  }
+}
+```
+
+**Response:**
+
+```json
+{
+  "stackkit": "base-homelab",
+  "output": "docker-compose",
+  "files": [
+    {
+      "path": "docker-compose.yml",
+      "content": "version: '3.8'\nservices:\n  traefik:\n    image: traefik:v3\n..."
+    },
+    {
+      "path": ".env.example",
+      "content": "DOMAIN=home.example.com\nACME_EMAIL=admin@example.com\n..."
+    }
+  ]
+}
+```
+
+### Output targets
+
+| Target | Description |
+|--------|-------------|
+| `docker-compose` | Docker Compose YAML files |
+| `kubernetes` | Kubernetes manifests |
+| `opentofu` | OpenTofu/Terraform HCL |
+| `ansible` | Ansible playbooks |
+| `shell` | Shell scripts |
+
+Get available targets:
+
+```bash
+curl http://localhost:8080/api/v1/stackkits/generate/targets
+```
+
+## Get StackKit schema
+
+Returns the JSON Schema for a StackKit's configuration.
+
+```bash
+GET /api/v1/stackkits/{id}/schema
+```
+
+**Response:**
+
+```json
+{
+  "stackkit": "base-homelab",
+  "version": "1.2.0",
+  "schema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "required": ["domain", "services"],
+    "properties": {
+      "domain": {
+        "type": "string",
+        "format": "hostname",
+        "description": "Your homelab domain"
+      },
+      "services": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "enum": ["traefik", "portainer", "homepage", "watchtower"]
+        }
+      },
+      "timezone": {
+        "type": "string",
+        "default": "UTC"
+      }
+    }
+  }
+}
+```
+
+## Common patterns
+
+<Accordion title="CI/CD validation pipeline" icon="github">
+
+Validate StackKit configs in your CI pipeline before merge:
+
+```yaml
+name: Validate StackKit Config
+on:
+  pull_request:
+    paths:
+      - 'kombination.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Validate configuration
+        run: |
+          RESULT=$(curl -s -X POST http://localhost:8080/api/v1/stackkits/validate \
+            -H "Content-Type: application/json" \
+            -d @kombination.yaml)
+          
+          if [ "$(echo $RESULT | jq -r .valid)" != "true" ]; then
+            echo "Validation failed:"
+            echo $RESULT | jq .errors
+            exit 1
+          fi
+```
+
+</Accordion>
+
+<Accordion title="Generate and apply in one script" icon="terminal">
+
+```bash
+#!/bin/bash
+set -e
+
+STACKKIT="base-homelab"
+CONFIG_FILE="kombination.yaml"
+
+# Validate first
+echo "Validating configuration..."
+curl -s -X POST http://localhost:8080/api/v1/stackkits/validate \
+  -H "Content-Type: application/json" \
+  -d @$CONFIG_FILE | jq -e '.valid == true'
+
+# Generate docker-compose
+echo "Generating docker-compose..."
+curl -s -X POST http://localhost:8080/api/v1/stackkits/generate \
+  -H "Content-Type: application/json" \
+  -d "{\"stackkit\": \"$STACKKIT\", \"output\": \"docker-compose\", \"config\": $(cat $CONFIG_FILE)}" \
+  | jq -r '.files[0].content' > docker-compose.yml
+
+# Deploy
+echo "Deploying..."
+docker compose up -d
+```
+
+</Accordion>
+
+<Accordion title="Fetch and compare versions" icon="code-branch">
+
+```bash
+# List versions
+curl http://localhost:8080/api/v1/stackkits/base-homelab/versions
+
+# Response
+{
+  "stackkit": "base-homelab",
+  "versions": [
+    {"version": "1.2.0", "released": "2026-01-15", "latest": true},
+    {"version": "1.1.0", "released": "2025-12-01"},
+    {"version": "1.0.0", "released": "2025-10-15"}
+  ]
+}
+
+# Get changelog
+curl http://localhost:8080/api/v1/stackkits/base-homelab/versions/1.2.0/changelog
+```
+
+</Accordion>
+
+## Error handling
+
+| Code | HTTP Status | Meaning |
+|------|-------------|---------|
+| `STACKKIT_NOT_FOUND` | 404 | StackKit doesn't exist |
+| `VERSION_NOT_FOUND` | 404 | Version doesn't exist |
+| `VALIDATION_ERROR` | 400 | Config doesn't match schema |
+| `GENERATION_ERROR` | 500 | Failed to generate output |
+| `UNSUPPORTED_TARGET` | 400 | Output target not supported |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Validate API" icon="check" href="/api/stackkits/validate">
+    Full validation endpoint reference
+  </Card>
+  <Card title="Generate API" icon="wand-magic-sparkles" href="/api/stackkits/generate">
+    Full generation endpoint reference
+  </Card>
+  <Card title="StackKits overview" icon="boxes-stacked" href="/stackkits/overview">
+    Learn about StackKits
+  </Card>
+  <Card title="Creating custom kits" icon="pen" href="/stackkits/creating-custom">
+    Build your own StackKits
+  </Card>
+</CardGroup>

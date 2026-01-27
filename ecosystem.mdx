@@ -25,17 +25,17 @@ graph TB
     subgraph Tools["kombify Tools"]
         direction LR
         SK["StackKits<br/>📦 Blueprints"]
-        Sim["Sim<br/>🧪 Testing"]
-        Stack["Stack<br/>🚀 Deployment"]
-        Sphere["Sphere<br/>☁️ Management"]
+        Sim["kombifySim<br/>🧪 Testing"]
+        Stack["kombifyStack<br/>🚀 Deployment"]
+        Platform["kombify Cloud<br/>☁️ Management"]
         
-        SK --> Sim --> Stack --> Sphere
+        SK --> Sim --> Stack --> Platform
     end
     
     Q1 -.-> SK
     Q2 -.-> Sim
     Q3 -.-> Stack
-    Q4 -.-> Sphere
+    Q4 -.-> Platform
     
     style User fill:#f0f9ff,stroke:#0369a1
     style Tools fill:#fef3c7,stroke:#d97706
@@ -68,7 +68,7 @@ graph TB
     → *"Deploy it!"*
   </Card>
   
-  <Card title="Sphere" icon="globe" href="/sphere/overview">
+  <Card title="kombify Platform" icon="globe" href="/sphere/overview">
     **Managed Platform**
     
     SaaS platform with SSO, team management, and multi-homelab support. Let us handle the complexity.
@@ -122,9 +122,9 @@ These tools are open-source and can run entirely on your infrastructure:
 ```mermaid
 graph LR
     subgraph OpenCore["Open Core (Self-Hosted)"]
-        SK["StackKits<br/>MIT License"]
-        Sim["Sim<br/>MIT License"]
-        Stack["Stack<br/>AGPL-3.0"]
+        SK["StackKits<br/>Apache 2.0 + GPLv3"]
+        Sim["kombifySim<br/>Apache 2.0 + GPLv3"]
+        Stack["kombifyStack<br/>Apache 2.0 + GPLv3"]
     end
     
     SK -->|Blueprints| Stack
@@ -139,10 +139,10 @@ Optional managed services that add enterprise features:
 
 ```mermaid
 graph TB
-    subgraph SaaS["Sphere Platform (Managed)"]
-        Cloud["Sphere Cloud<br/>User Portal"]
-        Admin["Sphere Admin<br/>Operations"]
-        API["Sphere API<br/>Gateway"]
+    subgraph SaaS["kombify Platform (Managed)"]
+        Cloud["kombify Cloud<br/>User Portal"]
+        Admin["kombify Administration<br/>Operations"]
+        API["kombify API<br/>Gateway"]
     end
     
     subgraph Core["Your Homelabs"]

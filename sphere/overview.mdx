@@ -1,91 +1,117 @@
 ---
 title: kombify Sphere
-description: Managed homelab platform with SSO, billing, and team management
+description: Manage your homelabs from anywhere — no setup required
 sidebarTitle: Overview
 icon: globe
 ---
 
 # kombify Sphere
 
-**Sphere** is kombify's managed SaaS platform. It provides hosted infrastructure management with enterprise features like SSO, billing, and team collaboration.
+**kombify Sphere** is the easiest way to manage your homelab. Sign up, connect your servers, and you're done — we handle the rest.
 
-## Why Sphere?
+## The simple version
+
+<Card title="What is Sphere?" icon="lightbulb">
+  Sphere is like having a professional IT team for your homelab. It provides a web dashboard where you can manage all your servers, deploy services, and invite team members — without setting up any infrastructure yourself.
+</Card>
+
+## Self-hosted vs. managed
 
 <Tabs>
-  <Tab title="Self-Hosted (Stack)">
+  <Tab title="Self-hosted (Stack only)">
     **You manage everything:**
-    - ✅ Full control
+    - ✅ Complete control
     - ✅ No subscription costs
-    - ❌ You handle updates
-    - ❌ You manage backups
-    - ❌ You configure SSO
-    - ❌ Single homelab only
+    - ❌ You handle updates and security patches
+    - ❌ You configure backups
+    - ❌ You set up user management
+    - ❌ One homelab at a time
   </Tab>
   <Tab title="Managed (Sphere)">
     **We handle the complexity:**
-    - ✅ Automatic updates
-    - ✅ Managed backups
-    - ✅ SSO pre-configured
-    - ✅ Multi-homelab support
-    - ✅ Team collaboration
-    - ✅ 24/7 support
+    - ✅ Automatic updates and security
+    - ✅ Built-in backups
+    - ✅ User management and SSO
+    - ✅ Manage multiple homelabs from one place
+    - ✅ Team collaboration built-in
+    - ✅ Support when you need it
   </Tab>
 </Tabs>
 
-## How It Works
+<Accordion title="🔧 Technical details" icon="code">
+  Sphere is a multi-tenant SaaS platform built with:
+  - **Frontend:** SvelteKit with real-time updates
+  - **Backend:** Go API with PocketBase for state
+  - **Identity:** Zitadel for OIDC/SAML/passkey authentication
+  - **Billing:** Stripe for subscriptions
+  - **Agent:** Lightweight Go binary with mTLS for secure homelab connectivity
+  
+  Your data stays on your servers — Sphere only stores configuration and metadata.
+</Accordion>
+
+## How it works
 
 ```mermaid
-graph TB
-    subgraph Users["Your Team"]
+flowchart TB
+    subgraph You["👤 You & Your Team"]
         Admin["Admin"]
         Dev["Developer"]
         Viewer["Viewer"]
     end
     
-    subgraph Sphere["kombify Sphere (Cloud)"]
-        Dashboard["Web Dashboard"]
-        Auth["Zitadel SSO"]
-        API["Sphere API"]
-        Billing["Stripe Billing"]
+    subgraph Sphere["☁️ kombify Sphere"]
+        Dashboard["🖥️ Dashboard"]
+        Auth["🔐 Login<br/><small>Passkeys, SSO</small>"]
+        API["🔌 API"]
+        Billing["💳 Billing"]
     end
     
-    subgraph Homelabs["Your Infrastructure"]
-        HL1["Homelab 1<br/>Production"]
-        HL2["Homelab 2<br/>Development"]
-        HL3["Homelab 3<br/>Testing"]
+    subgraph Homelabs["🏠 Your Homelabs"]
+        HL1["<b>Production</b><br/>3 nodes"]
+        HL2["<b>Development</b><br/>1 node"]
+        HL3["<b>Testing</b><br/>2 nodes"]
     end
     
-    Users -->|Login| Auth
+    You -->|"Secure login"| Auth
     Auth --> Dashboard
     Dashboard --> API
     API --> Billing
-    API -->|Secure Tunnel| Homelabs
+    API <-->|"Encrypted tunnel"| Homelabs
     
-    style Users fill:#dbeafe,stroke:#2563eb
+    style You fill:#dbeafe,stroke:#2563eb
     style Sphere fill:#fef3c7,stroke:#d97706
     style Homelabs fill:#d1fae5,stroke:#059669
 ```
 
-## Key Features
+### What stays where?
+
+| Data | Location | Why |
+|------|----------|-----|
+| **Your files & databases** | Your servers | Your data never leaves your infrastructure |
+| **Configuration** | Sphere cloud | So you can access it from anywhere |
+| **User accounts** | Sphere cloud | Managed securely by Zitadel |
+| **Deployment history** | Sphere cloud | Track who changed what, when |
+
+## Key features
 
 <CardGroup cols={3}>
-  <Card title="Multi-Homelab" icon="server">
-    Manage multiple homelabs from a single dashboard
+  <Card title="Multi-homelab" icon="server">
+    Manage production, development, and testing environments from one dashboard
   </Card>
-  <Card title="SSO / OIDC" icon="key">
-    Enterprise authentication via Zitadel
+  <Card title="Team access" icon="users">
+    Invite team members with role-based permissions
   </Card>
-  <Card title="Team Management" icon="users">
-    Role-based access control for teams
+  <Card title="Passwordless login" icon="fingerprint">
+    Passkeys and SSO — no passwords to remember
   </Card>
-  <Card title="Automated Backups" icon="cloud-arrow-up">
-    Scheduled configuration backups
+  <Card title="Automatic backups" icon="cloud-arrow-up">
+    Configuration backed up automatically
   </Card>
-  <Card title="Usage Analytics" icon="chart-line">
-    Insights into your infrastructure
+  <Card title="Usage insights" icon="chart-line">
+    See how your infrastructure is performing
   </Card>
-  <Card title="Priority Support" icon="headset">
-    Direct access to the kombify team
+  <Card title="Priority support" icon="headset">
+    Get help when you need it
   </Card>
 </CardGroup>
 
@@ -93,26 +119,26 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph Cloud["Sphere Cloud"]
+    subgraph Cloud["☁️ Sphere Cloud"]
         subgraph Frontend["Frontend"]
-            SvelteKit["SvelteKit App"]
+            SvelteKit["🖥️ Dashboard<br/><small>SvelteKit</small>"]
         end
         
-        subgraph Backend["Backend Services"]
-            API["Sphere API"]
-            Auth["Zitadel<br/>Identity"]
-            PB["PocketBase<br/>State"]
+        subgraph Backend["Backend"]
+            API["🔌 API<br/><small>Go</small>"]
+            Auth["🔐 Identity<br/><small>Zitadel</small>"]
+            PB["💾 State<br/><small>PocketBase</small>"]
         end
         
         subgraph Integrations["Integrations"]
-            Stripe["Stripe<br/>Payments"]
-            SMTP["Email<br/>Notifications"]
+            Stripe["💳 Payments<br/><small>Stripe</small>"]
+            SMTP["📧 Email"]
         end
     end
     
-    subgraph OnPrem["Your Premises"]
-        Agent1["Sphere Agent<br/>Homelab 1"]
-        Agent2["Sphere Agent<br/>Homelab 2"]
+    subgraph OnPrem["🏠 Your Premises"]
+        Agent1["🤖 Agent<br/><small>Homelab 1</small>"]
+        Agent2["🤖 Agent<br/><small>Homelab 2</small>"]
     end
     
     SvelteKit --> API
@@ -121,33 +147,43 @@ graph TB
     API --> Stripe
     API --> SMTP
     
-    API <-->|mTLS| Agent1
-    API <-->|mTLS| Agent2
+    API <-->|"mTLS encrypted"| Agent1
+    API <-->|"mTLS encrypted"| Agent2
     
     style Cloud fill:#f0f9ff,stroke:#0369a1
     style OnPrem fill:#d1fae5,stroke:#059669
 ```
 
-## Connecting Your Homelab
-
-The Sphere Agent establishes a secure connection from your homelab to the Sphere cloud:
+<Accordion title="🔧 How the agent connection works" icon="link">
 
 ```mermaid
 sequenceDiagram
-    participant Homelab
+    participant Homelab as Your Server
     participant Agent as Sphere Agent
     participant Sphere as Sphere Cloud
     
-    Note over Agent,Sphere: Initial Setup
+    Note over Agent,Sphere: Initial Setup (once)
     Agent->>Sphere: Register with pairing token
     Sphere->>Agent: Issue mTLS certificate
     
     Note over Agent,Sphere: Normal Operation
-    loop Every 30s
+    loop Every 30 seconds
         Agent->>Sphere: Heartbeat + metrics
+        Sphere->>Agent: Any pending commands?
     end
     
+    Note over Agent,Sphere: Deployment
     Sphere->>Agent: Deploy command
+    Agent->>Homelab: Execute deployment
+    Agent->>Sphere: Report status
+```
+
+**Key points:**
+- Agent connects **outbound** — no inbound ports needed on your network
+- All communication is **mTLS encrypted** — both sides verify each other
+- Agent is a **lightweight Go binary** (~15MB) that runs as a systemd service
+
+</Accordion>
     Agent->>Homelab: Execute deployment
     Agent->>Sphere: Report status
 ```
