@@ -1,0 +1,82 @@
+---
+title: Simulations API
+description: Create and manage simulations
+---
+
+Create Docker-based simulations of your infrastructure.
+
+## List Simulations
+
+```bash
+GET /api/v1/simulations
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "simulations": [
+      {
+        "id": "sim_abc123",
+        "name": "test-homelab",
+        "status": "running",
+        "nodes": 3,
+        "created_at": "2024-01-15T10:30:00Z"
+      }
+    ]
+  }
+}
+```
+
+## Create Simulation
+
+```bash
+POST /api/v1/simulations
+```
+
+### Request Body
+
+```json
+{
+  "name": "test-homelab",
+  "template": "base-homelab",
+  "nodes": [
+    {
+      "name": "server-01",
+      "image": "kombify/sim-ubuntu:22.04",
+      "ssh_port": 2222
+    }
+  ]
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "sim_abc123",
+    "name": "test-homelab",
+    "status": "starting",
+    "ssh_ports": [2222],
+    "created_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+
+## Get Simulation
+
+```bash
+GET /api/v1/simulations/{id}
+```
+
+## Delete Simulation
+
+```bash
+DELETE /api/v1/simulations/{id}
+```
+
+Stops and removes all containers associated with the simulation.
