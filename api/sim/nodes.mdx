@@ -1,0 +1,62 @@
+---
+title: Simulation Nodes API
+description: Manage nodes in simulations
+---
+
+Manage individual nodes within a simulation.
+
+## List Nodes
+
+```bash
+GET /api/v1/simulations/{id}/nodes
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "nodes": [
+      {
+        "id": "node_xyz789",
+        "name": "server-01",
+        "status": "running",
+        "ssh_port": 2222,
+        "ip_address": "172.20.0.2"
+      }
+    ]
+  }
+}
+```
+
+## Add Node
+
+```bash
+POST /api/v1/simulations/{id}/nodes
+```
+
+### Request Body
+
+```json
+{
+  "name": "server-02",
+  "image": "kombify/sim-ubuntu:22.04",
+  "ssh_port": 2223
+}
+```
+
+## Remove Node
+
+```bash
+DELETE /api/v1/simulations/{id}/nodes/{node_id}
+```
+
+## SSH Access
+
+Connect to a simulation node:
+
+```bash
+ssh -p 2222 root@localhost
+# Default password: kombisim
+```
