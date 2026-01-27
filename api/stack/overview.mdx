@@ -1,0 +1,78 @@
+---
+title: Stack API Overview
+description: Manage infrastructure with the kombify Stack API
+---
+
+The Stack API provides endpoints for managing your infrastructure, nodes, and deployments.
+
+## Base URL
+
+```
+http://localhost:5260/api/v1
+```
+
+## Endpoints
+
+### Stacks
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/stacks` | List all stacks |
+| `POST` | `/stacks` | Create a new stack |
+| `GET` | `/stacks/{id}` | Get stack details |
+| `PUT` | `/stacks/{id}` | Update a stack |
+| `DELETE` | `/stacks/{id}` | Delete a stack |
+| `POST` | `/stacks/{id}/apply` | Apply stack configuration |
+
+### Nodes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/nodes` | List all nodes |
+| `GET` | `/nodes/{id}` | Get node details |
+| `GET` | `/nodes/{id}/status` | Get node status |
+
+### Jobs
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/jobs` | List all jobs |
+| `GET` | `/jobs/{id}` | Get job details |
+| `GET` | `/jobs/{id}/logs` | Get job logs |
+
+## Quick Example
+
+```bash
+# List all stacks
+curl http://localhost:5260/api/v1/stacks \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+# Create a new stack
+curl -X POST http://localhost:5260/api/v1/stacks \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "my-homelab",
+    "stackkit": "base-homelab",
+    "config": {
+      "nodes": [
+        {"name": "server-01", "type": "docker"}
+      ],
+      "services": ["traefik", "immich"]
+    }
+  }'
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Stacks" icon="layer-group" href="/api/stack/stacks">
+    Manage stack configurations
+  </Card>
+  <Card title="Nodes" icon="server" href="/api/stack/nodes">
+    Manage infrastructure nodes
+  </Card>
+  <Card title="Jobs" icon="list-check" href="/api/stack/jobs">
+    Track deployment jobs
+  </Card>
+</CardGroup>
