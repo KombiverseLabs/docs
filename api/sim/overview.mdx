@@ -1,0 +1,67 @@
+---
+title: Sim API Overview
+description: Create and manage simulations
+---
+
+The Sim API provides endpoints for creating and managing Docker-based infrastructure simulations.
+
+## Base URL
+
+```
+http://localhost:5270/api/v1
+```
+
+## Endpoints
+
+### Simulations
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/simulations` | List all simulations |
+| `POST` | `/simulations` | Create a new simulation |
+| `GET` | `/simulations/{id}` | Get simulation details |
+| `DELETE` | `/simulations/{id}` | Delete a simulation |
+
+### Nodes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/simulations/{id}/nodes` | List simulation nodes |
+| `POST` | `/simulations/{id}/nodes` | Add a node |
+| `DELETE` | `/simulations/{id}/nodes/{node_id}` | Remove a node |
+
+### Templates
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/templates` | List available templates |
+| `GET` | `/templates/{id}` | Get template details |
+
+## Quick Example
+
+```bash
+# Create a simulation
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "test-homelab",
+    "template": "base-homelab"
+  }'
+
+# List nodes
+curl http://localhost:5270/api/v1/simulations/sim_abc123/nodes
+```
+
+## Next Steps
+
+<CardGroup cols={3}>
+  <Card title="Simulations" icon="flask" href="/api/sim/simulations">
+    Create and manage simulations
+  </Card>
+  <Card title="Nodes" icon="server" href="/api/sim/nodes">
+    Manage simulation nodes
+  </Card>
+  <Card title="Templates" icon="file-code" href="/api/sim/templates">
+    Use pre-built templates
+  </Card>
+</CardGroup>
