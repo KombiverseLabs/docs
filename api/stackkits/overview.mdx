@@ -1,0 +1,46 @@
+---
+title: StackKits API Overview
+description: Validate and generate infrastructure configurations
+---
+
+The StackKits API provides endpoints for validating configurations and generating infrastructure code.
+
+## Base URL
+
+```
+http://localhost:5260/api/v1/stackkits
+```
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/validate` | Validate a configuration |
+| `POST` | `/generate` | Generate infrastructure code |
+| `GET` | `/kits` | List available StackKits |
+
+## Quick Example
+
+```bash
+# Validate a configuration
+curl -X POST http://localhost:5260/api/v1/stackkits/validate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "stackkit": "base-homelab",
+    "config": {
+      "nodes": [{"name": "server-01", "type": "docker"}],
+      "services": ["traefik", "immich"]
+    }
+  }'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Validate" icon="check" href="/api/stackkits/validate">
+    Validate configurations against CUE schemas
+  </Card>
+  <Card title="Generate" icon="code" href="/api/stackkits/generate">
+    Generate OpenTofu code
+  </Card>
+</CardGroup>
