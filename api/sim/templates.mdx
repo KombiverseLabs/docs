@@ -1,0 +1,66 @@
+---
+title: Templates API
+description: Use pre-built simulation templates
+---
+
+Browse and use pre-built templates for common scenarios.
+
+## List Templates
+
+```bash
+GET /api/v1/templates
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "templates": [
+      {
+        "id": "base-homelab",
+        "name": "Base Homelab",
+        "description": "Single-node Docker setup",
+        "nodes": 1,
+        "services": ["traefik", "immich", "uptime-kuma"]
+      },
+      {
+        "id": "ha-homelab",
+        "name": "High Availability Homelab",
+        "description": "Multi-node with redundancy",
+        "nodes": 3,
+        "services": ["traefik", "consul", "nomad"]
+      }
+    ]
+  }
+}
+```
+
+## Get Template
+
+```bash
+GET /api/v1/templates/{id}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "data": {
+    "id": "base-homelab",
+    "name": "Base Homelab",
+    "description": "Single-node Docker setup",
+    "config": {
+      "nodes": [
+        {
+          "name": "server-01",
+          "image": "kombify/sim-ubuntu:22.04"
+        }
+      ],
+      "services": ["traefik", "immich"]
+    }
+  }
+}
+```
