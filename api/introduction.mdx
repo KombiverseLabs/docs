@@ -1,0 +1,77 @@
+---
+title: API Introduction
+description: Getting started with the kombify API
+---
+
+The kombify API provides programmatic access to all kombify components: Stack, Sim, and StackKits.
+
+## Base URLs
+
+| Component | Base URL | Port |
+|-----------|----------|------|
+| **Stack API** | `http://localhost:5260/api/v1` | 5260 |
+| **Sim API** | `http://localhost:5270/api/v1` | 5270 |
+| **StackKits API** | `http://localhost:5260/api/v1/stackkits` | 5260 |
+
+## API Versions
+
+All APIs use versioned endpoints with the `/api/v1` prefix. Breaking changes will increment the version number.
+
+## Response Format
+
+All API responses follow this structure:
+
+```json
+{
+  "success": true,
+  "data": { ... },
+  "error": null
+}
+```
+
+Error responses:
+
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid configuration",
+    "details": { ... }
+  }
+}
+```
+
+## Rate Limits
+
+| Tier | Requests/minute | Burst |
+|------|----------------|-------|
+| **Free** | 60 | 10 |
+| **Pro** | 600 | 100 |
+| **Enterprise** | Unlimited | Unlimited |
+
+Rate limit headers are included in all responses:
+
+```
+X-RateLimit-Limit: 60
+X-RateLimit-Remaining: 45
+X-RateLimit-Reset: 1640000000
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Authentication" icon="key" href="/api/authentication">
+    Learn how to authenticate API requests
+  </Card>
+  <Card title="Stack API" icon="server" href="/api/stack/overview">
+    Manage infrastructure with the Stack API
+  </Card>
+  <Card title="Sim API" icon="flask" href="/api/sim/overview">
+    Create simulations with the Sim API
+  </Card>
+  <Card title="StackKits API" icon="boxes-stacked" href="/api/stackkits/overview">
+    Validate and generate configurations
+  </Card>
+</CardGroup>
