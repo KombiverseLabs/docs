@@ -5,8 +5,6 @@ sidebarTitle: Overview
 icon: server
 ---
 
-# kombify Stack
-
 **kombify Stack** is your homelab's control center. Tell it what you want, and it figures out how to make it happen — from a single server to a multi-node cluster.
 
 ## The simple version
@@ -80,9 +78,9 @@ flowchart LR
     YAML --> Wizard
     Deploy --> Result
 
-    style You fill:#dbeafe,stroke:#2563eb
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Result fill:#d1fae5,stroke:#059669
+    style You fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Stack fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Result fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 <Steps>
@@ -147,10 +145,10 @@ flowchart TB
     A1 & A2 & A3 --> Docker & VMs
     Docker & VMs --> Services
 
-    style Input fill:#e0f2fe,stroke:#0284c7
-    style Core fill:#fef3c7,stroke:#d97706
-    style Agents fill:#f3e8ff,stroke:#9333ea
-    style Infra fill:#d1fae5,stroke:#059669
+    style Input fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Core fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Agents fill:#1e293b,stroke:#a78bfa,color:#f8fafc
+    style Infra fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 **Data flow explained:**
@@ -188,9 +186,9 @@ graph TB
     API <-->|"Secure tunnel"| Agents
     Agents --> Nodes
 
-    style Users fill:#dbeafe,stroke:#2563eb
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Nodes fill:#d1fae5,stroke:#059669
+    style Users fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Stack fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Nodes fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ### Ports and services
@@ -234,9 +232,9 @@ flowchart LR
     Intent -->|"read only"| Generated
     Generated -->|"deployed"| Infra
 
-    style Intent fill:#dbeafe,stroke:#2563eb
-    style Generated fill:#fef3c7,stroke:#d97706
-    style Infra fill:#d1fae5,stroke:#059669
+    style Intent fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Generated fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Infra fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 Stack never modifies your configuration file. All transformations create separate artifacts that you can inspect.
@@ -274,9 +272,9 @@ flowchart LR
     Scan --> Classify
     Classify --> Adoption
 
-    style Existing fill:#fee2e2,stroke:#dc2626
-    style Discovery fill:#fef3c7,stroke:#d97706
-    style Adoption fill:#d1fae5,stroke:#059669
+    style Existing fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Discovery fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Adoption fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 - **Managed** — Stack fully controls configuration and deployment

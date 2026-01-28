@@ -1,0 +1,119 @@
+name: Update Documentation Screenshots
+
+on:
+  # Weekly on Sundays at 2 AM UTC
+  schedule:
+    - cron: '0 2 * * 0'
+  
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      project:
+        description: 'Screenshot project to run'
+        required: false
+        default: 'desktop-dark'
+        type: choice
+        options:
+          - desktop-dark
+          - desktop-light
+          - mobile
+          - all
+
+  # On release tags
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  capture-screenshots:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: scripts/screenshots/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: scripts/screenshots
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        working-directory: scripts/screenshots
+        run: npx playwright install chromium --with-deps
+      
+      - name: Determine project
+        id: project
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            if [ "${{ inputs.project }}" = "all" ]; then
+              echo "args=" >> $GITHUB_OUTPUT
+            else
+              echo "args=--project=${{ inputs.project }}" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "args=--project=desktop-dark" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Capture screenshots
+        working-directory: scripts/screenshots
+        run: npm run screenshots -- ${{ steps.project.outputs.args }}
+        env:
+          SPHERE_URL: ${{ secrets.SPHERE_URL }}
+          SPHERE_AUTH_TOKEN: ${{ secrets.SPHERE_AUTH_TOKEN }}
+          STACK_URL: ${{ secrets.STACK_URL }}
+          SIM_URL: ${{ secrets.SIM_URL }}
+        continue-on-error: true  # Don't fail if some screenshots can't be captured
+      
+      - name: Upload screenshot artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots-${{ github.run_id }}
+          path: images/screenshots/
+          retention-days: 30
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          git add images/screenshots/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs: update screenshots'
+          title: '📸 Update documentation screenshots'
+          body: |
+            ## Automated Screenshot Update
+            
+            This PR updates documentation screenshots captured by Playwright.
+            
+            ### Changes
+            - Captured new screenshots for kombify products
+            - Updated: ${{ github.event_name == 'schedule' && 'Weekly scheduled update' || github.event_name == 'workflow_dispatch' && 'Manual trigger' || 'Release trigger' }}
+            
+            ### Review Checklist
+            - [ ] Screenshots look correct
+            - [ ] No sensitive data visible
+            - [ ] Image quality is acceptable
+            
+            ---
+            *This PR was automatically created by the screenshot workflow.*
+          branch: docs/update-screenshots
+          delete-branch: true
+          labels: |
+            documentation
+            automated

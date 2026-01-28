@@ -37,8 +37,8 @@ graph TB
     Q3 -.-> Stack
     Q4 -.-> Platform
     
-    style User fill:#f0f9ff,stroke:#0369a1
-    style Tools fill:#fef3c7,stroke:#d97706
+    style User fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Tools fill:#1e293b,stroke:#fbbf24,color:#f8fafc
 ```
 
 ## Tool Overview
@@ -130,7 +130,7 @@ graph LR
     SK -->|Blueprints| Stack
     Sim -->|Validated Config| Stack
     
-    style OpenCore fill:#d1fae5,stroke:#059669
+    style OpenCore fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ### Layer 2: SaaS Platform (Managed)
@@ -155,8 +155,8 @@ graph TB
     Admin --> API
     API -->|Secure Agent| Core
     
-    style SaaS fill:#dbeafe,stroke:#2563eb
-    style Core fill:#fef3c7,stroke:#d97706
+    style SaaS fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Core fill:#1e293b,stroke:#fbbf24,color:#f8fafc
 ```
 
 ## How They Connect
@@ -222,9 +222,9 @@ graph LR
     TF --> Tofu
     Compose --> Docker
     
-    style Validation fill:#f3e8ff,stroke:#9333ea
-    style Generation fill:#fef3c7,stroke:#d97706
-    style Execution fill:#d1fae5,stroke:#059669
+    style Validation fill:#1e293b,stroke:#a78bfa,color:#f8fafc
+    style Generation fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Execution fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ## Deployment Options
@@ -244,7 +244,7 @@ graph LR
         You["You"] --> Stack
         Stack --> HL
         
-        style Your fill:#d1fae5,stroke:#059669
+        style Your fill:#1e293b,stroke:#4ade80,color:#f8fafc
     ```
     
     **Best for:** Privacy-focused users, air-gapped networks
@@ -270,8 +270,8 @@ graph LR
         Agent --> Stack
         Stack --> HL
         
-        style Sphere fill:#dbeafe,stroke:#2563eb
-        style Your fill:#d1fae5,stroke:#059669
+        style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+        style Your fill:#1e293b,stroke:#4ade80,color:#f8fafc
     ```
     
     **Best for:** Most users—balance of control and convenience
@@ -296,8 +296,8 @@ graph LR
         Stack --> Agent
         Agent --> HL
         
-        style Sphere fill:#dbeafe,stroke:#2563eb
-        style Your fill:#fef3c7,stroke:#d97706
+        style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+        style Your fill:#1e293b,stroke:#fbbf24,color:#f8fafc
     ```
     
     **Best for:** Teams, multi-homelab setups, minimal maintenance

@@ -5,8 +5,6 @@ sidebarTitle: Overview
 icon: flask-vial
 ---
 
-# kombify Sim
-
 **kombify Sim** lets you test your homelab configuration in a safe sandbox. Make mistakes, break things, learn — without risking your real servers.
 
 ## The simple version
@@ -40,8 +38,8 @@ flowchart LR
         S1 --> S2 --> S3 --> S4
     end
     
-    style Without fill:#fee2e2,stroke:#dc2626
-    style With fill:#d1fae5,stroke:#059669
+    style Without fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style With fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 <Accordion title="🔧 Technical details" icon="code">
@@ -101,9 +99,9 @@ flowchart TB
     NetMgr --> Net
     Net --- N1 & N2 & N3
     
-    style You fill:#dbeafe,stroke:#2563eb
-    style Sim fill:#fef3c7,stroke:#d97706
-    style Docker fill:#d1fae5,stroke:#059669
+    style You fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Sim fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Docker fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 <Steps>
@@ -216,9 +214,9 @@ graph TB
     Socket --> Nodes
     Socket --> Networks
     
-    style External fill:#dbeafe,stroke:#2563eb
-    style SimContainer fill:#fef3c7,stroke:#d97706
-    style Docker fill:#f0f9ff,stroke:#0369a1
+    style External fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style SimContainer fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Docker fill:#1e293b,stroke:#38bdf8,color:#f8fafc
 ```
 
 ## Supported Operating Systems
@@ -398,9 +396,9 @@ graph TB
     API1 --> DB
     API2 --> DB
     
-    style Internet fill:#fee2e2,stroke:#dc2626
-    style Frontend fill:#dbeafe,stroke:#2563eb
-    style Backend fill:#d1fae5,stroke:#059669
+    style Internet fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Frontend fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Backend fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ## Best Practices

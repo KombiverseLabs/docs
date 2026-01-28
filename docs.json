@@ -96,7 +96,15 @@
                 "guides/auth/zitadel-setup"
               ]
             },
-            "guides/deployment/production-checklist"
+            {
+              "group": "Deployment",
+              "icon": "rocket",
+              "pages": [
+                "guides/deployment/production-checklist",
+                "guides/deployment/azure-architecture",
+                "guides/deployment/azure-kong-architecture"
+              ]
+            }
           ]
         },
         {
@@ -305,6 +313,7 @@
             "api/stackkits/validate",
             "api/stackkits/generate"
           ]
+        }
       ]
     }
   ],

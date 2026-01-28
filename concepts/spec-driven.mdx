@@ -4,8 +4,6 @@ description: Define your intent in YAML, let kombify handle implementation
 sidebarTitle: Spec-Driven
 ---
 
-# Spec-Driven Infrastructure
-
 **Spec-driven infrastructure** is the core principle behind kombify — you describe *what* you want, not *how* it should be implemented.
 
 ## The Core Concept
@@ -34,9 +32,9 @@ flowchart LR
     YAML --> Unifier
     ToFu --> Docker & Traefik & SSL & DNS
 
-    style Intent fill:#e0f2fe,stroke:#0284c7
-    style Kombify fill:#fef3c7,stroke:#d97706
-    style Reality fill:#d1fae5,stroke:#059669
+    style Intent fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Kombify fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Reality fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ## What You Write
@@ -219,10 +217,10 @@ flowchart TB
     CUE & Constraints & Defaults --> Validate
     Generate --> TF & Vars & Compose & Configs
 
-    style Input fill:#e0f2fe,stroke:#0284c7
-    style Unifier fill:#fef3c7,stroke:#d97706
-    style Validation fill:#fce7f3,stroke:#db2777
-    style Output fill:#d1fae5,stroke:#059669
+    style Input fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Unifier fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Validation fill:#1e293b,stroke:#f472b6,color:#f8fafc
+    style Output fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ### Pipeline Stages
@@ -295,8 +293,8 @@ graph LR
     YAML -->|"Unifier"| Stack
     Stack -->|"Generator"| IaC
 
-    style User fill:#e0f2fe,stroke:#0284c7
-    style System fill:#f3f4f6,stroke:#6b7280
+    style User fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style System fill:#1e293b,stroke:#94a3b8,color:#f8fafc
 ```
 
 <Warning>
@@ -331,13 +329,13 @@ flowchart TD
     Check5 -->|No| Err5["Port 443 used twice"]
     Check5 -->|Yes| Success["✓ Validation Passed"]
 
-    style Input fill:#e0f2fe,stroke:#0284c7
-    style Success fill:#d1fae5,stroke:#059669
-    style Err1 fill:#fee2e2,stroke:#dc2626
-    style Err2 fill:#fee2e2,stroke:#dc2626
-    style Err3 fill:#fee2e2,stroke:#dc2626
-    style Err4 fill:#fee2e2,stroke:#dc2626
-    style Err5 fill:#fee2e2,stroke:#dc2626
+    style Input fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Success fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Err1 fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Err2 fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Err3 fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Err4 fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Err5 fill:#1e293b,stroke:#ef4444,color:#f8fafc
 ```
 
 ### Validation Output

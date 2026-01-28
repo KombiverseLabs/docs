@@ -1,0 +1,657 @@
+---
+title: "Azure + Kong Gateway Architecture"
+description: "Complete API Gateway setup with Kong, Azure, and Zitadel SSO"
+---
+
+# Azure + Kong Gateway Architecture
+
+This guide describes the recommended architecture for deploying Kong Gateway as the central API middleware in Azure, integrated with Zitadel for authentication and Azure Front Door for edge routing.
+
+## Architecture Overview
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENTS                                         │
+│  ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────┐ ┌─────────────────┐       │
+│  │  Web    │ │ Mobile  │ │  CLI    │ │ Stack   │ │ External API    │       │
+│  │  App    │ │  Apps   │ │ Tools   │ │ Agents  │ │ Consumers       │       │
+│  └────┬────┘ └────┬────┘ └────┬────┘ └────┬────┘ └────────┬────────┘       │
+│       └─────────────┴─────────────┴─────────────┴─────────────────┘         │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                    Azure Front Door (Edge)                          │    │
+│  │  • Global Load Balancing • WAF • DDoS Protection • SSL Termination │    │
+│  │  • Custom Domains: kombify.io, api.kombify.io, *.kombify.io       │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                    Kong Gateway (Container App)                     │    │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │    │
+│  │  │  PLUGINS: JWT │ Rate Limit │ CORS │ OAuth2 │ Bot Detection │   │    │
+│  │  └─────────────────────────────────────────────────────────────┘   │    │
+│  │  ┌─────────────────────────────────────────────────────────────┐   │    │
+│  │  │  ROUTES: /v1/stacks │ /v1/sim │ /v1/admin │ /v1/billing    │   │    │
+│  │  └─────────────────────────────────────────────────────────────┘   │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+│                                    │                                         │
+│         ┌──────────────────────────┼──────────────────────────┐             │
+│         │                          │                          │             │
+│         ▼                          ▼                          ▼             │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐ │
+│  │   KombiStack        │  │   KombiSim          │  │   KombiSphere       │ │
+│  │   (Container App)   │  │   (Container App)   │  │   (App Service)     │ │
+│  │   :5260             │  │   :5270             │  │   :8080             │ │
+│  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘ │
+│         │                          │                          │             │
+│         └──────────────────────────┼──────────────────────────┘             │
+│                                    │                                         │
+│                                    ▼                                         │
+│  ┌────────────────────────────────────────────────────────────────────┐    │
+│  │                    SHARED SERVICES                                  │    │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌───────────┐ │    │
+│  │  │  PostgreSQL │  │  Key Vault  │  │    Redis    │  │  Zitadel  │ │    │
+│  │  │  (Flexible) │  │  (Secrets)  │  │  (Cache)    │  │  (OIDC)   │ │    │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └───────────┘ │    │
+│  └────────────────────────────────────────────────────────────────────┘    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+## Why Kong + Azure Front Door?
+
+| Layer | Responsibility | Azure Service |
+|-------|---------------|---------------|
+| **Edge** | CDN, WAF, DDoS, SSL, Global Routing | Azure Front Door |
+| **Gateway** | Auth, Rate Limiting, Routing, Transformations | Kong Gateway |
+| **Compute** | Business Logic, APIs | Container Apps / App Service |
+| **Data** | Persistence, Secrets, Cache | PostgreSQL, Key Vault, Redis |
+
+### Benefits of This Architecture
+
+1. **Separation of Concerns**
+   - Front Door handles edge security and global routing
+   - Kong handles API management and authentication
+   - Services focus on business logic
+
+2. **Enhanced Security**
+   - JWT validation at the gateway level
+   - Rate limiting per user/plan
+   - Bot detection and abuse prevention
+   - mTLS between Kong and services
+
+3. **Operational Flexibility**
+   - Kong plugins for observability
+   - Centralized logging and metrics
+   - A/B testing and canary deployments
+
+## Kong Gateway Deployment
+
+### Container App Configuration
+
+```yaml
+# kong-containerapp.yaml
+apiVersion: 2023-05-01
+location: West Europe
+properties:
+  environmentId: /subscriptions/{sub}/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod
+  configuration:
+    ingress:
+      external: true
+      targetPort: 8000
+      traffic:
+        - weight: 100
+          latestRevision: true
+    secrets:
+      - name: kong-database
+        keyVaultUrl: https://kv-kombify-prod.vault.azure.net/secrets/kong-database-url
+        identity: /subscriptions/{sub}/resourcegroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/kong-identity
+  template:
+    containers:
+      - name: kong
+        image: kong:3.9
+        resources:
+          cpu: 1
+          memory: 2Gi
+        env:
+          - name: KONG_DATABASE
+            value: postgres
+          - name: KONG_PG_HOST
+            value: psql-kombify-prod.postgres.database.azure.com
+          - name: KONG_PLUGINS
+            value: bundled,jwt,rate-limiting,cors,oauth2
+          - name: KONG_PROXY_ACCESS_LOG
+            value: /dev/stdout
+          - name: KONG_ADMIN_ACCESS_LOG
+            value: /dev/stdout
+          - name: KONG_PROXY_ERROR_LOG
+            value: /dev/stderr
+          - name: KONG_ADMIN_ERROR_LOG
+            value: /dev/stderr
+          - name: KONG_PG_PASSWORD
+            secretRef: kong-database
+    scale:
+      minReplicas: 2
+      maxReplicas: 5
+```
+
+### Database Setup
+
+Kong requires a PostgreSQL database for its configuration:
+
+```bash
+# Create Kong database
+psql -h psql-kombify-prod.postgres.database.azure.com \
+  -U adminuser \
+  -d postgres \
+  -c "CREATE DATABASE kong;"
+
+# Run Kong migrations
+kubectl run kong-migrations \
+  --image=kong:3.9 \
+  --rm -i --restart=Never \
+  --env="KONG_DATABASE=postgres" \
+  --env="KONG_PG_HOST=psql-kombify-prod.postgres.database.azure.com" \
+  -- kong migrations bootstrap
+```
+
+## Kong Configuration
+
+### Service Definitions
+
+```yaml
+# kong-config.yaml
+_format_version: "3.0"
+
+services:
+  # KombiStack Service
+  - name: kombistack
+    url: http://ca-kombify-stack-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5260
+    routes:
+      - name: kombistack-routes
+        paths:
+          - /v1/stacks
+          - /v1/orchestrator
+        strip_path: false
+        preserve_host: false
+    plugins:
+      - name: jwt
+        config:
+          uri_param_names: []
+          cookie_names: []
+          key_claim_name: iss
+          secret_is_base64: false
+          claims_to_verify:
+            - exp
+      - name: rate-limiting
+        config:
+          minute: 200
+          policy: redis
+          redis_host: redis-kombify-prod.redis.cache.windows.net
+          fault_tolerant: true
+          hide_client_headers: false
+
+  # KombiSim Service
+  - name: kombisim
+    url: http://ca-kombify-sim-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5270
+    routes:
+      - name: kombisim-routes
+        paths:
+          - /v1/simulations
+          - /v1/nodes
+        strip_path: false
+    plugins:
+      - name: jwt
+      - name: rate-limiting
+        config:
+          minute: 50
+          policy: redis
+
+  # KombiSphere Portal (Internal)
+  - name: kombisphere
+    url: http://app-kombify-portal-prod.azurewebsites.net
+    routes:
+      - name: portal-routes
+        paths:
+          - /v1/portal
+        strip_path: false
+
+  # Administration Service
+  - name: administration
+    url: http://ca-kombify-admin-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5380
+    routes:
+      - name: admin-routes
+        paths:
+          - /v1/admin
+          - /v1/tools
+          - /v1/catalog
+        strip_path: false
+    plugins:
+      - name: jwt
+      - name: rate-limiting
+        config:
+          minute: 100
+
+# Public routes (no auth required)
+  - name: public-catalog
+    url: http://ca-kombify-admin-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5380
+    routes:
+      - name: catalog-public
+        paths:
+        - /v1/catalog/public
+        strip_path: false
+    plugins:
+      - name: rate-limiting
+        config:
+          minute: 500
+```
+
+### JWT Plugin Configuration (Zitadel Integration)
+
+```yaml
+plugins:
+  - name: jwt
+    service: kombistack
+    config:
+      # Zitadel JWKS endpoint
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+        - iss
+      # Match Zitadel issuer
+      uri_prefixes:
+        - https://auth.kombify.io
+
+# JWT Consumer (Zitadel)
+consumers:
+  - username: zitadel
+    jwt_secrets:
+      - algorithm: RS256
+        # Zitadel will provide the JWKS endpoint
+        # Kong will fetch and cache public keys automatically
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          # This will be fetched from Zitadel JWKS endpoint
+          # https://auth.kombify.io/oauth/v2/keys
+          -----END PUBLIC KEY-----
+```
+
+### CORS Configuration
+
+```yaml
+plugins:
+  - name: cors
+    config:
+      origins:
+        - "https://app.kombify.io"
+        - "https://kombify.io"
+        - "https://*.kombify.io"
+        - "http://localhost:5173"  # Dev
+        - "http://localhost:3000"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Request-ID
+        - X-User-ID
+      exposed_headers:
+        - X-RateLimit-Limit
+        - X-RateLimit-Remaining
+      max_age: 3600
+      credentials: true
+```
+
+## Rate Limiting Strategy
+
+### Tier-Based Limits
+
+```yaml
+# Use header-based rate limiting with plan info from JWT
+plugins:
+  - name: rate-limiting-advanced
+    config:
+      limit:
+        - tier: free
+          minute: 100
+          hour: 1000
+          day: 5000
+        - tier: pro
+          minute: 500
+          hour: 10000
+          day: 50000
+        - tier: enterprise
+          minute: 10000
+          hour: 100000
+          day: 1000000
+      # Extract tier from JWT claim
+      identifier: jwt_claim_plan
+```
+
+### Per-Endpoint Limits
+
+| Endpoint | Free | Pro | Enterprise |
+|----------|------|-----|------------|
+| `/v1/stacks/*` | 100/min | 500/min | Unlimited |
+| `/v1/simulations/*` | 50/min | 200/min | 1000/min |
+| `/v1/admin/*` | 10/min | 100/min | 500/min |
+| `/v1/catalog/*` | 500/min | 1000/min | 5000/min |
+
+## Azure Front Door Configuration
+
+### Frontend Endpoints
+
+| Domain | Route To | Purpose |
+|--------|----------|---------|
+| `kombify.io` | App Service (marketing) | Landing page |
+| `app.kombify.io` | App Service (portal) | User dashboard |
+| `api.kombify.io` | Kong Container App | API Gateway |
+| `auth.kombify.io` | Zitadel Cloud | Authentication |
+
+### Routing Rules
+
+```json
+{
+  "routes": [
+    {
+      "name": "api-route",
+      "frontendEndpoints": ["api.kombify.io"],
+      "acceptedProtocols": ["Https"],
+      "patternsToMatch": ["/*"],
+      "forwardingProtocol": "HttpsOnly",
+      "backendPool": {
+        "name": "kong-pool",
+        "backends": [
+          {
+            "address": "ca-kombify-kong-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io",
+            "httpPort": 443,
+            "httpsPort": 443,
+            "priority": 1,
+            "weight": 100
+          }
+        ]
+      },
+      "cacheConfiguration": {
+        "queryParameterStripDirective": "StripNone",
+        "dynamicCompression": "Enabled"
+      }
+    }
+  ]
+}
+```
+
+### WAF Policy
+
+```json
+{
+  "policySettings": {
+    "enabledState": "Enabled",
+    "mode": "Prevention",
+    "defaultCustomBlockResponseStatusCode": 403
+  },
+  "customRules": [
+    {
+      "name": "RateLimitByIP",
+      "priority": 1,
+      "ruleType": "RateLimitRule",
+      "rateLimitDuration": "OneMinute",
+      "rateLimitThreshold": 1000,
+      "matchConditions": [
+        {
+          "matchVariable": "RemoteAddr",
+          "operator": "IPMatch",
+          "negationConditon": false,
+          "matchValue": ["0.0.0.0/0"]
+        }
+      ],
+      "action": "Block"
+    }
+  ],
+  "managedRules": {
+    "managedRuleSets": [
+      {
+        "ruleSetType": "OWASP",
+        "ruleSetVersion": "3.2",
+        "exclusions": [],
+        "ruleGroupOverrides": []
+      }
+    ]
+  }
+}
+```
+
+## Zitadel SSO Integration
+
+### JWT Token Flow
+
+```
+┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+│  Client  │────▶│  Zitadel │────▶│  Kong    │────▶│  Kong    │────▶│ Service  │
+│          │     │  (Auth)  │     │  (JWT    │     │  (Rate   │     │          │
+│          │     │          │     │  Verify) │     │  Limit)  │     │          │
+└──────────┘     └──────────┘     └──────────┘     └──────────┘     └──────────┘
+     │                 │                │                │                │
+     │ 1. Login        │                │                │                │
+     │────────────────▶│                │                │                │
+     │                 │ 2. ID Token    │                │                │
+     │◀────────────────│                │                │                │
+     │                 │                │                │                │
+     │ 3. API Call + Token                                │                │
+     │────────────────────────────────────────────────────▶│                │
+     │                 │                │ 4. Validate    │                │
+     │                 │                │    JWKS        │                │
+     │                 │                │◀───────────────│                │
+     │                 │                │                │                │
+     │                 │                │ 5. Check Plan  │                │
+     │                 │                │────────────────▶│                │
+     │                 │                │                │                │
+     │                 │                │ 6. Forward     │                │
+     │                 │                │─────────────────────────────────▶│
+```
+
+### Kong JWT Claims to Headers
+
+Kong transforms JWT claims to headers for downstream services:
+
+| JWT Claim | Header | Example |
+|-----------|--------|---------|
+| `sub` | `X-User-ID` | `550e8400-e29b-41d4-a716-446655440000` |
+| `email` | `X-User-Email` | `user@example.com` |
+| `urn:zitadel:iam:org:project:roles` | `X-User-Roles` | `subscriber_pro,user` |
+| `urn:zitadel:iam:org:id` | `X-Org-ID` | `org_123456` |
+| Custom `plan` | `X-User-Plan` | `pro` |
+
+```yaml
+plugins:
+  - name: request-transformer
+    config:
+      add:
+        headers:
+          - X-User-ID:$(jwt_claim_sub)
+          - X-User-Email:$(jwt_claim_email)
+          - X-User-Roles:$(jwt_claim_urn:zitadel:iam:org:project:roles)
+          - X-Org-ID:$(jwt_claim_urn:zitadel:iam:org:id)
+```
+
+## Deployment Guide
+
+### Prerequisites
+
+```bash
+# 1. Create Kong database
+az postgres flexible-server db create \
+  --resource-group rg-kombify-prod \
+  --server-name psql-kombify-prod \
+  --database-name kong
+
+# 2. Create Redis cache for rate limiting
+az redis create \
+  --resource-group rg-kombify-prod \
+  --name redis-kombify-prod \
+  --location westeurope \
+  --sku Basic \
+  --vm-size c0
+
+# 3. Create managed identity for Kong
+az identity create \
+  --resource-group rg-kombify-prod \
+  --name kong-identity
+```
+
+### Deploy Kong
+
+```bash
+# 1. Deploy Kong Container App
+az containerapp create \
+  --resource-group rg-kombify-prod \
+  --name ca-kombify-kong-prod \
+  --environment cae-kombify-prod \
+  --image kong:3.9 \
+  --target-port 8000 \
+  --ingress external \
+  --min-replicas 2 \
+  --max-replicas 5 \
+  --cpu 1 \
+  --memory 2Gi \
+  --env-vars \
+    KONG_DATABASE=postgres \
+    KONG_PG_HOST=psql-kombify-prod.postgres.database.azure.com \
+    KONG_PG_USER=kong \
+    KONG_PG_DATABASE=kong \
+    KONG_PLUGINS=bundled,jwt,rate-limiting,cors,oauth2
+
+# 2. Configure Key Vault access
+az keyvault set-policy \
+  --name kv-kombify-prod \
+  --object-id $(az identity show --resource-group rg-kombify-prod --name kong-identity --query principalId -o tsv) \
+  --secret-permissions get list
+
+# 3. Run migrations
+az containerapp job create \
+  --resource-group rg-kombify-prod \
+  --name kong-migrations \
+  --environment cae-kombify-prod \
+  --image kong:3.9 \
+  --command "kong migrations bootstrap" \
+  --env-vars \
+    KONG_DATABASE=postgres \
+    KONG_PG_HOST=psql-kombify-prod.postgres.database.azure.com
+```
+
+### Configure Routes
+
+```bash
+# Apply Kong configuration
+kubectl create configmap kong-config --from-file=kong-config.yaml
+kubectl apply -f kong-deployment.yaml
+
+# Or use Kong Admin API
+curl -X POST http://localhost:8001/services \
+  --data name=kombistack \
+  --data url=http://ca-kombify-stack-prod.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5260
+
+curl -X POST http://localhost:8001/services/kombistack/routes \
+  --data paths=/v1/stacks \
+  --data name=kombistack-route
+```
+
+## Monitoring
+
+### Kong Prometheus Metrics
+
+```yaml
+plugins:
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+```
+
+### Application Insights Integration
+
+```lua
+-- Custom Kong plugin for Application Insights
+local ai = require "applicationinsights"
+
+function log_to_appinsights(conf)
+  local telemetry = ai.get_telemetry()
+  
+  telemetry:trackRequest({
+    name = kong.request.get_path(),
+    url = kong.request.get_scheme() .. "://" .. kong.request.get_host() .. kong.request.get_path(),
+    source = kong.request.get_forwarded_host(),
+    duration = kong.ctx.shared.request_time,
+    resultCode = kong.response.get_status(),
+    success = kong.response.get_status() < 400,
+    properties = {
+      user_id = kong.request.get_header("X-User-ID"),
+      plan = kong.request.get_header("X-User-Plan"),
+      service = kong.router.get_service().name
+    }
+  })
+end
+```
+
+## Troubleshooting
+
+### Common Issues
+
+| Issue | Cause | Solution |
+|-------|-------|----------|
+| JWT validation fails | Clock skew | Sync NTP, check `exp` claim |
+| Rate limiting not working | Redis connection | Verify Redis host and key |
+| High latency | Kong resource limits | Scale up CPU/memory |
+| 502 errors | Service unhealthy | Check health endpoints |
+
+### Health Check Endpoint
+
+```yaml
+# Add health check route
+services:
+  - name: health
+    url: http://localhost:8001/status
+    routes:
+      - name: health-check
+        paths:
+          - /health
+        plugins:
+          - name: key-auth
+            enabled: false
+```
+
+## Migration from Current Setup
+
+### Phase 1: Deploy Kong (Parallel)
+1. Deploy Kong Container App
+2. Configure with existing services
+3. Test internally
+
+### Phase 2: Update Front Door
+1. Change Front Door backend to Kong
+2. Keep existing routes
+3. Monitor for issues
+
+### Phase 3: Enable Features
+1. Enable JWT validation
+2. Enable rate limiting
+3. Add monitoring
+
+---
+
+## Related Documentation
+
+- [Azure Architecture](./azure-architecture)
+- [Zitadel Setup](../auth/zitadel-setup)
+- [Production Checklist](./production-checklist)
+- Kong Official Docs: https://docs.konghq.com/

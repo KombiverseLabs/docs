@@ -1,0 +1,202 @@
+---
+title: "Azure SaaS architecture"
+description: "Technical overview of kombify's Azure cloud infrastructure"
+---
+
+# Azure SaaS architecture
+
+kombify's SaaS platform runs on Microsoft Azure, providing enterprise-grade reliability and security.
+
+<Note>
+This page describes the **managed SaaS** infrastructure. For self-hosting, see [self-hosting guides](/guides/self-hosting/docker-compose).
+</Note>
+
+## Architecture overview
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │          Azure Front Door                   │
+                    │   (CDN + WAF + SSL + Custom Domains)       │
+                    └──────────────────────┬──────────────────────┘
+                                           │
+         ┌─────────────────────────────────┼─────────────────────────────────┐
+         │                                 │                                 │
+         ▼                                 ▼                                 ▼
+┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
+│   App Service       │       │   Container Apps    │       │   Container Apps    │
+│   kombify Portal    │       │   kombify Stack     │       │   kombify Sim       │
+│   (SvelteKit)       │       │   (Go + gRPC)       │       │   (Go + REST)       │
+│                     │       │                     │       │                     │
+│   app.kombify.io    │       │   api.kombify.io    │       │   sim.kombify.io    │
+└─────────────────────┘       └─────────────────────┘       └─────────────────────┘
+```
+
+## Core services
+
+<CardGroup cols={2}>
+  <Card title="kombify Portal" icon="browser" href="/sphere/cloud/overview">
+    SvelteKit web application serving the user dashboard at `app.kombify.io`.
+    Handles authentication, billing, and tool orchestration.
+  </Card>
+  <Card title="kombify Stack" icon="server" href="/stack/overview">
+    Go-based orchestration API with gRPC support. Manages infrastructure
+    provisioning and node communication at `api.kombify.io`.
+  </Card>
+  <Card title="kombify Sim" icon="flask" href="/sim/overview">
+    Homelab simulation engine. Provides virtual infrastructure for testing
+    before real deployment at `sim.kombify.io`.
+  </Card>
+  <Card title="StackKits Registry" icon="box" href="/stackkits/overview">
+    Infrastructure blueprint registry and documentation at `stackkits.kombify.io`.
+  </Card>
+</CardGroup>
+
+## Azure resources
+
+| Service | Purpose | Tier |
+|---------|---------|------|
+| **Azure Front Door** | CDN, WAF, SSL termination, global routing | Standard |
+| **App Service** | Portal web application | B1 (Basic) |
+| **Container Apps** | Stack and Sim APIs | Consumption |
+| **PostgreSQL Flexible** | Relational database | Burstable B1ms |
+| **Key Vault** | Secrets management | Standard |
+| **Container Registry** | Docker image storage | Basic |
+| **Log Analytics** | Centralized logging | Pay-as-you-go |
+| **Application Insights** | APM and monitoring | Pay-as-you-go |
+
+## Domain routing
+
+Azure Front Door handles all incoming traffic with intelligent routing:
+
+| Domain | Destination | Purpose |
+|--------|-------------|---------|
+| `kombify.io` | App Service | Marketing website |
+| `app.kombify.io` | App Service | User dashboard |
+| `api.kombify.io` | Container App | Stack API |
+| `sim.kombify.io` | Container App | Sim API |
+| `stackkits.kombify.io` | Container App | Documentation |
+
+## Security
+
+<AccordionGroup>
+  <Accordion title="Authentication" icon="shield-check">
+    All user authentication flows through **Zitadel**, providing:
+    - OAuth 2.0 / OIDC standards
+    - Enterprise SSO (SAML, LDAP)
+    - Multi-factor authentication
+    - User lifecycle management
+  </Accordion>
+  
+  <Accordion title="Secrets management" icon="key">
+    All secrets are stored in **Azure Key Vault** with:
+    - RBAC-based access control
+    - Managed Identity integration (no secrets in code)
+    - Automatic rotation support
+    - Audit logging
+  </Accordion>
+  
+  <Accordion title="Network security" icon="shield">
+    Azure Front Door provides:
+    - Web Application Firewall (WAF)
+    - DDoS protection
+    - SSL/TLS termination with managed certificates
+    - Geographic filtering capabilities
+  </Accordion>
+</AccordionGroup>
+
+## Monitoring
+
+### Application Insights
+
+Real-time application performance monitoring:
+- Request tracing and latency analysis
+- Dependency tracking
+- Exception logging with stack traces
+- Custom metrics and events
+
+### Log Analytics
+
+Centralized log aggregation:
+- Container logs from all services
+- Kusto query language for analysis
+- Alert rules and notifications
+- Long-term log retention
+
+## Scaling
+
+Container Apps automatically scale based on traffic:
+
+```yaml
+minReplicas: 0      # Scale to zero when idle
+maxReplicas: 3-5    # Scale up under load
+CPU: 0.5 vCPU       # Per replica
+Memory: 1.0 Gi      # Per replica
+```
+
+<Tip>
+The scale-to-zero feature keeps costs low during off-peak hours while maintaining the ability to handle traffic spikes.
+</Tip>
+
+## Data residency
+
+All data is stored in the **West Europe** Azure region:
+- PostgreSQL database
+- Blob storage
+- Log data
+- Backups
+
+## SLA and reliability
+
+| Service | SLA |
+|---------|-----|
+| Azure Front Door | 99.99% |
+| App Service (B1+) | 99.95% |
+| Container Apps | 99.95% |
+| PostgreSQL Flexible | 99.9% |
+
+## Cost optimization
+
+Estimated monthly costs:
+
+| Component | Cost |
+|-----------|------|
+| Compute (App Service + Container Apps) | ~€40-60 |
+| Database (PostgreSQL) | ~€25 |
+| Networking (Front Door) | ~€30 |
+| Storage and Monitoring | ~€15-20 |
+| **Total** | **~€110-135** |
+
+<Note>
+Actual costs vary based on usage. The consumption-based Container Apps pricing helps optimize costs during development and low-traffic periods.
+</Note>
+
+## API Gateway (Kong)
+
+For advanced API management capabilities including:
+- JWT authentication with Zitadel
+- Rate limiting per user/plan
+- Request/response transformations
+- Centralized logging and metrics
+
+See the [Azure + Kong Gateway Architecture](./azure-kong-architecture) guide for complete setup instructions.
+
+<Tip>
+Kong Gateway runs as an Azure Container App between Front Door and your services, handling authentication, rate limiting, and routing.
+</Tip>
+
+## Related resources
+
+<CardGroup cols={2}>
+  <Card title="Kong Gateway Setup" icon="network-wired" href="/guides/deployment/azure-kong-architecture">
+    Deploy Kong Gateway with Azure for advanced API management
+  </Card>
+  <Card title="Self-hosting guide" icon="server" href="/guides/self-hosting/docker-compose">
+    Run kombify tools on your own infrastructure
+  </Card>
+  <Card title="Production checklist" icon="list-check" href="/guides/deployment/production-checklist">
+    Pre-launch checklist for production deployments
+  </Card>
+  <Card title="Zitadel SSO Setup" icon="shield" href="/guides/auth/zitadel-setup">
+    Configure Zitadel for authentication
+  </Card>
+</CardGroup>

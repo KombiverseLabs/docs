@@ -15,30 +15,38 @@ This document defines the API contracts and communication standards between komb
 ## Module Communication Matrix
 
 ```
-┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
-│   Sphere    │◄───►│    Admin    │     │  kombify    │◄───►│ Core Tools  │
-│  (Portal)   │     │  (Center)   │     │    API      │     │ (Stack/Sim) │
-└──────┬──────┘     └──────┬──────┘     └──────┬──────┘     └─────────────┘
-       │                   │                   │
-       │                   │                   │
-       └───────────────────┴───────────────────┘
-                           │
-                    ┌──────┴──────┐
-                    │   Zitadel   │
-                    │   (Auth)    │
-                    └─────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         KONG GATEWAY ARCHITECTURE                            │
+│                                                                              │
+│  ┌─────────────┐     ┌─────────────┐     ┌─────────────┐     ┌─────────────┐│
+│  │   Sphere    │◄───►│    Admin    │◄───►│    Kong     │◄───►│ Core Tools  ││
+│  │  (Portal)   │     │  (Center)   │     │  Gateway    │     │ (Stack/Sim) ││
+│  └──────┬──────┘     └──────┬──────┘     └──────┬──────┘     └─────────────┘│
+│         │                   │                   │                            │
+│         │                   │                   │                            │
+│         └───────────────────┴───────────────────┘                            │
+│                              │                                               │
+│                       ┌──────┴──────┐                                        │
+│                       │   Zitadel   │                                        │
+│                       │   (OIDC)    │                                        │
+│                       └─────────────┘                                        │
+│                                                                              │
+│  Legend:                                                                     │
+│  ───► = HTTP/HTTPS via Kong                                                  │
+│  ◄───► = Internal service communication                                      │
+│                                                                              │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-| From → To | Protocol | Auth | Purpose |
-|-----------|----------|------|---------|
-| Sphere → Zitadel | OIDC | Client Credentials | User login, token refresh |
-| Sphere → Stripe | HTTPS | API Key | Checkout, portal, webhooks |
-| Administration → Zitadel | HTTPS | Service Account | User management |
-| Administration → Stripe | HTTPS | API Key (read/write) | Billing webhooks + customer operations |
-| Sphere → Administration | Internal HTTP | Service JWT | Read/write platform data (tools, flags, profile, etc.) |
-| kombify API → Zitadel | HTTPS | JWKS | JWT validation |
-| kombify API → All Services | HTTP/gRPC | None (internal) | Request forwarding |
-| Core Tools → kombify API | HTTP | JWT | API calls |
+| From → To | Protocol | Auth | Purpose | Notes |
+|-----------|----------|------|---------|-------|
+| **Client → Kong** | HTTPS | JWT (via Zitadel) | API requests | Kong validates tokens |
+| **Kong → Services** | HTTP | mTLS/Internal | Request forwarding | Kong adds X-User-* headers |
+| Sphere → Zitadel | OIDC | Client Credentials | User login, token refresh | Direct for auth flow |
+| Sphere → Stripe | HTTPS | API Key | Checkout, portal, webhooks | Direct, not via Kong |
+| Administration → Zitadel | HTTPS | Service Account | User management | Direct |
+| Administration → Stripe | HTTPS | API Key (read/write) | Billing webhooks + customer operations | Direct |
+| Sphere → Administration | Internal HTTP | Service JWT | Read/write platform data (tools, flags, profile, etc.) | Via Kong internal route |
 
 ---
 
@@ -114,9 +122,6 @@ interface BillingMetricsResponse {
 
 ---
 
-## Contract 2: Kong JWT Claims
-```
-
 ---
 
 ## Contract 2: Kong JWT Claims
@@ -158,14 +163,25 @@ Kong extracts JWT claims and forwards as headers:
 
 ### 2.3 Role Mapping
 
-| Zitadel Role | Cloud Role | Admin Access | API Access |
-|--------------|------------|--------------|------------|
-| `user` | USER | Dashboard, Settings | Public APIs |
-| `subscriber_pro` | USER + PRO | All user features | Extended APIs |
-| `subscriber_enterprise` | USER + ENTERPRISE | All features | Full API access |
-| `manager` | MANAGER | Team management | Team APIs |
-| `admin` | ADMIN | All | All |
-| `kombisphere_admin` | SUPER_ADMIN | Admin Portal | All + Admin APIs |
+| Zitadel Role | Cloud Role | Kong Rate Limit | API Access |
+|--------------|------------|-----------------|------------|
+| `user` | USER | 100 req/min | Public APIs |
+| `subscriber_pro` | USER + PRO | 500 req/min | Extended APIs |
+| `subscriber_enterprise` | USER + ENTERPRISE | 10000 req/min | Full API access |
+| `manager` | MANAGER | 500 req/min | Team APIs |
+| `admin` | ADMIN | 1000 req/min | All |
+| `kombisphere_admin` | SUPER_ADMIN | Unlimited | All + Admin APIs |
+
+### 2.4 Kong Rate Limiting by Endpoint
+
+| Endpoint Pattern | Free | Pro | Enterprise |
+|------------------|------|-----|------------|
+| `/v1/stacks/*` | 100/min | 500/min | Unlimited |
+| `/v1/simulations/*` | 50/min | 200/min | 1000/min |
+| `/v1/admin/*` | 10/min | 100/min | 500/min |
+| `/v1/catalog/*` | 500/min | 1000/min | 5000/min |
+| `/v1/billing/*` | 50/min | 100/min | 500/min |
+
 
 ---
 
@@ -555,33 +571,78 @@ Link: </v2/resource>; rel="successor-version"
 
 ## Implementation Checklist
 
-### Cloud Module
+### Kong Gateway (CRITICAL - Deploy First)
 
+- [ ] Deploy Kong to Azure Container App
+- [ ] Configure JWT plugin with Zitadel JWKS endpoint
+- [ ] Configure rate limiting plugin by consumer tier
+- [ ] Configure header transformation (JWT → X-User-*)
+- [ ] Set up upstream services (Admin, Core Tools)
+- [ ] Configure health check endpoints
+- [ ] Set up internal routes for service-to-service
+- [ ] Test token validation and claim extraction
+- [ ] Configure CORS for portal domains
+- [ ] Set up request/response transformation
+
+### Cloud Module (KombiSphere Portal)
+
+- [ ] Update to read X-User-* headers from Kong
+- [ ] Remove direct Zitadel token validation (Kong handles it)
 - [ ] Implement `/api/internal/sync/users` endpoint
 - [ ] Implement `/api/internal/sync/subscriptions` endpoint
 - [ ] Add Stripe webhook signature verification
 - [ ] Add Zitadel webhook signature verification
-- [ ] Implement SSO token generation
+- [ ] Implement SSO token generation for core tools
 - [ ] Add rate limit headers to responses
 - [ ] Standardize error responses
 - [ ] Add structured logging
 
-### Admin Module
+### Admin Module (Administration Center)
 
+- [ ] Update to read X-User-* headers from Kong
 - [ ] Implement user sync consumer
 - [ ] Implement subscription sync consumer
 - [ ] Add `/api/admin/status` endpoint
 - [ ] Standardize error responses
-- [ ] Add rate limiting middleware
+- [ ] Add rate limiting middleware (for non-Kong requests)
 - [ ] Add structured logging
 
-### API Module (Kong)
+### Core Tools (KombiStack, KombiSim)
 
-- [ ] Configure JWT claim extraction
-- [ ] Configure rate limit headers
-- [ ] Enable issuer claim validation
-- [ ] Add request ID generation
-- [ ] Configure error response transformation
+- [ ] Update to read X-User-* headers from Kong
+- [ ] Configure internal route authentication
+- [ ] Implement health check endpoints at `/health`
+- [ ] Update Key Vault integration for secrets
+- [ ] Add structured logging with request IDs
+
+### Azure Infrastructure
+
+- [ ] Configure Azure Front Door → Kong routing
+- [ ] Set up Key Vault with all required secrets
+- [ ] Configure managed identities for Container Apps
+- [ ] Set up PostgreSQL Flexible Server
+- [ ] Configure monitoring and alerting
+- [ ] Set up log aggregation (Azure Monitor)
+
+### Security & Compliance
+
+- [ ] Enable mTLS between Kong and upstream services
+- [ ] Configure Web Application Firewall rules
+- [ ] Set up DDoS protection
+- [ ] Implement audit logging for all admin actions
+- [ ] Configure secret rotation policy
+- [ ] Set up security scanning in CI/CD
+
+### Testing
+
+- [ ] E2E tests use environment variables for URLs
+- [ ] Kong routing tests for all services
+- [ ] JWT validation tests (valid, expired, invalid)
+- [ ] Rate limiting tests by plan tier
+- [ ] Webhook signature verification tests
+- [ ] SSO flow end-to-end tests
+- [ ] Load testing for Kong gateway
+- [ ] Failover and rollback tests
 
 ---
 

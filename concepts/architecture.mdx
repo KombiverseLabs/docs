@@ -4,8 +4,6 @@ description: How kombify components work together to manage your infrastructure
 sidebarTitle: Architecture
 ---
 
-# Architecture Overview
-
 kombify is a suite of tools that work together to simplify infrastructure management through a **spec-driven approach**. This page explains how the components interact.
 
 ## System Overview
@@ -71,12 +69,12 @@ graph TB
     gRPC <--> Agent1 & Agent2 & Agent3
     ToFu --> Infra
 
-    style User fill:#e0f2fe,stroke:#0284c7
-    style Sphere fill:#dbeafe,stroke:#2563eb
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Sim fill:#d1fae5,stroke:#059669
-    style StackKits fill:#fce7f3,stroke:#db2777
-    style Infra fill:#f3f4f6,stroke:#6b7280
+    style User fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Sphere fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Stack fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Sim fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style StackKits fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Infra fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ## Core Components
@@ -112,9 +110,9 @@ graph LR
     Generate --> TF & Vars
     Apply --> State
 
-    style Input fill:#e0f2fe,stroke:#0284c7
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Output fill:#d1fae5,stroke:#059669
+    style Input fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Stack fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Output fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 **Tech Stack:**
@@ -162,9 +160,9 @@ graph LR
     User --> API
     Docker --> C1 & C2 & C3
 
-    style Request fill:#e0f2fe,stroke:#0284c7
-    style Sim fill:#d1fae5,stroke:#059669
-    style Containers fill:#f3f4f6,stroke:#6b7280
+    style Request fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Sim fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Containers fill:#1e293b,stroke:#94a3b8,color:#f8fafc
 ```
 
 **Service Ports:**
@@ -204,9 +202,9 @@ graph TB
     Docker --> Layer1
     K8s --> Layer1
 
-    style Layer3 fill:#fce7f3,stroke:#db2777
-    style Layer2 fill:#dbeafe,stroke:#2563eb
-    style Layer1 fill:#d1fae5,stroke:#059669
+    style Layer3 fill:#1e293b,stroke:#f472b6,color:#f8fafc
+    style Layer2 fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Layer1 fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 ### kombify Sphere
@@ -241,9 +239,9 @@ graph TB
     Users --> Frontend
     Auth --> Stack & Sim
 
-    style Users fill:#e0f2fe,stroke:#0284c7
-    style Sphere fill:#dbeafe,stroke:#2563eb
-    style Tools fill:#fef3c7,stroke:#d97706
+    style Users fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Tools fill:#1e293b,stroke:#fbbf24,color:#f8fafc
 ```
 
 ## Data Flow
@@ -328,8 +326,8 @@ graph LR
     CA -->|Issues| Cert
     Client <-->|mTLS| gRPC
 
-    style Stack fill:#fef3c7,stroke:#d97706
-    style Agent fill:#d1fae5,stroke:#059669
+    style Stack fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Agent fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 All agent communication uses **mutual TLS (mTLS)**:

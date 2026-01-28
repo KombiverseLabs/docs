@@ -1,0 +1,20 @@
+{
+  "name": "kombify-docs-screenshots",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Automated screenshot capture for kombify documentation",
+  "scripts": {
+    "test": "playwright test",
+    "screenshots": "playwright test --project=desktop-dark",
+    "screenshots:all": "playwright test",
+    "screenshots:light": "playwright test --project=desktop-light",
+    "screenshots:mobile": "playwright test --project=mobile",
+    "screenshots:update": "playwright test --update-snapshots",
+    "screenshots:report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.48.0",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}
