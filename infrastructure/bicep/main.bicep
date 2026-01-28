@@ -100,6 +100,15 @@ param enablePrivateEndpoint bool = true
 @description('Custom domain for API')
 param customDomain string = 'api.kombify.io'
 
+@description('Use existing Container App Environment instead of creating new one')
+param useExistingContainerAppEnv bool = false
+
+@description('Existing Container App Environment ID (required if useExistingContainerAppEnv is true)')
+param existingContainerAppEnvId string = ''
+
+@description('Existing Log Analytics Workspace ID (required if useExistingContainerAppEnv is true)')
+param existingLogAnalyticsId string = ''
+
 @description('Tags to apply to all resources')
 param tags object = {
   Environment: environment
@@ -153,6 +162,11 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
               properties: {
                 serviceName: 'Microsoft.App/environments'
               }
+            }
+          ]
+          serviceEndpoints: [
+            {
+              service: 'Microsoft.KeyVault'
             }
           ]
         }
@@ -503,7 +517,7 @@ resource postgresServer 'Microsoft.DBforPostgreSQL/flexibleServers@2023-06-01-pr
     }
     highAvailability: enablePostgresHA ? {
       mode: 'ZoneRedundant'
-      standbyAvailabilityZone: '2'
+      standbyAvailabilityZone: '1'
     } : null
     network: {
       delegatedSubnetResourceId: vnet.properties.subnets[1].id
@@ -555,7 +569,7 @@ resource kongDatabase 'Microsoft.DBforPostgreSQL/flexibleServers/databases@2023-
 // Container App Environment
 // -----------------------------------------------------------------------------
 
-resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
+resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = if (!useExistingContainerAppEnv) {
   name: resourceNames.containerAppEnv
   location: location
   tags: tags
@@ -581,6 +595,16 @@ resource containerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   }
 }
 
+resource existingContainerAppEnv 'Microsoft.App/managedEnvironments@2024-03-01' existing = if (useExistingContainerAppEnv) {
+  name: resourceNames.containerAppEnv
+}
+
+resource existingLogAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' existing = if (useExistingContainerAppEnv) {
+  name: resourceNames.logAnalytics
+}
+
+var containerAppEnvId = useExistingContainerAppEnv ? existingContainerAppEnvId : containerAppEnv.id
+
 // -----------------------------------------------------------------------------
 // Kong Container App Module
 // -----------------------------------------------------------------------------
@@ -592,7 +616,7 @@ module kongAppModule 'kong-app.bicep' = {
     location: location
     tags: tags
     environment: environment
-    containerAppEnvironmentId: containerAppEnv.id
+    containerAppEnvironmentId: containerAppEnvId
     managedIdentityId: kongIdentity.id
     managedIdentityClientId: kongIdentity.properties.clientId
     keyVaultName: keyVault.name
@@ -612,6 +636,7 @@ module kongAppModule 'kong-app.bicep' = {
     kongDatabase
     secretPostgresPassword
     secretRedisPassword
+    containerAppEnv
   ]
 }
 

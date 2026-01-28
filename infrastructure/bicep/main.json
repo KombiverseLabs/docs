@@ -1,0 +1,2941 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "_generator": {
+      "name": "bicep",
+      "version": "0.40.2.10011",
+      "templateHash": "12624442433192083914"
+    }
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "defaultValue": "prod",
+      "allowedValues": [
+        "dev",
+        "staging",
+        "prod"
+      ],
+      "metadata": {
+        "description": "Environment name (dev, staging, prod)"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Azure region for deployment"
+      }
+    },
+    "kongImage": {
+      "type": "string",
+      "defaultValue": "kong:3.9",
+      "metadata": {
+        "description": "Kong Docker image tag"
+      }
+    },
+    "postgresAdminUser": {
+      "type": "string",
+      "defaultValue": "kongadmin",
+      "metadata": {
+        "description": "PostgreSQL admin username"
+      }
+    },
+    "postgresAdminPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "PostgreSQL admin password"
+      }
+    },
+    "redisSkuName": {
+      "type": "string",
+      "defaultValue": "Basic",
+      "allowedValues": [
+        "Basic",
+        "Standard",
+        "Premium"
+      ],
+      "metadata": {
+        "description": "Redis SKU name"
+      }
+    },
+    "redisFamily": {
+      "type": "string",
+      "defaultValue": "C",
+      "allowedValues": [
+        "C",
+        "P"
+      ],
+      "metadata": {
+        "description": "Redis family (C for Basic/Standard, P for Premium)"
+      }
+    },
+    "redisCapacity": {
+      "type": "int",
+      "defaultValue": 0,
+      "metadata": {
+        "description": "Redis capacity (0-6 for Basic/Standard, 0-5 for Premium)"
+      }
+    },
+    "postgresTier": {
+      "type": "string",
+      "defaultValue": "GeneralPurpose",
+      "allowedValues": [
+        "Burstable",
+        "GeneralPurpose",
+        "MemoryOptimized"
+      ],
+      "metadata": {
+        "description": "PostgreSQL SKU tier"
+      }
+    },
+    "postgresSkuName": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+      "metadata": {
+        "description": "PostgreSQL SKU name"
+      }
+    },
+    "postgresStorageSizeGB": {
+      "type": "int",
+      "defaultValue": 128,
+      "metadata": {
+        "description": "PostgreSQL storage size in GB"
+      }
+    },
+    "postgresVersion": {
+      "type": "string",
+      "defaultValue": "15",
+      "allowedValues": [
+        "11",
+        "12",
+        "13",
+        "14",
+        "15",
+        "16"
+      ],
+      "metadata": {
+        "description": "PostgreSQL version"
+      }
+    },
+    "vnetAddressPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/16",
+      "metadata": {
+        "description": "VNet address prefix"
+      }
+    },
+    "containerAppSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.0.0/21",
+      "metadata": {
+        "description": "Container App subnet prefix"
+      }
+    },
+    "postgresSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.8.0/24",
+      "metadata": {
+        "description": "PostgreSQL subnet prefix"
+      }
+    },
+    "privateEndpointSubnetPrefix": {
+      "type": "string",
+      "defaultValue": "10.0.9.0/24",
+      "metadata": {
+        "description": "Private endpoint subnet prefix"
+      }
+    },
+    "minReplicas": {
+      "type": "int",
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Minimum replicas for Kong Container App"
+      }
+    },
+    "maxReplicas": {
+      "type": "int",
+      "defaultValue": 5,
+      "metadata": {
+        "description": "Maximum replicas for Kong Container App"
+      }
+    },
+    "kongCpu": {
+      "type": "string",
+      "defaultValue": "1",
+      "metadata": {
+        "description": "Kong CPU allocation"
+      }
+    },
+    "kongMemory": {
+      "type": "string",
+      "defaultValue": "2Gi",
+      "metadata": {
+        "description": "Kong memory allocation"
+      }
+    },
+    "logRetentionDays": {
+      "type": "int",
+      "defaultValue": 30,
+      "metadata": {
+        "description": "Log Analytics retention in days"
+      }
+    },
+    "enablePostgresHA": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable high availability for PostgreSQL"
+      }
+    },
+    "zitadelIssuer": {
+      "type": "string",
+      "defaultValue": "https://auth.kombify.io",
+      "metadata": {
+        "description": "Zitadel issuer URL"
+      }
+    },
+    "zitadelJwksUrl": {
+      "type": "string",
+      "defaultValue": "https://auth.kombify.io/oauth/v2/keys",
+      "metadata": {
+        "description": "Zitadel JWKS URL"
+      }
+    },
+    "enablePrivateEndpoint": {
+      "type": "bool",
+      "defaultValue": true,
+      "metadata": {
+        "description": "Enable private endpoints for PostgreSQL"
+      }
+    },
+    "customDomain": {
+      "type": "string",
+      "defaultValue": "api.kombify.io",
+      "metadata": {
+        "description": "Custom domain for API"
+      }
+    },
+    "tags": {
+      "type": "object",
+      "defaultValue": {
+        "Environment": "[parameters('environment')]",
+        "Project": "kombify",
+        "ManagedBy": "bicep",
+        "CostCenter": "platform"
+      },
+      "metadata": {
+        "description": "Tags to apply to all resources"
+      }
+    }
+  },
+  "variables": {
+    "prefix": "[format('kombify-{0}', parameters('environment'))]",
+    "resourceNames": {
+      "postgres": "[format('psql-{0}', variables('prefix'))]",
+      "redis": "[format('redis-{0}', variables('prefix'))]",
+      "keyVault": "[format('kv-{0}', variables('prefix'))]",
+      "managedIdentity": "[format('id-kong-{0}', variables('prefix'))]",
+      "containerAppEnv": "[format('cae-{0}', variables('prefix'))]",
+      "logAnalytics": "[format('log-{0}', variables('prefix'))]",
+      "applicationInsights": "[format('appi-{0}', variables('prefix'))]",
+      "vnet": "[format('vnet-{0}', variables('prefix'))]",
+      "nsg": "[format('nsg-{0}', variables('prefix'))]",
+      "postgresSubnet": "postgres-subnet",
+      "containerAppSubnet": "ca-subnet",
+      "privateEndpointSubnet": "pe-subnet"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/virtualNetworks",
+      "apiVersion": "2023-09-01",
+      "name": "[variables('resourceNames').vnet]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "addressSpace": {
+          "addressPrefixes": [
+            "[parameters('vnetAddressPrefix')]"
+          ]
+        },
+        "subnets": [
+          {
+            "name": "[variables('resourceNames').containerAppSubnet]",
+            "properties": {
+              "addressPrefix": "[parameters('containerAppSubnetPrefix')]",
+              "delegations": [
+                {
+                  "name": "Microsoft.App.environments",
+                  "properties": {
+                    "serviceName": "Microsoft.App/environments"
+                  }
+                }
+              ]
+            }
+          },
+          {
+            "name": "[variables('resourceNames').postgresSubnet]",
+            "properties": {
+              "addressPrefix": "[parameters('postgresSubnetPrefix')]",
+              "delegations": [
+                {
+                  "name": "Microsoft.DBforPostgreSQL.flexibleServers",
+                  "properties": {
+                    "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                  }
+                }
+              ],
+              "serviceEndpoints": [
+                {
+                  "service": "Microsoft.Storage"
+                }
+              ]
+            }
+          },
+          {
+            "name": "[variables('resourceNames').privateEndpointSubnet]",
+            "properties": {
+              "addressPrefix": "[parameters('privateEndpointSubnetPrefix')]",
+              "privateEndpointNetworkPolicies": "Disabled"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Network/networkSecurityGroups",
+      "apiVersion": "2023-09-01",
+      "name": "[variables('resourceNames').nsg]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "securityRules": [
+          {
+            "name": "AllowKongProxy",
+            "properties": {
+              "priority": 100,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "Internet",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "8000"
+            }
+          },
+          {
+            "name": "AllowKongAdminInternal",
+            "properties": {
+              "priority": 110,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "[parameters('vnetAddressPrefix')]",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "8001"
+            }
+          },
+          {
+            "name": "DenyKongAdminExternal",
+            "properties": {
+              "priority": 120,
+              "direction": "Inbound",
+              "access": "Deny",
+              "protocol": "*",
+              "sourceAddressPrefix": "Internet",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "8001"
+            }
+          },
+          {
+            "name": "AllowPostgreSQLInternal",
+            "properties": {
+              "priority": 130,
+              "direction": "Inbound",
+              "access": "Allow",
+              "protocol": "Tcp",
+              "sourceAddressPrefix": "[parameters('vnetAddressPrefix')]",
+              "sourcePortRange": "*",
+              "destinationAddressPrefix": "*",
+              "destinationPortRange": "5432"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[variables('resourceNames').managedIdentity]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2023-07-01",
+      "name": "[variables('resourceNames').keyVault]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "standard"
+        },
+        "tenantId": "[subscription().tenantId]",
+        "enableRbacAuthorization": false,
+        "enableSoftDelete": true,
+        "softDeleteRetentionInDays": 90,
+        "enablePurgeProtection": true,
+        "networkAcls": {
+          "defaultAction": "Deny",
+          "bypass": "AzureServices",
+          "ipRules": [],
+          "virtualNetworkRules": [
+            {
+              "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet), '2023-09-01').subnets[0].id]",
+              "ignoreMissingVnetServiceEndpoint": false
+            }
+          ]
+        },
+        "accessPolicies": [
+          {
+            "tenantId": "[subscription().tenantId]",
+            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity), '2023-01-31').principalId]",
+            "permissions": {
+              "secrets": [
+                "get",
+                "list"
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity)]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'kong-pg-host')]",
+      "properties": {
+        "value": "[format('{0}.postgres.database.azure.com', variables('resourceNames').postgres)]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'kong-pg-user')]",
+      "properties": {
+        "value": "[parameters('postgresAdminUser')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'kong-pg-password')]",
+      "properties": {
+        "value": "[parameters('postgresAdminPassword')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'kong-pg-database')]",
+      "properties": {
+        "value": "kong"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'kong-admin-token')]",
+      "properties": {
+        "value": "[uniqueString(resourceGroup().id, subscription().subscriptionId, 'kong-admin-token')]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]"
+      ]
+    },
+    {
+      "type": "Microsoft.OperationalInsights/workspaces",
+      "apiVersion": "2023-09-01",
+      "name": "[variables('resourceNames').logAnalytics]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "sku": {
+          "name": "PerGB2018"
+        },
+        "retentionInDays": "[parameters('logRetentionDays')]",
+        "features": {
+          "enableLogAccessUsingOnlyResourcePermissions": true
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/components",
+      "apiVersion": "2020-02-02",
+      "name": "[variables('resourceNames').applicationInsights]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "kind": "web",
+      "properties": {
+        "Application_Type": "web",
+        "WorkspaceResourceId": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]",
+        "Flow_Type": "Bluefield",
+        "Request_Source": "rest"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]"
+      ]
+    },
+    {
+      "type": "Microsoft.Cache/redis",
+      "apiVersion": "2023-08-01",
+      "name": "[variables('resourceNames').redis]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "sku": {
+          "name": "[parameters('redisSkuName')]",
+          "family": "[parameters('redisFamily')]",
+          "capacity": "[parameters('redisCapacity')]"
+        },
+        "enableNonSslPort": false,
+        "minimumTlsVersion": "1.2",
+        "publicNetworkAccess": "Disabled",
+        "redisConfiguration": {
+          "maxmemory-policy": "allkeys-lru"
+        }
+      }
+    },
+    {
+      "condition": "[parameters('enablePrivateEndpoint')]",
+      "type": "Microsoft.Network/privateEndpoints",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}-pe', variables('resourceNames').redis)]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "subnet": {
+          "id": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet), '2023-09-01').subnets[2].id]"
+        },
+        "privateLinkServiceConnections": [
+          {
+            "name": "[format('{0}-plsc', variables('resourceNames').redis)]",
+            "properties": {
+              "privateLinkServiceId": "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]",
+              "groupIds": [
+                "redisCache"
+              ]
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "condition": "[parameters('enablePrivateEndpoint')]",
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2020-06-01",
+      "name": "privatelink.redis.cache.windows.net",
+      "location": "global",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "condition": "[parameters('enablePrivateEndpoint')]",
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}/{1}', 'privatelink.redis.cache.windows.net', format('{0}-link', 'privatelink.redis.cache.windows.net'))]",
+      "location": "global",
+      "properties": {
+        "registrationEnabled": false,
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.redis.cache.windows.net')]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "condition": "[parameters('enablePrivateEndpoint')]",
+      "type": "Microsoft.Network/privateEndpoints/privateDnsZoneGroups",
+      "apiVersion": "2023-09-01",
+      "name": "[format('{0}/{1}', format('{0}-pe', variables('resourceNames').redis), 'default')]",
+      "properties": {
+        "privateDnsZoneConfigs": [
+          {
+            "name": "privatelink.redis.cache.windows.net",
+            "properties": {
+              "privateDnsZoneId": "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.redis.cache.windows.net')]"
+            }
+          }
+        ]
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', 'privatelink.redis.cache.windows.net')]",
+        "[resourceId('Microsoft.Network/privateEndpoints', format('{0}-pe', variables('resourceNames').redis))]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'redis-password')]",
+      "properties": {
+        "value": "[listKeys(resourceId('Microsoft.Cache/redis', variables('resourceNames').redis), '2023-08-01').primaryKey]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]",
+        "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]"
+      ]
+    },
+    {
+      "type": "Microsoft.KeyVault/vaults/secrets",
+      "apiVersion": "2023-07-01",
+      "name": "[format('{0}/{1}', variables('resourceNames').keyVault, 'redis-host')]",
+      "properties": {
+        "value": "[reference(resourceId('Microsoft.Cache/redis', variables('resourceNames').redis), '2023-08-01').hostName]"
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]",
+        "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]"
+      ]
+    },
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+      "apiVersion": "2023-06-01-preview",
+      "name": "[variables('resourceNames').postgres]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "sku": {
+        "name": "[parameters('postgresSkuName')]",
+        "tier": "[parameters('postgresTier')]"
+      },
+      "properties": {
+        "version": "[parameters('postgresVersion')]",
+        "administratorLogin": "[parameters('postgresAdminUser')]",
+        "administratorLoginPassword": "[parameters('postgresAdminPassword')]",
+        "storage": {
+          "storageSizeGB": "[parameters('postgresStorageSizeGB')]",
+          "autoGrow": "Enabled"
+        },
+        "highAvailability": "[if(parameters('enablePostgresHA'), createObject('mode', 'ZoneRedundant', 'standbyAvailabilityZone', '2'), null())]",
+        "network": {
+          "delegatedSubnetResourceId": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet), '2023-09-01').subnets[1].id]",
+          "privateDnsZoneArmResourceId": "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres))]",
+          "publicNetworkAccess": "Disabled"
+        },
+        "backup": {
+          "backupRetentionDays": 35,
+          "geoRedundantBackup": "Enabled"
+        },
+        "maintenanceWindow": {
+          "customWindow": "Enabled",
+          "dayOfWeek": 0,
+          "startHour": 3,
+          "startMinute": 0
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres))]",
+        "[resourceId('Microsoft.Network/privateDnsZones/virtualNetworkLinks', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres), format('{0}-link', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres)))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "type": "Microsoft.Network/privateDnsZones",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres)]",
+      "location": "global",
+      "tags": "[parameters('tags')]"
+    },
+    {
+      "type": "Microsoft.Network/privateDnsZones/virtualNetworkLinks",
+      "apiVersion": "2020-06-01",
+      "name": "[format('{0}/{1}', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres), format('{0}-link', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres)))]",
+      "location": "global",
+      "properties": {
+        "registrationEnabled": false,
+        "virtualNetwork": {
+          "id": "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres))]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers/databases",
+      "apiVersion": "2023-06-01-preview",
+      "name": "[format('{0}/{1}', variables('resourceNames').postgres, 'kong')]",
+      "properties": {},
+      "dependsOn": [
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('resourceNames').postgres)]"
+      ]
+    },
+    {
+      "type": "Microsoft.App/managedEnvironments",
+      "apiVersion": "2024-03-01",
+      "name": "[variables('resourceNames').containerAppEnv]",
+      "location": "[parameters('location')]",
+      "tags": "[parameters('tags')]",
+      "properties": {
+        "vnetConfiguration": {
+          "infrastructureSubnetId": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet), '2023-09-01').subnets[0].id]",
+          "internal": false
+        },
+        "appLogsConfiguration": {
+          "destination": "log-analytics",
+          "logAnalyticsConfiguration": {
+            "customerId": "[reference(resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics), '2023-09-01').customerId]",
+            "sharedKey": "[listKeys(resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics), '2023-09-01').primarySharedKey]"
+          }
+        },
+        "workloadProfiles": [
+          {
+            "name": "Consumption",
+            "workloadProfileType": "Consumption"
+          }
+        ],
+        "zoneRedundant": true
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]",
+        "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "kongAppDeployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[format('ca-kong-{0}', variables('prefix'))]"
+          },
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "containerAppEnvironmentId": {
+            "value": "[resourceId('Microsoft.App/managedEnvironments', variables('resourceNames').containerAppEnv)]"
+          },
+          "managedIdentityId": {
+            "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity)]"
+          },
+          "managedIdentityClientId": {
+            "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity), '2023-01-31').clientId]"
+          },
+          "keyVaultName": {
+            "value": "[variables('resourceNames').keyVault]"
+          },
+          "kongImage": {
+            "value": "[parameters('kongImage')]"
+          },
+          "minReplicas": {
+            "value": "[parameters('minReplicas')]"
+          },
+          "maxReplicas": {
+            "value": "[parameters('maxReplicas')]"
+          },
+          "cpu": {
+            "value": "[parameters('kongCpu')]"
+          },
+          "memory": {
+            "value": "[parameters('kongMemory')]"
+          },
+          "redisHost": {
+            "value": "[reference(resourceId('Microsoft.Cache/redis', variables('resourceNames').redis), '2023-08-01').hostName]"
+          },
+          "zitadelIssuer": {
+            "value": "[parameters('zitadelIssuer')]"
+          },
+          "zitadelJwksUrl": {
+            "value": "[parameters('zitadelJwksUrl')]"
+          },
+          "postgresHost": {
+            "value": "[format('{0}.postgres.database.azure.com', variables('resourceNames').postgres)]"
+          },
+          "postgresUser": {
+            "value": "[parameters('postgresAdminUser')]"
+          },
+          "appInsightsConnectionString": {
+            "value": "[reference(resourceId('Microsoft.Insights/components', variables('resourceNames').applicationInsights), '2020-02-02').ConnectionString]"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "9523167539054260503"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Container App"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Resource tags"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "metadata": {
+                "description": "Environment name"
+              }
+            },
+            "containerAppEnvironmentId": {
+              "type": "string",
+              "metadata": {
+                "description": "Container App Environment ID"
+              }
+            },
+            "managedIdentityId": {
+              "type": "string",
+              "metadata": {
+                "description": "Managed Identity Resource ID"
+              }
+            },
+            "managedIdentityClientId": {
+              "type": "string",
+              "metadata": {
+                "description": "Managed Identity Client ID"
+              }
+            },
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Key Vault name"
+              }
+            },
+            "kongImage": {
+              "type": "string",
+              "defaultValue": "kong:3.9",
+              "metadata": {
+                "description": "Kong Docker image"
+              }
+            },
+            "minReplicas": {
+              "type": "int",
+              "defaultValue": 2,
+              "metadata": {
+                "description": "Minimum replicas"
+              }
+            },
+            "maxReplicas": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Maximum replicas"
+              }
+            },
+            "cpu": {
+              "type": "string",
+              "defaultValue": "1",
+              "metadata": {
+                "description": "CPU allocation"
+              }
+            },
+            "memory": {
+              "type": "string",
+              "defaultValue": "2Gi",
+              "metadata": {
+                "description": "Memory allocation"
+              }
+            },
+            "redisHost": {
+              "type": "string",
+              "metadata": {
+                "description": "Redis host"
+              }
+            },
+            "zitadelIssuer": {
+              "type": "string",
+              "metadata": {
+                "description": "Zitadel issuer URL"
+              }
+            },
+            "zitadelJwksUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "Zitadel JWKS URL"
+              }
+            },
+            "postgresHost": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL host"
+              }
+            },
+            "postgresUser": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL user"
+              }
+            },
+            "appInsightsConnectionString": {
+              "type": "string",
+              "defaultValue": "",
+              "metadata": {
+                "description": "Application Insights connection string"
+              }
+            },
+            "logLevel": {
+              "type": "string",
+              "defaultValue": "info",
+              "allowedValues": [
+                "debug",
+                "info",
+                "notice",
+                "warn",
+                "error",
+                "crit"
+              ],
+              "metadata": {
+                "description": "Kong log level"
+              }
+            },
+            "enableProxyAccessLog": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enable proxy access log"
+              }
+            },
+            "enableAdminAccessLog": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enable admin access log"
+              }
+            },
+            "proxyListen": {
+              "type": "string",
+              "defaultValue": "0.0.0.0:8000",
+              "metadata": {
+                "description": "Kong proxy listen address"
+              }
+            },
+            "adminListen": {
+              "type": "string",
+              "defaultValue": "0.0.0.0:8001",
+              "metadata": {
+                "description": "Kong admin listen address"
+              }
+            },
+            "kongPlugins": {
+              "type": "string",
+              "defaultValue": "bundled,jwt,rate-limiting,cors,request-transformer,prometheus,correlation-id,rate-limiting-advanced",
+              "metadata": {
+                "description": "Kong plugins to enable"
+              }
+            },
+            "kongDatabase": {
+              "type": "string",
+              "defaultValue": "postgres",
+              "metadata": {
+                "description": "Kong database"
+              }
+            },
+            "kongPostgresDatabase": {
+              "type": "string",
+              "defaultValue": "kong",
+              "metadata": {
+                "description": "Kong PostgreSQL database name"
+              }
+            },
+            "kongPostgresPort": {
+              "type": "string",
+              "defaultValue": "5432",
+              "metadata": {
+                "description": "Kong PostgreSQL port"
+              }
+            },
+            "kongPostgresSsl": {
+              "type": "string",
+              "defaultValue": "on",
+              "metadata": {
+                "description": "Kong PostgreSQL SSL mode"
+              }
+            },
+            "kongPostgresSslVerify": {
+              "type": "string",
+              "defaultValue": "off",
+              "metadata": {
+                "description": "Kong PostgreSQL SSL verify"
+              }
+            },
+            "redisPort": {
+              "type": "string",
+              "defaultValue": "6380",
+              "metadata": {
+                "description": "Redis port"
+              }
+            },
+            "redisSsl": {
+              "type": "string",
+              "defaultValue": "true",
+              "metadata": {
+                "description": "Redis SSL enabled"
+              }
+            },
+            "livenessInitialDelaySeconds": {
+              "type": "int",
+              "defaultValue": 30,
+              "metadata": {
+                "description": "Liveness probe initial delay seconds"
+              }
+            },
+            "livenessPeriodSeconds": {
+              "type": "int",
+              "defaultValue": 10,
+              "metadata": {
+                "description": "Liveness probe period seconds"
+              }
+            },
+            "livenessTimeoutSeconds": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Liveness probe timeout seconds"
+              }
+            },
+            "livenessFailureThreshold": {
+              "type": "int",
+              "defaultValue": 3,
+              "metadata": {
+                "description": "Liveness probe failure threshold"
+              }
+            },
+            "readinessInitialDelaySeconds": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Readiness probe initial delay seconds"
+              }
+            },
+            "readinessPeriodSeconds": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Readiness probe period seconds"
+              }
+            },
+            "readinessTimeoutSeconds": {
+              "type": "int",
+              "defaultValue": 3,
+              "metadata": {
+                "description": "Readiness probe timeout seconds"
+              }
+            },
+            "readinessFailureThreshold": {
+              "type": "int",
+              "defaultValue": 3,
+              "metadata": {
+                "description": "Readiness probe failure threshold"
+              }
+            },
+            "startupInitialDelaySeconds": {
+              "type": "int",
+              "defaultValue": 10,
+              "metadata": {
+                "description": "Startup probe initial delay seconds"
+              }
+            },
+            "startupPeriodSeconds": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Startup probe period seconds"
+              }
+            },
+            "startupTimeoutSeconds": {
+              "type": "int",
+              "defaultValue": 3,
+              "metadata": {
+                "description": "Startup probe timeout seconds"
+              }
+            },
+            "startupFailureThreshold": {
+              "type": "int",
+              "defaultValue": 12,
+              "metadata": {
+                "description": "Startup probe failure threshold"
+              }
+            },
+            "cpuScalingThreshold": {
+              "type": "int",
+              "defaultValue": 70,
+              "metadata": {
+                "description": "CPU scaling threshold percentage"
+              }
+            },
+            "memoryScalingThreshold": {
+              "type": "int",
+              "defaultValue": 80,
+              "metadata": {
+                "description": "Memory scaling threshold percentage"
+              }
+            },
+            "httpScalingRequests": {
+              "type": "int",
+              "defaultValue": 100,
+              "metadata": {
+                "description": "HTTP scaling concurrent requests"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.App/containerApps",
+              "apiVersion": "2024-03-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "identity": {
+                "type": "UserAssigned",
+                "userAssignedIdentities": {
+                  "[format('{0}', parameters('managedIdentityId'))]": {}
+                }
+              },
+              "properties": {
+                "managedEnvironmentId": "[parameters('containerAppEnvironmentId')]",
+                "workloadProfileName": "Consumption",
+                "configuration": {
+                  "activeRevisionsMode": "Single",
+                  "ingress": {
+                    "external": true,
+                    "targetPort": 8000,
+                    "transport": "auto",
+                    "traffic": [
+                      {
+                        "weight": 100,
+                        "latestRevision": true
+                      }
+                    ],
+                    "allowInsecure": false,
+                    "stickySessions": {
+                      "affinity": "none"
+                    }
+                  },
+                  "secrets": [
+                    {
+                      "name": "kong-pg-host",
+                      "keyVaultUrl": "[format('{0}secrets/kong-pg-host', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "kong-pg-user",
+                      "keyVaultUrl": "[format('{0}secrets/kong-pg-user', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "kong-pg-password",
+                      "keyVaultUrl": "[format('{0}secrets/kong-pg-password', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "kong-pg-database",
+                      "keyVaultUrl": "[format('{0}secrets/kong-pg-database', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "redis-password",
+                      "keyVaultUrl": "[format('{0}secrets/redis-password', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "redis-host",
+                      "keyVaultUrl": "[format('{0}secrets/redis-host', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    },
+                    {
+                      "name": "kong-admin-token",
+                      "keyVaultUrl": "[format('{0}secrets/kong-admin-token', reference(resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName')), '2023-07-01').vaultUri)]",
+                      "identity": "[parameters('managedIdentityId')]"
+                    }
+                  ],
+                  "registries": []
+                },
+                "template": {
+                  "containers": [
+                    {
+                      "name": "kong",
+                      "image": "[parameters('kongImage')]",
+                      "resources": {
+                        "cpu": "[json(parameters('cpu'))]",
+                        "memory": "[parameters('memory')]"
+                      },
+                      "env": [
+                        {
+                          "name": "KONG_DATABASE",
+                          "value": "[parameters('kongDatabase')]"
+                        },
+                        {
+                          "name": "KONG_PG_HOST",
+                          "secretRef": "kong-pg-host"
+                        },
+                        {
+                          "name": "KONG_PG_USER",
+                          "secretRef": "kong-pg-user"
+                        },
+                        {
+                          "name": "KONG_PG_PASSWORD",
+                          "secretRef": "kong-pg-password"
+                        },
+                        {
+                          "name": "KONG_PG_DATABASE",
+                          "secretRef": "kong-pg-database"
+                        },
+                        {
+                          "name": "KONG_PG_PORT",
+                          "value": "[parameters('kongPostgresPort')]"
+                        },
+                        {
+                          "name": "KONG_PG_SSL",
+                          "value": "[parameters('kongPostgresSsl')]"
+                        },
+                        {
+                          "name": "KONG_PG_SSL_VERIFY",
+                          "value": "[parameters('kongPostgresSslVerify')]"
+                        },
+                        {
+                          "name": "KONG_PLUGINS",
+                          "value": "[parameters('kongPlugins')]"
+                        },
+                        {
+                          "name": "KONG_PROXY_LISTEN",
+                          "value": "[parameters('proxyListen')]"
+                        },
+                        {
+                          "name": "KONG_ADMIN_LISTEN",
+                          "value": "[parameters('adminListen')]"
+                        },
+                        {
+                          "name": "KONG_PROXY_ACCESS_LOG",
+                          "value": "[if(parameters('enableProxyAccessLog'), '/dev/stdout', 'off')]"
+                        },
+                        {
+                          "name": "KONG_ADMIN_ACCESS_LOG",
+                          "value": "[if(parameters('enableAdminAccessLog'), '/dev/stdout', 'off')]"
+                        },
+                        {
+                          "name": "KONG_PROXY_ERROR_LOG",
+                          "value": "/dev/stderr"
+                        },
+                        {
+                          "name": "KONG_ADMIN_ERROR_LOG",
+                          "value": "/dev/stderr"
+                        },
+                        {
+                          "name": "KONG_LOG_LEVEL",
+                          "value": "[parameters('logLevel')]"
+                        },
+                        {
+                          "name": "REDIS_HOST",
+                          "secretRef": "redis-host"
+                        },
+                        {
+                          "name": "REDIS_PORT",
+                          "value": "[parameters('redisPort')]"
+                        },
+                        {
+                          "name": "REDIS_PASSWORD",
+                          "secretRef": "redis-password"
+                        },
+                        {
+                          "name": "REDIS_SSL",
+                          "value": "[parameters('redisSsl')]"
+                        },
+                        {
+                          "name": "ZITADEL_ISSUER",
+                          "value": "[parameters('zitadelIssuer')]"
+                        },
+                        {
+                          "name": "ZITADEL_JWKS_URL",
+                          "value": "[parameters('zitadelJwksUrl')]"
+                        },
+                        {
+                          "name": "KONG_ADMIN_ACCESS_LOG",
+                          "value": "/dev/stdout"
+                        },
+                        {
+                          "name": "KONG_ADMIN_GUI_PATH",
+                          "value": "/"
+                        },
+                        {
+                          "name": "KONG_ADMIN_GUI_URL",
+                          "value": "https://admin.kombify.io"
+                        },
+                        {
+                          "name": "KONG_DECLARATIVE_CONFIG",
+                          "value": ""
+                        },
+                        {
+                          "name": "APPLICATIONINSIGHTS_CONNECTION_STRING",
+                          "value": "[parameters('appInsightsConnectionString')]"
+                        },
+                        {
+                          "name": "AZURE_CLIENT_ID",
+                          "value": "[parameters('managedIdentityClientId')]"
+                        }
+                      ],
+                      "probes": [
+                        {
+                          "type": "Liveness",
+                          "httpGet": {
+                            "path": "/status",
+                            "port": 8001,
+                            "httpHeaders": []
+                          },
+                          "initialDelaySeconds": "[parameters('livenessInitialDelaySeconds')]",
+                          "periodSeconds": "[parameters('livenessPeriodSeconds')]",
+                          "timeoutSeconds": "[parameters('livenessTimeoutSeconds')]",
+                          "failureThreshold": "[parameters('livenessFailureThreshold')]",
+                          "successThreshold": 1
+                        },
+                        {
+                          "type": "Readiness",
+                          "httpGet": {
+                            "path": "/status",
+                            "port": 8001,
+                            "httpHeaders": []
+                          },
+                          "initialDelaySeconds": "[parameters('readinessInitialDelaySeconds')]",
+                          "periodSeconds": "[parameters('readinessPeriodSeconds')]",
+                          "timeoutSeconds": "[parameters('readinessTimeoutSeconds')]",
+                          "failureThreshold": "[parameters('readinessFailureThreshold')]",
+                          "successThreshold": 1
+                        },
+                        {
+                          "type": "Startup",
+                          "httpGet": {
+                            "path": "/status",
+                            "port": 8001,
+                            "httpHeaders": []
+                          },
+                          "initialDelaySeconds": "[parameters('startupInitialDelaySeconds')]",
+                          "periodSeconds": "[parameters('startupPeriodSeconds')]",
+                          "timeoutSeconds": "[parameters('startupTimeoutSeconds')]",
+                          "failureThreshold": "[parameters('startupFailureThreshold')]",
+                          "successThreshold": 1
+                        }
+                      ],
+                      "volumeMounts": []
+                    }
+                  ],
+                  "initContainers": [],
+                  "scale": {
+                    "minReplicas": "[parameters('minReplicas')]",
+                    "maxReplicas": "[parameters('maxReplicas')]",
+                    "rules": [
+                      {
+                        "name": "cpu-scaling",
+                        "custom": {
+                          "type": "cpu",
+                          "metadata": {
+                            "type": "Utilization",
+                            "value": "[string(parameters('cpuScalingThreshold'))]"
+                          }
+                        }
+                      },
+                      {
+                        "name": "memory-scaling",
+                        "custom": {
+                          "type": "memory",
+                          "metadata": {
+                            "type": "Utilization",
+                            "value": "[string(parameters('memoryScalingThreshold'))]"
+                          }
+                        }
+                      },
+                      {
+                        "name": "http-scaling",
+                        "custom": {
+                          "type": "http",
+                          "metadata": {
+                            "concurrentRequests": "[string(parameters('httpScalingRequests'))]"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          ],
+          "outputs": {
+            "containerAppId": {
+              "type": "string",
+              "metadata": {
+                "description": "Kong Container App ID"
+              },
+              "value": "[resourceId('Microsoft.App/containerApps', parameters('name'))]"
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Kong Container App name"
+              },
+              "value": "[parameters('name')]"
+            },
+            "fqdn": {
+              "type": "string",
+              "metadata": {
+                "description": "Kong Container App FQDN"
+              },
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2024-03-01').configuration.ingress.fqdn]"
+            },
+            "url": {
+              "type": "string",
+              "metadata": {
+                "description": "Kong Container App URL"
+              },
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2024-03-01').configuration.ingress.fqdn)]"
+            },
+            "latestRevisionName": {
+              "type": "string",
+              "metadata": {
+                "description": "Latest revision name"
+              },
+              "value": "[reference(resourceId('Microsoft.App/containerApps', parameters('name')), '2024-03-01').latestRevisionName]"
+            },
+            "managedIdentityPrincipalId": {
+              "type": "string",
+              "metadata": {
+                "description": "Managed Identity Principal ID"
+              },
+              "value": "[parameters('managedIdentityId')]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Insights/components', variables('resourceNames').applicationInsights)]",
+        "[resourceId('Microsoft.App/managedEnvironments', variables('resourceNames').containerAppEnv)]",
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]",
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers/databases', variables('resourceNames').postgres, 'kong')]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity)]",
+        "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('resourceNames').keyVault, 'kong-pg-password')]",
+        "[resourceId('Microsoft.KeyVault/vaults/secrets', variables('resourceNames').keyVault, 'redis-password')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "frontDoorDeployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "name": {
+            "value": "[format('afd-{0}', variables('prefix'))]"
+          },
+          "location": {
+            "value": "Global"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "customDomain": {
+            "value": "[parameters('customDomain')]"
+          },
+          "originHostName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'kongAppDeployment'), '2025-04-01').outputs.fqdn.value]"
+          },
+          "healthProbePath": {
+            "value": "/health"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "870948336871206220"
+            }
+          },
+          "parameters": {
+            "name": {
+              "type": "string",
+              "metadata": {
+                "description": "Name of the Front Door profile"
+              }
+            },
+            "location": {
+              "type": "string",
+              "defaultValue": "Global",
+              "metadata": {
+                "description": "Azure region (Front Door is global)"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Resource tags"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "metadata": {
+                "description": "Environment name"
+              }
+            },
+            "customDomain": {
+              "type": "string",
+              "metadata": {
+                "description": "Custom domain for API (e.g., api.kombify.io)"
+              }
+            },
+            "originHostName": {
+              "type": "string",
+              "metadata": {
+                "description": "Origin hostname (Kong Container App FQDN)"
+              }
+            },
+            "healthProbePath": {
+              "type": "string",
+              "defaultValue": "/health",
+              "metadata": {
+                "description": "Health probe path"
+              }
+            },
+            "healthProbeProtocol": {
+              "type": "string",
+              "defaultValue": "Https",
+              "allowedValues": [
+                "Http",
+                "Https"
+              ],
+              "metadata": {
+                "description": "Health probe protocol"
+              }
+            },
+            "healthProbeInterval": {
+              "type": "int",
+              "defaultValue": 30,
+              "metadata": {
+                "description": "Health probe interval in seconds"
+              }
+            },
+            "originResponseTimeout": {
+              "type": "int",
+              "defaultValue": 60,
+              "metadata": {
+                "description": "Origin response timeout in seconds"
+              }
+            },
+            "sessionAffinityEnabled": {
+              "type": "bool",
+              "defaultValue": false,
+              "metadata": {
+                "description": "Session affinity enabled"
+              }
+            },
+            "compressionEnabled": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Compression enabled"
+              }
+            },
+            "queryStringCachingBehavior": {
+              "type": "string",
+              "defaultValue": "UseQueryString",
+              "allowedValues": [
+                "IgnoreQueryString",
+                "IgnoreSpecifiedQueryStrings",
+                "IncludeSpecifiedQueryStrings",
+                "UseQueryString"
+              ],
+              "metadata": {
+                "description": "Query string caching behavior"
+              }
+            },
+            "forwardingProtocol": {
+              "type": "string",
+              "defaultValue": "HttpsOnly",
+              "allowedValues": [
+                "HttpOnly",
+                "HttpsOnly",
+                "MatchRequest"
+              ],
+              "metadata": {
+                "description": "Forwarding protocol"
+              }
+            },
+            "httpsRedirectEnabled": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "HTTPS redirect enabled"
+              }
+            },
+            "wafMode": {
+              "type": "string",
+              "defaultValue": "Prevention",
+              "allowedValues": [
+                "Prevention",
+                "Detection"
+              ],
+              "metadata": {
+                "description": "WAF policy mode"
+              }
+            },
+            "managedRuleSets": {
+              "type": "array",
+              "defaultValue": [
+                {
+                  "ruleSetType": "Microsoft_DefaultRuleSet",
+                  "ruleSetVersion": "2.1",
+                  "ruleSetAction": "Block",
+                  "exclusions": []
+                },
+                {
+                  "ruleSetType": "Microsoft_BotManagerRuleSet",
+                  "ruleSetVersion": "1.0",
+                  "ruleSetAction": "Block",
+                  "exclusions": []
+                }
+              ],
+              "metadata": {
+                "description": "Managed rule sets to enable"
+              }
+            },
+            "rateLimitThreshold": {
+              "type": "int",
+              "defaultValue": 1000,
+              "metadata": {
+                "description": "Rate limit threshold (requests per minute)"
+              }
+            },
+            "rateLimitEnabled": {
+              "type": "bool",
+              "defaultValue": true,
+              "metadata": {
+                "description": "Enable rate limiting"
+              }
+            },
+            "ipAllowList": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "IP allow list (optional)"
+              }
+            },
+            "ipBlockList": {
+              "type": "array",
+              "defaultValue": [],
+              "metadata": {
+                "description": "IP block list (optional)"
+              }
+            }
+          },
+          "variables": {
+            "endpointName": "[format('api-{0}', parameters('environment'))]",
+            "originGroupName": "kong-origin-group",
+            "originName": "kong-origin",
+            "routeName": "api-route",
+            "wafPolicyName": "[format('waf-{0}', parameters('name'))]"
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Network/FrontDoorWebApplicationFirewallPolicies",
+              "apiVersion": "2024-02-01",
+              "name": "[variables('wafPolicyName')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Premium_AzureFrontDoor"
+              },
+              "properties": {
+                "policySettings": {
+                  "enabledState": "Enabled",
+                  "mode": "[parameters('wafMode')]",
+                  "defaultRedirectUrl": null,
+                  "customBlockResponseStatusCode": 403,
+                  "customBlockResponseBody": "[base64('{\"error\": \"Access Denied\", \"message\": \"Your request has been blocked by security rules.\"}')]",
+                  "requestBodyCheck": "Enabled",
+                  "requestBodyInspectLimitInKB": 128
+                },
+                "customRules": {
+                  "rules": [
+                    {
+                      "name": "RateLimitRule",
+                      "priority": 1,
+                      "enabledState": "[if(parameters('rateLimitEnabled'), 'Enabled', 'Disabled')]",
+                      "ruleType": "RateLimitRule",
+                      "rateLimitDurationInMinutes": 1,
+                      "rateLimitThreshold": "[parameters('rateLimitThreshold')]",
+                      "matchConditions": [
+                        {
+                          "matchVariable": "RemoteAddr",
+                          "selector": null,
+                          "operator": "IPMatch",
+                          "negateCondition": false,
+                          "matchValue": [
+                            "0.0.0.0/0"
+                          ],
+                          "transforms": []
+                        }
+                      ],
+                      "action": "Block"
+                    },
+                    {
+                      "name": "IPAllowListRule",
+                      "priority": 2,
+                      "enabledState": "[if(empty(parameters('ipAllowList')), 'Disabled', 'Enabled')]",
+                      "ruleType": "MatchRule",
+                      "matchConditions": [
+                        {
+                          "matchVariable": "RemoteAddr",
+                          "selector": null,
+                          "operator": "IPMatch",
+                          "negateCondition": false,
+                          "matchValue": "[parameters('ipAllowList')]",
+                          "transforms": []
+                        }
+                      ],
+                      "action": "Allow"
+                    },
+                    {
+                      "name": "IPBlockListRule",
+                      "priority": 3,
+                      "enabledState": "[if(empty(parameters('ipBlockList')), 'Disabled', 'Enabled')]",
+                      "ruleType": "MatchRule",
+                      "matchConditions": [
+                        {
+                          "matchVariable": "RemoteAddr",
+                          "selector": null,
+                          "operator": "IPMatch",
+                          "negateCondition": false,
+                          "matchValue": "[parameters('ipBlockList')]",
+                          "transforms": []
+                        }
+                      ],
+                      "action": "Block"
+                    },
+                    {
+                      "name": "BlockSuspiciousUserAgents",
+                      "priority": 4,
+                      "enabledState": "Enabled",
+                      "ruleType": "MatchRule",
+                      "matchConditions": [
+                        {
+                          "matchVariable": "RequestHeader",
+                          "selector": "User-Agent",
+                          "operator": "Contains",
+                          "negateCondition": false,
+                          "matchValue": [
+                            "sqlmap",
+                            "nikto",
+                            "nmap",
+                            "masscan",
+                            "zgrab",
+                            "gobuster",
+                            "dirbuster"
+                          ],
+                          "transforms": [
+                            "Lowercase"
+                          ]
+                        }
+                      ],
+                      "action": "Block"
+                    }
+                  ]
+                },
+                "managedRules": {
+                  "copy": [
+                    {
+                      "name": "managedRuleSets",
+                      "count": "[length(parameters('managedRuleSets'))]",
+                      "input": {
+                        "ruleSetType": "[parameters('managedRuleSets')[copyIndex('managedRuleSets')].ruleSetType]",
+                        "ruleSetVersion": "[parameters('managedRuleSets')[copyIndex('managedRuleSets')].ruleSetVersion]",
+                        "ruleSetAction": "[parameters('managedRuleSets')[copyIndex('managedRuleSets')].ruleSetAction]",
+                        "ruleGroupOverrides": [],
+                        "exclusions": "[parameters('managedRuleSets')[copyIndex('managedRuleSets')].exclusions]"
+                      }
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "type": "Microsoft.Cdn/profiles",
+              "apiVersion": "2024-02-01",
+              "name": "[parameters('name')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "sku": {
+                "name": "Premium_AzureFrontDoor"
+              },
+              "properties": {
+                "originResponseTimeoutSeconds": "[parameters('originResponseTimeout')]"
+              }
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/afdEndpoints",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}', parameters('name'), variables('endpointName'))]",
+              "location": "[parameters('location')]",
+              "properties": {
+                "enabledState": "Enabled"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('name'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/customDomains",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}', parameters('name'), replace(parameters('customDomain'), '.', '-'))]",
+              "properties": {
+                "hostName": "[parameters('customDomain')]",
+                "tlsSettings": {
+                  "certificateType": "ManagedCertificate",
+                  "minimumTlsVersion": "TLS12",
+                  "secret": null
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('name'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/originGroups",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}', parameters('name'), variables('originGroupName'))]",
+              "properties": {
+                "loadBalancingSettings": {
+                  "sampleSize": 4,
+                  "successfulSamplesRequired": 3,
+                  "additionalLatencyInMilliseconds": 50
+                },
+                "healthProbeSettings": {
+                  "probePath": "[parameters('healthProbePath')]",
+                  "probeRequestType": "GET",
+                  "probeProtocol": "[parameters('healthProbeProtocol')]",
+                  "probeIntervalInSeconds": "[parameters('healthProbeInterval')]"
+                },
+                "sessionAffinityState": "[if(parameters('sessionAffinityEnabled'), 'Enabled', 'Disabled')]"
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles', parameters('name'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/originGroups/origins",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}/{2}', parameters('name'), variables('originGroupName'), variables('originName'))]",
+              "properties": {
+                "hostName": "[parameters('originHostName')]",
+                "httpPort": 80,
+                "httpsPort": 443,
+                "originHostHeader": "[parameters('originHostName')]",
+                "priority": 1,
+                "weight": 100,
+                "enabledState": "Enabled",
+                "enforceCertificateNameCheck": true
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('name'), variables('originGroupName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/afdEndpoints/routes",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}/{2}', parameters('name'), variables('endpointName'), variables('routeName'))]",
+              "properties": {
+                "customDomains": [
+                  {
+                    "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('name'), replace(parameters('customDomain'), '.', '-'))]"
+                  }
+                ],
+                "originGroup": {
+                  "id": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('name'), variables('originGroupName'))]"
+                },
+                "ruleSets": [],
+                "supportedProtocols": [
+                  "Http",
+                  "Https"
+                ],
+                "patternsToMatch": [
+                  "/*"
+                ],
+                "forwardingProtocol": "[parameters('forwardingProtocol')]",
+                "linkToDefaultDomain": "Enabled",
+                "httpsRedirect": "[if(parameters('httpsRedirectEnabled'), 'Enabled', 'Disabled')]",
+                "enabledState": "Enabled",
+                "cacheConfiguration": {
+                  "queryStringCachingBehavior": "[parameters('queryStringCachingBehavior')]",
+                  "compressionSettings": {
+                    "isCompressionEnabled": "[parameters('compressionEnabled')]",
+                    "contentTypesToCompress": [
+                      "application/eot",
+                      "application/font",
+                      "application/font-sfnt",
+                      "application/javascript",
+                      "application/json",
+                      "application/opentype",
+                      "application/otf",
+                      "application/pkcs7-mime",
+                      "application/truetype",
+                      "application/ttf",
+                      "application/vnd.ms-fontobject",
+                      "application/xhtml+xml",
+                      "application/xml",
+                      "application/xml+rss",
+                      "application/x-font-opentype",
+                      "application/x-font-truetype",
+                      "application/x-font-ttf",
+                      "application/x-httpd-cgi",
+                      "application/x-javascript",
+                      "application/x-mpegurl",
+                      "application/x-opentype",
+                      "application/x-otf",
+                      "application/x-perl",
+                      "application/x-ttf",
+                      "font/eot",
+                      "font/ttf",
+                      "font/otf",
+                      "font/opentype",
+                      "image/svg+xml",
+                      "text/css",
+                      "text/csv",
+                      "text/html",
+                      "text/javascript",
+                      "text/js",
+                      "text/markdown",
+                      "text/plain",
+                      "text/richtext",
+                      "text/tab-separated-values",
+                      "text/xml",
+                      "text/x-script",
+                      "text/x-component",
+                      "text/x-java-source"
+                    ]
+                  }
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('name'), replace(parameters('customDomain'), '.', '-'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('name'), variables('endpointName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('name'), variables('originGroupName'), variables('originName'))]",
+                "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('name'), variables('originGroupName'))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Cdn/profiles/securityPolicies",
+              "apiVersion": "2024-02-01",
+              "name": "[format('{0}/{1}', parameters('name'), 'waf-policy')]",
+              "properties": {
+                "parameters": {
+                  "type": "WebApplicationFirewall",
+                  "wafPolicy": {
+                    "id": "[resourceId('Microsoft.Network/FrontDoorWebApplicationFirewallPolicies', variables('wafPolicyName'))]"
+                  },
+                  "associations": [
+                    {
+                      "domains": [
+                        {
+                          "id": "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('name'), variables('endpointName'))]"
+                        },
+                        {
+                          "id": "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('name'), replace(parameters('customDomain'), '.', '-'))]"
+                        }
+                      ],
+                      "patternsToMatch": [
+                        "/*"
+                      ]
+                    }
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Cdn/profiles/customDomains', parameters('name'), replace(parameters('customDomain'), '.', '-'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('name'), variables('endpointName'))]",
+                "[resourceId('Microsoft.Cdn/profiles', parameters('name'))]",
+                "[resourceId('Microsoft.Cdn/profiles/afdEndpoints/routes', parameters('name'), variables('endpointName'), variables('routeName'))]",
+                "[resourceId('Microsoft.Network/FrontDoorWebApplicationFirewallPolicies', variables('wafPolicyName'))]"
+              ]
+            }
+          ],
+          "outputs": {
+            "frontDoorId": {
+              "type": "string",
+              "metadata": {
+                "description": "Front Door Profile ID"
+              },
+              "value": "[resourceId('Microsoft.Cdn/profiles', parameters('name'))]"
+            },
+            "frontDoorName": {
+              "type": "string",
+              "metadata": {
+                "description": "Front Door Profile name"
+              },
+              "value": "[parameters('name')]"
+            },
+            "frontDoorEndpointHostName": {
+              "type": "string",
+              "metadata": {
+                "description": "Front Door Endpoint hostname"
+              },
+              "value": "[reference(resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('name'), variables('endpointName')), '2024-02-01').hostName]"
+            },
+            "frontDoorEndpointUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "Front Door Endpoint URL"
+              },
+              "value": "[format('https://{0}', reference(resourceId('Microsoft.Cdn/profiles/afdEndpoints', parameters('name'), variables('endpointName')), '2024-02-01').hostName)]"
+            },
+            "customDomainUrl": {
+              "type": "string",
+              "metadata": {
+                "description": "Custom domain URL"
+              },
+              "value": "[format('https://{0}', parameters('customDomain'))]"
+            },
+            "wafPolicyId": {
+              "type": "string",
+              "metadata": {
+                "description": "WAF Policy ID"
+              },
+              "value": "[resourceId('Microsoft.Network/FrontDoorWebApplicationFirewallPolicies', variables('wafPolicyName'))]"
+            },
+            "wafPolicyName": {
+              "type": "string",
+              "metadata": {
+                "description": "WAF Policy name"
+              },
+              "value": "[variables('wafPolicyName')]"
+            },
+            "originGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Origin Group ID"
+              },
+              "value": "[resourceId('Microsoft.Cdn/profiles/originGroups', parameters('name'), variables('originGroupName'))]"
+            },
+            "originId": {
+              "type": "string",
+              "metadata": {
+                "description": "Origin ID"
+              },
+              "value": "[resourceId('Microsoft.Cdn/profiles/originGroups/origins', parameters('name'), variables('originGroupName'), variables('originName'))]"
+            },
+            "routeId": {
+              "type": "string",
+              "metadata": {
+                "description": "Route ID"
+              },
+              "value": "[resourceId('Microsoft.Cdn/profiles/afdEndpoints/routes', parameters('name'), variables('endpointName'), variables('routeName'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'kongAppDeployment')]"
+      ]
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2025-04-01",
+      "name": "monitoringDeployment",
+      "properties": {
+        "expressionEvaluationOptions": {
+          "scope": "inner"
+        },
+        "mode": "Incremental",
+        "parameters": {
+          "location": {
+            "value": "[parameters('location')]"
+          },
+          "tags": {
+            "value": "[parameters('tags')]"
+          },
+          "environment": {
+            "value": "[parameters('environment')]"
+          },
+          "logAnalyticsWorkspaceId": {
+            "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]"
+          },
+          "logAnalyticsWorkspaceName": {
+            "value": "[variables('resourceNames').logAnalytics]"
+          },
+          "containerAppName": {
+            "value": "[reference(resourceId('Microsoft.Resources/deployments', 'kongAppDeployment'), '2025-04-01').outputs.containerAppName.value]"
+          },
+          "keyVaultName": {
+            "value": "[variables('resourceNames').keyVault]"
+          },
+          "redisName": {
+            "value": "[variables('resourceNames').redis]"
+          },
+          "postgresName": {
+            "value": "[variables('resourceNames').postgres]"
+          },
+          "alertActionGroupEmail": {
+            "value": "platform-alerts@kombify.io"
+          }
+        },
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "metadata": {
+            "_generator": {
+              "name": "bicep",
+              "version": "0.40.2.10011",
+              "templateHash": "11497226262064040345"
+            }
+          },
+          "parameters": {
+            "location": {
+              "type": "string",
+              "defaultValue": "[resourceGroup().location]",
+              "metadata": {
+                "description": "Azure region"
+              }
+            },
+            "tags": {
+              "type": "object",
+              "defaultValue": {},
+              "metadata": {
+                "description": "Resource tags"
+              }
+            },
+            "environment": {
+              "type": "string",
+              "metadata": {
+                "description": "Environment name"
+              }
+            },
+            "logAnalyticsWorkspaceId": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics Workspace ID"
+              }
+            },
+            "logAnalyticsWorkspaceName": {
+              "type": "string",
+              "metadata": {
+                "description": "Log Analytics Workspace name"
+              }
+            },
+            "containerAppName": {
+              "type": "string",
+              "metadata": {
+                "description": "Kong Container App name"
+              }
+            },
+            "keyVaultName": {
+              "type": "string",
+              "metadata": {
+                "description": "Key Vault name"
+              }
+            },
+            "redisName": {
+              "type": "string",
+              "metadata": {
+                "description": "Redis Cache name"
+              }
+            },
+            "postgresName": {
+              "type": "string",
+              "metadata": {
+                "description": "PostgreSQL server name"
+              }
+            },
+            "alertActionGroupEmail": {
+              "type": "string",
+              "defaultValue": "platform-alerts@kombify.io",
+              "metadata": {
+                "description": "Alert action group email"
+              }
+            },
+            "errorRateThreshold": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "High error rate threshold (percentage)"
+              }
+            },
+            "responseTimeThreshold": {
+              "type": "int",
+              "defaultValue": 2000,
+              "metadata": {
+                "description": "Response time threshold in milliseconds"
+              }
+            },
+            "healthCheckFailureThreshold": {
+              "type": "int",
+              "defaultValue": 3,
+              "metadata": {
+                "description": "Failed health check threshold"
+              }
+            },
+            "containerRestartThreshold": {
+              "type": "int",
+              "defaultValue": 5,
+              "metadata": {
+                "description": "Container restart threshold"
+              }
+            },
+            "cpuThreshold": {
+              "type": "int",
+              "defaultValue": 80,
+              "metadata": {
+                "description": "CPU utilization threshold (percentage)"
+              }
+            },
+            "memoryThreshold": {
+              "type": "int",
+              "defaultValue": 85,
+              "metadata": {
+                "description": "Memory utilization threshold (percentage)"
+              }
+            },
+            "evaluationFrequency": {
+              "type": "string",
+              "defaultValue": "PT5M",
+              "allowedValues": [
+                "PT1M",
+                "PT5M",
+                "PT15M",
+                "PT30M",
+                "PT1H"
+              ],
+              "metadata": {
+                "description": "Alert evaluation frequency"
+              }
+            },
+            "windowSize": {
+              "type": "string",
+              "defaultValue": "PT15M",
+              "allowedValues": [
+                "PT5M",
+                "PT15M",
+                "PT30M",
+                "PT1H",
+                "PT6H",
+                "PT12H",
+                "P1D"
+              ],
+              "metadata": {
+                "description": "Alert window size"
+              }
+            },
+            "criticalAlertSeverity": {
+              "type": "int",
+              "defaultValue": 0,
+              "allowedValues": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "metadata": {
+                "description": "Severity for critical alerts"
+              }
+            },
+            "warningAlertSeverity": {
+              "type": "int",
+              "defaultValue": 2,
+              "allowedValues": [
+                0,
+                1,
+                2,
+                3,
+                4
+              ],
+              "metadata": {
+                "description": "Severity for warning alerts"
+              }
+            }
+          },
+          "resources": [
+            {
+              "type": "Microsoft.Insights/actionGroups",
+              "apiVersion": "2023-01-01",
+              "name": "[format('ag-kombify-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "groupShortName": "KombifyAlerts",
+                "enabled": true,
+                "emailReceivers": [
+                  {
+                    "name": "PlatformTeam",
+                    "emailAddress": "[parameters('alertActionGroupEmail')]",
+                    "useCommonAlertSchema": true
+                  }
+                ],
+                "smsReceivers": [],
+                "webhookReceivers": [],
+                "azureAppPushReceivers": [],
+                "voiceReceivers": []
+              }
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "[format('alert-kong-high-error-rate-{0}', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "displayName": "Kong High Error Rate",
+                "description": "[format('Alert when Kong error rate exceeds {0}%', parameters('errorRateThreshold'))]",
+                "severity": "[parameters('criticalAlertSeverity')]",
+                "enabled": true,
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "scopes": [
+                  "[parameters('logAnalyticsWorkspaceId')]"
+                ],
+                "windowSize": "[parameters('windowSize')]",
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            ContainerAppConsoleLogs_CL\r\n            | where ContainerAppName_s == '${containerAppName}'\r\n            | where Log_s contains \"error\" or Log_s contains \"ERROR\"\r\n            | summarize ErrorCount = count()\r\n            | extend TotalCount = toscalar(\r\n                ContainerAppConsoleLogs_CL\r\n                | where ContainerAppName_s == '${containerAppName}'\r\n                | count\r\n              )\r\n            | extend ErrorRate = (ErrorCount * 100.0) / TotalCount\r\n            | where ErrorRate > ${errorRateThreshold}\r\n          ",
+                      "timeAggregation": "Count",
+                      "operator": "GreaterThan",
+                      "threshold": 0,
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 2,
+                        "minFailingPeriodsToAlert": 2
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "[format('alert-kong-high-response-time-{0}', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "displayName": "Kong High Response Time",
+                "description": "[format('Alert when Kong response time exceeds {0}ms', parameters('responseTimeThreshold'))]",
+                "severity": "[parameters('warningAlertSeverity')]",
+                "enabled": true,
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "scopes": [
+                  "[parameters('logAnalyticsWorkspaceId')]"
+                ],
+                "windowSize": "[parameters('windowSize')]",
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            ContainerAppConsoleLogs_CL\r\n            | where ContainerAppName_s == '${containerAppName}'\r\n            | where Log_s contains \"latency\" or Log_s contains \"duration\"\r\n            | extend ResponseTime = extract(@\"(\\d+)ms\", 1, Log_s)\r\n            | where isnotempty(ResponseTime)\r\n            | extend ResponseTimeInt = toint(ResponseTime)\r\n            | where ResponseTimeInt > ${responseTimeThreshold}\r\n            | summarize AvgResponseTime = avg(ResponseTimeInt)\r\n          ",
+                      "timeAggregation": "Average",
+                      "operator": "GreaterThan",
+                      "threshold": "[parameters('responseTimeThreshold')]",
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 3,
+                        "minFailingPeriodsToAlert": 2
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "[format('alert-kong-failed-health-checks-{0}', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "displayName": "Kong Failed Health Checks",
+                "description": "Alert when Kong health checks fail consecutively",
+                "severity": "[parameters('criticalAlertSeverity')]",
+                "enabled": true,
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "scopes": [
+                  "[parameters('logAnalyticsWorkspaceId')]"
+                ],
+                "windowSize": "[parameters('windowSize')]",
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            ContainerAppConsoleLogs_CL\r\n            | where ContainerAppName_s == '${containerAppName}'\r\n            | where Log_s contains \"health\" and (Log_s contains \"fail\" or Log_s contains \"unhealthy\")\r\n            | summarize FailureCount = count()\r\n            | where FailureCount >= ${healthCheckFailureThreshold}\r\n          ",
+                      "timeAggregation": "Count",
+                      "operator": "GreaterThanOrEqual",
+                      "threshold": "[parameters('healthCheckFailureThreshold')]",
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/scheduledQueryRules",
+              "apiVersion": "2023-03-15-preview",
+              "name": "[format('alert-kong-container-restarts-{0}', parameters('environment'))]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "displayName": "Kong Container Restarts",
+                "description": "Alert when Kong container restarts exceed threshold",
+                "severity": "[parameters('warningAlertSeverity')]",
+                "enabled": true,
+                "evaluationFrequency": "[parameters('evaluationFrequency')]",
+                "scopes": [
+                  "[parameters('logAnalyticsWorkspaceId')]"
+                ],
+                "windowSize": "[parameters('windowSize')]",
+                "criteria": {
+                  "allOf": [
+                    {
+                      "query": "            ContainerAppSystemLogs_CL\r\n            | where ContainerAppName_s == '${containerAppName}'\r\n            | where Log_s contains \"restart\" or Log_s contains \"Restarting\"\r\n            | summarize RestartCount = count()\r\n            | where RestartCount >= ${containerRestartThreshold}\r\n          ",
+                      "timeAggregation": "Count",
+                      "operator": "GreaterThanOrEqual",
+                      "threshold": "[parameters('containerRestartThreshold')]",
+                      "failingPeriods": {
+                        "numberOfEvaluationPeriods": 1,
+                        "minFailingPeriodsToAlert": 1
+                      }
+                    }
+                  ]
+                },
+                "actions": {
+                  "actionGroups": [
+                    "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  ]
+                }
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-kong-cpu-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "[format('Alert when Kong CPU utilization exceeds {0}%', parameters('cpuThreshold'))]",
+                "severity": "[parameters('warningAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "CPU Criteria",
+                      "metricName": "UsageNanoCores",
+                      "metricNamespace": "Microsoft.App/containerApps",
+                      "operator": "GreaterThan",
+                      "threshold": "[parameters('cpuThreshold')]",
+                      "timeAggregation": "Average",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-kong-memory-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "[format('Alert when Kong memory utilization exceeds {0}%', parameters('memoryThreshold'))]",
+                "severity": "[parameters('warningAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "Memory Criteria",
+                      "metricName": "UsageBytes",
+                      "metricNamespace": "Microsoft.App/containerApps",
+                      "operator": "GreaterThan",
+                      "threshold": "[mul(parameters('memoryThreshold'), 1000000)]",
+                      "timeAggregation": "Average",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-redis-errors-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "Alert when Redis encounters errors",
+                "severity": "[parameters('criticalAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.Cache/redis', parameters('redisName'))]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "Errors Criteria",
+                      "metricName": "errors",
+                      "metricNamespace": "Microsoft.Cache/redis",
+                      "operator": "GreaterThan",
+                      "threshold": 10,
+                      "timeAggregation": "Total",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-postgres-cpu-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "Alert when PostgreSQL CPU exceeds 80%",
+                "severity": "[parameters('warningAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresName'))]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "CPU Criteria",
+                      "metricName": "cpu_percent",
+                      "metricNamespace": "Microsoft.DBforPostgreSQL/flexibleServers",
+                      "operator": "GreaterThan",
+                      "threshold": 80,
+                      "timeAggregation": "Average",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-postgres-storage-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "Alert when PostgreSQL storage exceeds 85%",
+                "severity": "[parameters('criticalAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', parameters('postgresName'))]"
+                ],
+                "evaluationFrequency": "PT15M",
+                "windowSize": "PT1H",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "Storage Criteria",
+                      "metricName": "storage_percent",
+                      "metricNamespace": "Microsoft.DBforPostgreSQL/flexibleServers",
+                      "operator": "GreaterThan",
+                      "threshold": 85,
+                      "timeAggregation": "Average",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/metricAlerts",
+              "apiVersion": "2018-03-01",
+              "name": "[format('alert-keyvault-availability-{0}', parameters('environment'))]",
+              "location": "Global",
+              "tags": "[parameters('tags')]",
+              "properties": {
+                "description": "Alert when Key Vault availability drops",
+                "severity": "[parameters('criticalAlertSeverity')]",
+                "enabled": true,
+                "scopes": [
+                  "[resourceId('Microsoft.KeyVault/vaults', parameters('keyVaultName'))]"
+                ],
+                "evaluationFrequency": "PT5M",
+                "windowSize": "PT15M",
+                "criteria": {
+                  "odata.type": "Microsoft.Azure.Monitor.SingleResourceMultipleMetricCriteria",
+                  "allOf": [
+                    {
+                      "name": "Availability Criteria",
+                      "metricName": "Availability",
+                      "metricNamespace": "Microsoft.KeyVault/vaults",
+                      "operator": "LessThan",
+                      "threshold": 99,
+                      "timeAggregation": "Average",
+                      "criterionType": "StaticThresholdCriterion"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "actionGroupId": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+                  }
+                ]
+              },
+              "dependsOn": [
+                "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+              ]
+            },
+            {
+              "type": "Microsoft.Insights/diagnosticSettings",
+              "apiVersion": "2021-05-01-preview",
+              "scope": "[resourceId('Microsoft.App/containerApps', parameters('containerAppName'))]",
+              "name": "[format('diag-{0}', parameters('containerAppName'))]",
+              "properties": {
+                "workspaceId": "[parameters('logAnalyticsWorkspaceId')]",
+                "logs": [
+                  {
+                    "category": "ContainerAppConsoleLogs",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": 30
+                    }
+                  },
+                  {
+                    "category": "ContainerAppSystemLogs",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": 30
+                    }
+                  }
+                ],
+                "metrics": [
+                  {
+                    "category": "AllMetrics",
+                    "enabled": true,
+                    "retentionPolicy": {
+                      "enabled": true,
+                      "days": 30
+                    }
+                  }
+                ]
+              }
+            },
+            {
+              "type": "Microsoft.Insights/workbooks",
+              "apiVersion": "2023-06-01",
+              "name": "[guid(resourceGroup().id, 'kong-dashboard')]",
+              "location": "[parameters('location')]",
+              "tags": "[parameters('tags')]",
+              "kind": "shared",
+              "properties": {
+                "displayName": "[format('Kong Gateway Dashboard - {0}', parameters('environment'))]",
+                "description": "Monitoring dashboard for Kong Gateway",
+                "category": "workbook",
+                "serializedData": "[string(createObject('version', 'Notebook/1.0', 'items', createArray(createObject('type', 1, 'content', createObject('json', '# Kong Gateway Monitoring Dashboard')), createObject('type', 3, 'content', createObject('version', 'KqlItem/1.0', 'query', '              ContainerAppConsoleLogs_CL\r\n              | where ContainerAppName_s == ''${containerAppName}''\r\n              | summarize Count = count() by bin(TimeGenerated, 5m)\r\n              | render timechart\r\n            ', 'size', 0, 'title', 'Request Volume', 'timeContext', createObject('durationMs', 3600000))), createObject('type', 3, 'content', createObject('version', 'KqlItem/1.0', 'query', '              ContainerAppConsoleLogs_CL\r\n              | where ContainerAppName_s == ''${containerAppName}''\r\n              | where Log_s contains \"error\" or Log_s contains \"ERROR\"\r\n              | summarize Count = count() by bin(TimeGenerated, 5m)\r\n              | render timechart\r\n            ', 'size', 0, 'title', 'Error Count', 'timeContext', createObject('durationMs', 3600000))))))]",
+                "sourceId": "[parameters('logAnalyticsWorkspaceId')]"
+              }
+            }
+          ],
+          "outputs": {
+            "actionGroupId": {
+              "type": "string",
+              "metadata": {
+                "description": "Action Group ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/actionGroups', format('ag-kombify-{0}', parameters('environment')))]"
+            },
+            "actionGroupName": {
+              "type": "string",
+              "metadata": {
+                "description": "Action Group name"
+              },
+              "value": "[format('ag-kombify-{0}', parameters('environment'))]"
+            },
+            "highErrorRateAlertId": {
+              "type": "string",
+              "metadata": {
+                "description": "High error rate alert ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/scheduledQueryRules', format('alert-kong-high-error-rate-{0}', parameters('environment')))]"
+            },
+            "highResponseTimeAlertId": {
+              "type": "string",
+              "metadata": {
+                "description": "High response time alert ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/scheduledQueryRules', format('alert-kong-high-response-time-{0}', parameters('environment')))]"
+            },
+            "failedHealthChecksAlertId": {
+              "type": "string",
+              "metadata": {
+                "description": "Failed health checks alert ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/scheduledQueryRules', format('alert-kong-failed-health-checks-{0}', parameters('environment')))]"
+            },
+            "containerRestartsAlertId": {
+              "type": "string",
+              "metadata": {
+                "description": "Container restarts alert ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/scheduledQueryRules', format('alert-kong-container-restarts-{0}', parameters('environment')))]"
+            },
+            "dashboardId": {
+              "type": "string",
+              "metadata": {
+                "description": "Dashboard ID"
+              },
+              "value": "[resourceId('Microsoft.Insights/workbooks', guid(resourceGroup().id, 'kong-dashboard'))]"
+            }
+          }
+        }
+      },
+      "dependsOn": [
+        "[resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault)]",
+        "[resourceId('Microsoft.Resources/deployments', 'kongAppDeployment')]",
+        "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]",
+        "[resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('resourceNames').postgres)]",
+        "[resourceId('Microsoft.Cache/redis', variables('resourceNames').redis)]"
+      ]
+    }
+  ],
+  "outputs": {
+    "kongFqdn": {
+      "type": "string",
+      "metadata": {
+        "description": "Kong Container App FQDN"
+      },
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'kongAppDeployment'), '2025-04-01').outputs.fqdn.value]"
+    },
+    "kongUrl": {
+      "type": "string",
+      "metadata": {
+        "description": "Kong Container App URL"
+      },
+      "value": "[format('https://{0}', reference(resourceId('Microsoft.Resources/deployments', 'kongAppDeployment'), '2025-04-01').outputs.fqdn.value)]"
+    },
+    "postgresHost": {
+      "type": "string",
+      "metadata": {
+        "description": "PostgreSQL server FQDN"
+      },
+      "value": "[reference(resourceId('Microsoft.DBforPostgreSQL/flexibleServers', variables('resourceNames').postgres), '2023-06-01-preview').fullyQualifiedDomainName]"
+    },
+    "redisHost": {
+      "type": "string",
+      "metadata": {
+        "description": "Redis cache hostname"
+      },
+      "value": "[reference(resourceId('Microsoft.Cache/redis', variables('resourceNames').redis), '2023-08-01').hostName]"
+    },
+    "keyVaultUri": {
+      "type": "string",
+      "metadata": {
+        "description": "Key Vault URI"
+      },
+      "value": "[reference(resourceId('Microsoft.KeyVault/vaults', variables('resourceNames').keyVault), '2023-07-01').vaultUri]"
+    },
+    "keyVaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "Key Vault name"
+      },
+      "value": "[variables('resourceNames').keyVault]"
+    },
+    "appInsightsName": {
+      "type": "string",
+      "metadata": {
+        "description": "Application Insights name"
+      },
+      "value": "[variables('resourceNames').applicationInsights]"
+    },
+    "logAnalyticsWorkspaceId": {
+      "type": "string",
+      "metadata": {
+        "description": "Log Analytics workspace ID"
+      },
+      "value": "[resourceId('Microsoft.OperationalInsights/workspaces', variables('resourceNames').logAnalytics)]"
+    },
+    "managedIdentityPrincipalId": {
+      "type": "string",
+      "metadata": {
+        "description": "Managed Identity principal ID"
+      },
+      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity), '2023-01-31').principalId]"
+    },
+    "managedIdentityClientId": {
+      "type": "string",
+      "metadata": {
+        "description": "Managed Identity client ID"
+      },
+      "value": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity), '2023-01-31').clientId]"
+    },
+    "frontDoorHostname": {
+      "type": "string",
+      "metadata": {
+        "description": "Front Door endpoint hostname"
+      },
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontDoorDeployment'), '2025-04-01').outputs.frontDoorEndpointHostName.value]"
+    },
+    "frontDoorId": {
+      "type": "string",
+      "metadata": {
+        "description": "Front Door ID"
+      },
+      "value": "[reference(resourceId('Microsoft.Resources/deployments', 'frontDoorDeployment'), '2025-04-01').outputs.frontDoorId.value]"
+    },
+    "vnetId": {
+      "type": "string",
+      "metadata": {
+        "description": "VNet ID"
+      },
+      "value": "[resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet)]"
+    }
+  }
+}

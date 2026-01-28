@@ -15,8 +15,8 @@
     "lint": "npm run validate:all"
   },
   "devDependencies": {
-    "mintlify": "^4.0.0",
+    "glob": "^11.1.0",
     "gray-matter": "^4.0.3",
-    "glob": "^11.0.0"
+    "mintlify": "^4.2.303"
   }
 }
