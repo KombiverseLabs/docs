@@ -1,0 +1,418 @@
+---
+title: Contributing
+description: How to contribute to kombify
+---
+
+# Contributing to kombify
+
+Thank you for your interest in contributing to kombify! This guide will help you get started.
+
+## Ways to contribute
+
+<CardGroup cols={2}>
+  <Card title="Report bugs" icon="bug">
+    Found a bug? Open an issue on GitHub
+  </Card>
+  <Card title="Suggest features" icon="lightbulb">
+    Have an idea? Start a discussion
+  </Card>
+  <Card title="Write code" icon="code">
+    Submit pull requests for fixes or features
+  </Card>
+  <Card title="Improve docs" icon="book">
+    Help us improve documentation
+  </Card>
+  <Card title="Create StackKits" icon="boxes-stacked">
+    Share your infrastructure blueprints
+  </Card>
+  <Card title="Help others" icon="users">
+    Answer questions in Discord
+  </Card>
+</CardGroup>
+
+## Code of conduct
+
+We are committed to providing a welcoming and inclusive environment. Please read and follow our [Code of Conduct](https://github.com/soulcreek/KombiStack/blob/main/CODE_OF_CONDUCT.md).
+
+## Getting started
+
+### Prerequisites
+
+<Tabs>
+  <Tab title="kombify Stack">
+    ```bash
+    # Required
+    - Go 1.24+
+    - Node.js 20+
+    - Docker 24.0+
+    - OpenTofu 1.6+
+    
+    # Optional
+    - CUE 0.15+ (for StackKit development)
+    ```
+  </Tab>
+
+  <Tab title="kombify Sim">
+    ```bash
+    # Required
+    - Go 1.24+
+    - Node.js 20+
+    - Docker 24.0+
+    ```
+  </Tab>
+
+  <Tab title="Documentation">
+    ```bash
+    # Required
+    - Node.js 20+
+    - pnpm 8+
+    ```
+  </Tab>
+</Tabs>
+
+### Fork and clone
+
+<Steps>
+  <Step title="Fork the repository">
+    Visit the repository on GitHub and click **Fork**:
+    - [kombify Stack](https://github.com/soulcreek/KombiStack)
+    - [kombify Sim](https://github.com/soulcreek/KombiSim)
+    - [StackKits](https://github.com/soulcreek/StackKits)
+  </Step>
+
+  <Step title="Clone your fork">
+    ```bash
+    git clone https://github.com/YOUR-USERNAME/KombiStack.git
+    cd KombiStack
+    ```
+  </Step>
+
+  <Step title="Add upstream remote">
+    ```bash
+    git remote add upstream https://github.com/soulcreek/KombiStack.git
+    ```
+  </Step>
+</Steps>
+
+## Development setup
+
+### kombify Stack
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    # Backend
+    go mod download
+    
+    # Frontend
+    cd app
+    npm install
+    ```
+  </Step>
+
+  <Step title="Start development servers">
+    ```bash
+    # Terminal 1: Backend
+    go run cmd/kombistack/main.go
+    
+    # Terminal 2: Frontend
+    cd app
+    npm run dev
+    ```
+  </Step>
+
+  <Step title="Access locally">
+    - Backend: `http://localhost:5260`
+    - Frontend: `http://localhost:5261`
+  </Step>
+</Steps>
+
+### kombify Sim
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    go mod download
+    cd app
+    npm install
+    ```
+  </Step>
+
+  <Step title="Start development">
+    ```bash
+    # Terminal 1: Backend
+    go run cmd/kombisim/main.go
+    
+    # Terminal 2: Frontend
+    cd app
+    npm run dev
+    ```
+  </Step>
+</Steps>
+
+### Documentation
+
+<Steps>
+  <Step title="Install dependencies">
+    ```bash
+    cd docs
+    pnpm install
+    ```
+  </Step>
+
+  <Step title="Start dev server">
+    ```bash
+    pnpm dev
+    ```
+  </Step>
+
+  <Step title="Access locally">
+    Open `http://localhost:3000`
+  </Step>
+</Steps>
+
+## Making changes
+
+### Create a branch
+
+```bash
+git checkout -b feature/your-feature-name
+# or
+git checkout -b fix/your-bug-fix
+```
+
+### Make your changes
+
+Follow our coding standards:
+
+<Tabs>
+  <Tab title="Go">
+    ```go
+    // Use gofmt
+    gofmt -w .
+    
+    // Run linter
+    golangci-lint run
+    
+    // Run tests
+    go test ./...
+    ```
+  </Tab>
+
+  <Tab title="TypeScript">
+    ```bash
+    # Format code
+    npm run format
+    
+    # Lint
+    npm run lint
+    
+    # Type check
+    npm run check
+    ```
+  </Tab>
+
+  <Tab title="CUE">
+    ```bash
+    # Format
+    cue fmt
+    
+    # Validate
+    cue vet
+    ```
+  </Tab>
+</Tabs>
+
+### Write tests
+
+All new features should include tests:
+
+```go
+// Example test
+func TestUnifierResolve(t *testing.T) {
+    config := &Config{
+        Services: []string{"traefik"},
+    }
+    
+    result, err := Unifier.Resolve(config)
+    assert.NoError(t, err)
+    assert.NotNil(t, result)
+}
+```
+
+### Commit your changes
+
+Follow [Conventional Commits](https://www.conventionalcommits.org/):
+
+```bash
+# Format: <type>(<scope>): <description>
+
+git commit -m "feat(stack): add support for custom networks"
+git commit -m "fix(sim): resolve SSH connection timeout"
+git commit -m "docs: update Proxmox integration guide"
+```
+
+**Types:**
+- `feat` — New feature
+- `fix` — Bug fix
+- `docs` — Documentation changes
+- `style` — Code style changes (formatting)
+- `refactor` — Code refactoring
+- `test` — Adding tests
+- `chore` — Maintenance tasks
+
+## Submitting a pull request
+
+<Steps>
+  <Step title="Push your branch">
+    ```bash
+    git push origin feature/your-feature-name
+    ```
+  </Step>
+
+  <Step title="Create pull request">
+    Go to GitHub and click **New Pull Request**
+  </Step>
+
+  <Step title="Fill out template">
+    Provide:
+    - Clear description of changes
+    - Related issue number (if applicable)
+    - Screenshots (for UI changes)
+    - Testing steps
+  </Step>
+
+  <Step title="Wait for review">
+    Maintainers will review your PR and may request changes
+  </Step>
+</Steps>
+
+### Pull request checklist
+
+- [ ] Code follows project style guidelines
+- [ ] Tests pass locally
+- [ ] New tests added for new features
+- [ ] Documentation updated
+- [ ] Commit messages follow Conventional Commits
+- [ ] No merge conflicts
+
+## Creating StackKits
+
+### Structure
+
+```
+my-stackkit/
+├── README.md           # Documentation
+├── stack.cue           # Main schema
+├── services/
+│   ├── service1.cue
+│   └── service2.cue
+├── defaults/
+│   └── values.cue
+└── examples/
+    ├── minimal.yaml
+    └── full.yaml
+```
+
+### Example StackKit
+
+```cue stack.cue
+package my_stackkit
+
+import "kombify.dev/base"
+
+#Stack: base.#Stack & {
+    services: {
+        traefik: #TraefikService
+        myapp: #MyAppService
+    }
+}
+
+#MyAppService: base.#Service & {
+    image: "myapp:latest"
+    ports: [8080]
+    environment: {
+        APP_ENV: "production"
+    }
+}
+```
+
+### Submit your StackKit
+
+<Steps>
+  <Step title="Test locally">
+    ```bash
+    kombify stackkit test my-stackkit
+    ```
+  </Step>
+
+  <Step title="Create PR">
+    Submit to [StackKits repository](https://github.com/soulcreek/StackKits)
+  </Step>
+
+  <Step title="Documentation">
+    Include comprehensive README with:
+    - Description
+    - Prerequisites
+    - Configuration options
+    - Examples
+  </Step>
+</Steps>
+
+## Documentation contributions
+
+### Style guide
+
+- Use second-person voice ("you")
+- Sentence case for headings
+- Active voice
+- Code examples for all features
+- Screenshots for UI changes
+
+### Testing docs locally
+
+```bash
+cd docs
+pnpm dev
+```
+
+## Community
+
+<CardGroup cols={2}>
+  <Card title="Discord" icon="discord" href="https://discord.gg/kombify">
+    Join our Discord server
+  </Card>
+  <Card title="GitHub Discussions" icon="github" href="https://github.com/soulcreek/KombiStack/discussions">
+    Ask questions and share ideas
+  </Card>
+  <Card title="Twitter" icon="twitter" href="https://twitter.com/kombify">
+    Follow for updates
+  </Card>
+  <Card title="Newsletter" icon="envelope" href="https://kombify.dev/newsletter">
+    Subscribe to our newsletter
+  </Card>
+</CardGroup>
+
+## Recognition
+
+Contributors are recognized in:
+- GitHub contributors page
+- Release notes
+- Annual contributor spotlight
+
+## Questions?
+
+Need help? Reach out:
+- **Discord:** [discord.gg/kombify](https://discord.gg/kombify)
+- **Email:** [contribute@kombify.dev](mailto:contribute@kombify.dev)
+- **GitHub Discussions:** [Ask a question](https://github.com/soulcreek/KombiStack/discussions)
+
+## License
+
+By contributing, you agree that your contributions will be licensed under the same license as the project:
+- **kombify Stack:** MIT + AGPL-3.0
+- **kombify Sim:** MIT
+- **StackKits:** MIT
+- **Documentation:** CC BY 4.0
+
+Thank you for contributing to kombify! 🚀
