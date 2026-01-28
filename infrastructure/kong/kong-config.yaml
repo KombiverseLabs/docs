@@ -131,6 +131,7 @@ routes:
     paths:
       - /v1/stacks
       - /v1/orchestrator
+      - /v1/jobs
     strip_path: false
     preserve_host: false
     methods:
