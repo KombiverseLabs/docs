@@ -29,24 +29,24 @@
     "name": "Dashboard",
     "url": "https://app.kombisphere.io"
   },
+  "anchors": [
+    {
+      "anchor": "GitHub",
+      "icon": "github",
+      "href": "https://github.com/kombify"
+    },
+    {
+      "anchor": "Community",
+      "icon": "discord",
+      "href": "https://discord.gg/kombify"
+    },
+    {
+      "anchor": "Blog",
+      "icon": "newspaper",
+      "href": "https://kombify.dev/blog"
+    }
+  ],
   "navigation": {
-    "anchors": [
-      {
-        "anchor": "GitHub",
-        "icon": "github",
-        "href": "https://github.com/kombify"
-      },
-      {
-        "anchor": "Community",
-        "icon": "discord",
-        "href": "https://discord.gg/kombify"
-      },
-      {
-        "anchor": "Blog",
-        "icon": "newspaper",
-        "href": "https://kombify.dev/blog"
-      }
-    ],
     "tabs": [
     {
       "tab": "Documentation",
@@ -67,7 +67,6 @@
           "pages": [
             "concepts/architecture",
             "concepts/spec-driven",
-            "concepts/identity",
             "concepts/stackkits",
             "concepts/simulation-first"
           ]
@@ -97,15 +96,7 @@
                 "guides/auth/zitadel-setup"
               ]
             },
-            {
-              "group": "Deployment",
-              "icon": "rocket",
-              "pages": [
-                "guides/deployment/production-checklist",
-                "guides/deployment/azure-architecture",
-                "guides/deployment/azure-kong-architecture"
-              ]
-            }
+            "guides/deployment/production-checklist"
           ]
         },
         {
@@ -280,30 +271,20 @@
           "group": "Stack API",
           "icon": "server",
           "pages": [
-            "api/kombistack/overview",
-            "api/kombistack/stacks",
-            "api/kombistack/workers",
-            "api/kombistack/jobs"
+            "api/stack/overview",
+            "api/stack/stacks",
+            "api/stack/nodes",
+            "api/stack/jobs"
           ]
         },
         {
           "group": "Sim API",
           "icon": "flask",
           "pages": [
-            "api/kombisim/overview",
-            "api/kombisim/simulations",
-            "api/kombisim/nodes",
-            "api/kombisim/templates"
-          ]
-        },
-        {
-          "group": "Sphere API",
-          "icon": "cloud",
-          "pages": [
-            "api/kombisphere/overview",
-            "api/kombisphere/authentication",
-            "api/kombisphere/tools",
-            "api/kombisphere/subscriptions"
+            "api/sim/overview",
+            "api/sim/simulations",
+            "api/sim/nodes",
+            "api/sim/templates"
           ]
         },
         {
