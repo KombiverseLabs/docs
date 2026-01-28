@@ -2,10 +2,10 @@
   "$schema": "https://mintlify.com/schema.json",
   "name": "kombify",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "/images/logo_sized.png",
+    "light": "/images/logo_sized.png"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/images/Icon.png",
   "theme": "mint",
   "colors": {
     "primary": "#6366F1",
@@ -309,5 +309,6 @@
     "thumbsRating": true,
     "suggestEdit": true,
     "raiseIssue": true
-  }
+  },
+  "description": "explore the kombify tools"
 }
