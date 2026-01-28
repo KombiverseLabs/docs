@@ -1,0 +1,253 @@
+---
+title: Deploy Your First Sim-VM with StackKit
+description: Learn how to create your first simulated VM in KombiSim and deploy the modern-homelab StackKit
+sidebarTitle: First Sim-VM Deployment
+icon: server
+---
+
+# Deploy Your First Sim-VM with StackKit
+
+This guide walks you through creating your first simulated VM using KombiSim and deploying the base homelab StackKit. This is perfect for testing your homelab configurations before deploying to production hardware.
+
+<Info>
+  **Mock Engine Notice**: KombiSim runs on a mock engine in Azure Container Apps since Docker-in-Docker is not available. All VM operations are simulated to demonstrate the workflow.
+</Info>
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- Access to the [KombiSim API](/api/kombisim/overview)
+- [kombifyStack](/api/kombistack/overview) orchestrator configured
+- Valid API authentication token
+
+## Step 1: Create Your First Sim-VM
+
+### API Request
+
+Create a simulated VM with the following specifications:
+
+```bash
+POST https://api.kombify.io/v1/simulations/nodes
+Content-Type: application/json
+
+{
+  "name": "first-sim-vm",
+  "template": "ubuntu-22.04",
+  "resources": {
+    "cpu": 2,
+    "memory": "4Gi",
+    "disk": "20Gi"
+  }
+}
+```
+
+### Expected Response
+
+```json
+{
+  "id": "node_c2hzgqfd8",
+  "name": "first-sim-vm",
+  "status": "creating",
+  "resources": {
+    "cpu": 2,
+    "memory": "4Gi",
+    "disk": "20Gi"
+  },
+  "network": {
+    "ip": "10.0.0.1",
+    "sshPort": 2222
+  }
+}
+```
+
+### Verification
+
+Check the VM status:
+
+```bash
+# Get VM details
+GET /v1/simulations/nodes/first-sim-vm
+
+# Check status
+GET /v1/simulations/nodes/first-sim-vm/status
+```
+
+Expected status response:
+```json
+{
+  "status": "running"
+}
+```
+
+## Step 2: Deploy the modern-homelab StackKit
+
+### Parse StackKit Configuration
+
+The [modern-homelab StackKit](/stackkits/kits/modern-homelab) includes:
+
+| Service | Purpose | Port |
+|---------|---------|------|
+| Docker Engine | Container runtime | - |
+| Portainer | Container management UI | 9000 |
+| Traefik | Reverse proxy & load balancer | 80 |
+
+### Deploy via API
+
+```bash
+POST https://api.kombify.io/v1/stacks
+Content-Type: application/json
+Authorization: Bearer YOUR_TOKEN
+
+{
+  "name": "homelab-base",
+  "target": "first-sim-vm",
+  "kit": "modern-homelab",
+  "config": {
+    "domain": "homelab.local",
+    "enable_portainer": true,
+    "enable_traefik": true
+  }
+}
+```
+
+### Monitor Deployment
+
+Track deployment progress:
+
+```bash
+GET /v1/stacks/homelab-base/status
+```
+
+Response during deployment:
+```json
+{
+  "id": "stack_42f0oh7up",
+  "name": "homelab-base",
+  "status": "deploying",
+  "progress": 33,
+  "services": ["docker"]
+}
+```
+
+Response on completion:
+```json
+{
+  "id": "stack_42f0oh7up",
+  "name": "homelab-base",
+  "status": "completed",
+  "progress": 100,
+  "services": ["docker", "portainer", "traefik"]
+}
+```
+
+## Step 3: Verify Installation
+
+Connect to your Sim-VM and verify the deployed services:
+
+<Frame>
+  <img src="/images/homelab-terminal-screenshot.png" alt="Terminal showing Docker verification commands" />
+</Frame>
+
+### Verification Commands
+
+Run these commands to verify the deployment:
+
+```bash
+# Check Docker installation
+docker --version
+# Expected: Docker version 24.0.7, build afdd53b
+
+# Check Docker Compose
+docker compose version
+# Expected: Docker Compose version v2.23.0
+
+# List running containers
+docker ps
+```
+
+Expected output:
+```
+CONTAINER ID   IMAGE                    STATUS         PORTS                    NAMES
+a1b2c3d4e5f6   traefik:v2.10            Up 2 minutes   0.0.0.0:80->80/tcp       traefik
+b2c3d4e5f6g7   portainer/portainer-ce   Up 2 minutes   0.0.0.0:9000->9000/tcp   portainer
+c3d4e5f6g7h8   alpine:latest            Up 2 minutes                            docker-socket-proxy
+```
+
+### Dashboard Overview
+
+Your deployed stack provides:
+
+<Frame>
+  <img src="/images/homelab-stack-dashboard.png" alt="Stack dashboard showing deployed services" />
+</Frame>
+
+## Accessing Services
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| Portainer | http://10.0.0.1:9000 | Container management UI |
+| Traefik Dashboard | http://10.0.0.1:8080 | Reverse proxy dashboard |
+| SSH Access | `ssh root@10.0.0.1 -p 2222` | VM terminal access |
+
+## Workflow Summary
+
+<Steps>
+  <Step title="Create VM">
+    POST to `/v1/simulations/nodes` with VM specs
+    Wait for status: "running"
+  </Step>
+  <Step title="Deploy StackKit">
+    POST to `/v1/stacks` with kit configuration
+    Monitor progress via status endpoint
+  </Step>
+  <Step title="Verify">
+    SSH into VM and run verification commands
+    Access services via browser
+  </Step>
+</Steps>
+
+## Troubleshooting
+
+### VM Stuck in "Creating"
+
+If your VM remains in "creating" status:
+
+1. Check resource availability: `GET /v1/simulations/resources`
+2. Verify template exists: `GET /v1/templates`
+3. Check logs: `GET /v1/simulations/nodes/{id}/logs`
+
+### Stack Deployment Failed
+
+If the StackKit deployment fails:
+
+1. Check VM is running: `GET /v1/simulations/nodes/{id}/status`
+2. Review job logs: `GET /v1/jobs/{job_id}`
+3. Validate configuration: `POST /v1/unifier/validate`
+
+## Next Steps
+
+Now that you have your first Sim-VM running with the base StackKit:
+
+<CardGroup cols={2}>
+  <Card title="Deploy Applications" icon="rocket" href="/guides/deployment/applications">
+    Add applications to your homelab stack
+  </Card>
+  <Card title="Create Snapshots" icon="camera" href="/api/kombisim/snapshots">
+    Save VM state before making changes
+  </Card>
+  <Card title="Scale Resources" icon="arrows-up-down" href="/api/kombisim/nodes">
+    Adjust VM resources as needed
+  </Card>
+  <Card title="Production Deployment" icon="cloud" href="/guides/deployment/production">
+    Deploy to physical hardware
+  </Card>
+</CardGroup>
+
+## API Reference
+
+For complete API documentation, see:
+
+- [KombiSim API](/api/kombisim/overview) - VM management
+- [Stack API](/api/kombistack/overview) - Stack orchestration
+- [StackKits](/stackkits/kits/modern-homelab) - Kit specifications
