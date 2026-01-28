@@ -1,0 +1,27 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "postgresAdminPassword": {
+      "value": "KongProd2024!SecurePass"
+    },
+    "useExistingContainerAppEnv": {
+      "value": true
+    },
+    "existingContainerAppEnvId": {
+      "value": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod"
+    },
+    "useExistingPostgres": {
+      "value": true
+    },
+    "existingPostgresHost": {
+      "value": "psql-kombify-db.postgres.database.azure.com"
+    },
+    "existingPostgresUser": {
+      "value": "kongadmin"
+    },
+    "existingPostgresPassword": {
+      "value": "KongProd2024!SecurePass"
+    }
+  }
+}
