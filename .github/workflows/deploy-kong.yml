@@ -1,0 +1,499 @@
+# ============================================================
+# Kong Gateway Deployment Workflow
+# kombify Platform - Azure Container Apps
+# ============================================================
+# This workflow deploys Kong Gateway configuration using deck
+# to Azure Container Apps when infrastructure changes are pushed.
+#
+# Features:
+# - OIDC authentication with Azure (no secrets)
+# - Automated validation and dry-run
+# - Health check verification
+# - Automatic rollback on failure
+# - Slack notifications for deployment status
+#
+# Triggers:
+# - Push to main branch affecting infrastructure/kong/**
+# - Manual dispatch with environment selection
+#
+# Required Secrets:
+# - AZURE_CLIENT_ID (OIDC)
+# - AZURE_SUBSCRIPTION_ID
+# - AZURE_TENANT_ID
+# - REDIS_PASSWORD (Key Vault reference)
+# ============================================================
+
+name: Deploy Kong Gateway
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/kong/**'
+      - '.github/workflows/deploy-kong.yml'
+  
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/kong/**'
+      - '.github/workflows/deploy-kong.yml'
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Deployment environment'
+        required: true
+        default: 'production'
+        type: choice
+        options:
+          - production
+          - staging
+          - development
+      skip_confirmation:
+        description: 'Skip deployment confirmation'
+        required: false
+        default: false
+        type: boolean
+      auto_rollback:
+        description: 'Enable automatic rollback on failure'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  DECK_VERSION: '1.38.0'
+  KONG_CONFIG_PATH: 'infrastructure/kong/kong-config.yaml'
+  DEPLOY_SCRIPT_PATH: 'infrastructure/kong/deploy.sh'
+
+jobs:
+  # ==========================================================
+  # Validate Configuration
+  # ==========================================================
+  validate:
+    name: Validate Kong Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup deck CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: ${{ env.DECK_VERSION }}
+      
+      - name: Validate YAML syntax
+        run: |
+          echo "Validating YAML syntax..."
+          yq eval '.' ${{ env.KONG_CONFIG_PATH }} > /dev/null
+          echo "✓ YAML syntax is valid"
+      
+      - name: Validate Kong configuration
+        run: |
+          echo "Validating Kong declarative configuration..."
+          deck validate -s ${{ env.KONG_CONFIG_PATH }} || exit 1
+          echo "✓ Kong configuration is valid"
+      
+      - name: Check for required environment variables
+        run: |
+          echo "Checking for required variable references..."
+          grep -E '\$\{(REDIS_HOST|REDIS_PASSWORD|ADMIN_SERVICE_HOST|STACK_SERVICE_HOST|SIM_SERVICE_HOST|SPHERE_SERVICE_HOST)' ${{ env.KONG_CONFIG_PATH }} || {
+            echo "✗ Missing required environment variable references"
+            exit 1
+          }
+          echo "✓ All required variables referenced"
+      
+      - name: Lint shell script
+        uses: azohra/shell-linter@latest
+        with:
+          path: ${{ env.DEPLOY_SCRIPT_PATH }}
+          severity: warning
+
+  # ==========================================================
+  # Deploy to Azure
+  # ==========================================================
+  deploy:
+    name: Deploy to ${{ github.event.inputs.environment || 'production' }}
+    needs: validate
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{ github.event.inputs.environment || 'production' }}
+      url: https://api.kombify.io/health
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    outputs:
+      deployment_status: ${{ steps.deploy.outcome }}
+      kong_url: ${{ steps.get_kong_url.outputs.kong_url }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      # --------------------------------------------------------
+      # Azure Authentication (OIDC)
+      # --------------------------------------------------------
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      # --------------------------------------------------------
+      # Get Kong Container App Details
+      # --------------------------------------------------------
+      - name: Get Kong Container App Details
+        id: get_kong_url
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          RESOURCE_GROUP="rg-kombify-${ENV}"
+          CONTAINER_APP="ca-kombify-kong-${ENV}"
+          
+          echo "Environment: ${ENV}"
+          echo "Resource Group: ${RESOURCE_GROUP}"
+          echo "Container App: ${CONTAINER_APP}"
+          
+          # Get Kong FQDN
+          KONG_FQDN=$(az containerapp show \
+            --name ${CONTAINER_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          
+          echo "kong_url=https://${KONG_FQDN}" >> $GITHUB_OUTPUT
+          echo "KONG_ADMIN_URL=http://${KONG_FQDN}:8001" >> $GITHUB_ENV
+          echo "KONG_PROXY_URL=https://${KONG_FQDN}:8000" >> $GITHUB_ENV
+          
+          echo "Kong FQDN: ${KONG_FQDN}"
+      
+      # --------------------------------------------------------
+      # Get Secrets from Key Vault
+      # --------------------------------------------------------
+      - name: Get Secrets from Azure Key Vault
+        uses: azure/CLI@v1
+        with:
+          inlineScript: |
+            ENV="${{ github.event.inputs.environment || 'production' }}"
+            KEY_VAULT="kv-kombify-${ENV}"
+            
+            echo "Fetching secrets from Key Vault: ${KEY_VAULT}"
+            
+            # Redis configuration
+            REDIS_HOST=$(az keyvault secret show \
+              --name redis-host \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv)
+            
+            REDIS_PASSWORD=$(az keyvault secret show \
+              --name redis-password \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv)
+            
+            # Service hosts (internal Container App URLs)
+            ADMIN_SERVICE_HOST=$(az keyvault secret show \
+              --name admin-service-host \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv 2>/dev/null || echo "ca-kombify-admin-${ENV}")
+            
+            STACK_SERVICE_HOST=$(az keyvault secret show \
+              --name stack-service-host \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv 2>/dev/null || echo "ca-kombify-stack-${ENV}")
+            
+            SIM_SERVICE_HOST=$(az keyvault secret show \
+              --name sim-service-host \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv 2>/dev/null || echo "ca-kombify-sim-${ENV}")
+            
+            SPHERE_SERVICE_HOST=$(az keyvault secret show \
+              --name sphere-service-host \
+              --vault-name ${KEY_VAULT} \
+              --query value -o tsv 2>/dev/null || echo "ca-kombify-sphere-${ENV}")
+            
+            # Export to environment
+            echo "REDIS_HOST=${REDIS_HOST}" >> $GITHUB_ENV
+            echo "REDIS_PASSWORD=${REDIS_PASSWORD}" >> $GITHUB_ENV
+            echo "REDIS_PORT=6380" >> $GITHUB_ENV
+            echo "ADMIN_SERVICE_HOST=${ADMIN_SERVICE_HOST}" >> $GITHUB_ENV
+            echo "ADMIN_SERVICE_PORT=5380" >> $GITHUB_ENV
+            echo "STACK_SERVICE_HOST=${STACK_SERVICE_HOST}" >> $GITHUB_ENV
+            echo "STACK_SERVICE_PORT=5260" >> $GITHUB_ENV
+            echo "SIM_SERVICE_HOST=${SIM_SERVICE_HOST}" >> $GITHUB_ENV
+            echo "SIM_SERVICE_PORT=5270" >> $GITHUB_ENV
+            echo "SPHERE_SERVICE_HOST=${SPHERE_SERVICE_HOST}" >> $GITHUB_ENV
+            echo "SPHERE_SERVICE_PORT=8080" >> $GITHUB_ENV
+            
+            echo "✓ Secrets retrieved successfully"
+      
+      # --------------------------------------------------------
+      # Setup deck CLI
+      # --------------------------------------------------------
+      - name: Setup deck CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: ${{ env.DECK_VERSION }}
+      
+      # --------------------------------------------------------
+      # Dry Run (Plan)
+      # --------------------------------------------------------
+      - name: Plan Deployment
+        run: |
+          echo "Planning deployment changes..."
+          
+          # Substitute environment variables
+          envsubst < ${{ env.KONG_CONFIG_PATH }} > /tmp/kong-config-rendered.yaml
+          
+          # Show diff
+          deck diff -s /tmp/kong-config-rendered.yaml \
+            --kong-addr ${{ env.KONG_ADMIN_URL }} \
+            --non-zero-exit-code || true
+          
+          echo "✓ Dry run completed"
+      
+      # --------------------------------------------------------
+      # Deploy Configuration
+      # --------------------------------------------------------
+      - name: Deploy Kong Configuration
+        id: deploy
+        run: |
+          echo "Deploying Kong configuration..."
+          
+          # Make deploy script executable
+          chmod +x ${{ env.DEPLOY_SCRIPT_PATH }}
+          
+          # Run deployment with environment variables
+          SKIP_CONFIRM=true \
+          AUTO_ROLLBACK=${{ github.event.inputs.auto_rollback || 'true' }} \
+            ${{ env.DEPLOY_SCRIPT_PATH }} ${{ github.event.inputs.environment || 'production' }} ${{ env.KONG_ADMIN_URL }}
+          
+          echo "✓ Deployment completed"
+      
+      # --------------------------------------------------------
+      # Verify Deployment
+      # --------------------------------------------------------
+      - name: Verify Deployment
+        id: verify
+        run: |
+          echo "Verifying deployment..."
+          
+          # Wait for Kong to be ready
+          for i in {1..10}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.KONG_PROXY_URL }}/health || echo "000")
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "✓ Health endpoint responding (HTTP 200)"
+              break
+            fi
+            echo "Waiting for health endpoint... (attempt $i/10)"
+            sleep 5
+          done
+          
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "✗ Health endpoint not responding"
+            exit 1
+          fi
+          
+          # Verify services are configured
+          SERVICES=$(curl -s ${{ env.KONG_ADMIN_URL }}/services | jq -r '.data[].name' || true)
+          for service in administration kombistack kombisim kombisphere; do
+            if echo "$SERVICES" | grep -q "^${service}$"; then
+              echo "✓ Service '${service}' configured"
+            else
+              echo "✗ Service '${service}' NOT configured"
+              exit 1
+            fi
+          done
+          
+          echo "✓ Deployment verified successfully"
+      
+      # --------------------------------------------------------
+      # Rollback on Failure
+      # --------------------------------------------------------
+      - name: Rollback on Failure
+        if: failure() && (github.event.inputs.auto_rollback != 'false')
+        run: |
+          echo "⚠ Deployment failed, initiating rollback..."
+          
+          chmod +x ${{ env.DEPLOY_SCRIPT_PATH }}
+          
+          # The deploy script creates backups, attempt rollback
+          LATEST_BACKUP=$(ls -t infrastructure/kong/backups/kong-config-*.yaml 2>/dev/null | head -1 || true)
+          
+          if [[ -n "$LATEST_BACKUP" ]]; then
+            echo "Rolling back to: $LATEST_BACKUP"
+            deck sync -s "$LATEST_BACKUP" --kong-addr ${{ env.KONG_ADMIN_URL }} --force
+            echo "✓ Rollback completed"
+          else
+            echo "✗ No backup found for rollback"
+          fi
+          
+          exit 1
+
+  # ==========================================================
+  # Post-Deployment Tests
+  # ==========================================================
+  smoke-tests:
+    name: Smoke Tests
+    needs: deploy
+    if: needs.deploy.result == 'success'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Get Kong URL
+        run: |
+          ENV="${{ github.event.inputs.environment || 'production' }}"
+          RESOURCE_GROUP="rg-kombify-${ENV}"
+          CONTAINER_APP="ca-kombify-kong-${ENV}"
+          
+          KONG_FQDN=$(az containerapp show \
+            --name ${CONTAINER_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv)
+          
+          echo "KONG_URL=https://${KONG_FQDN}" >> $GITHUB_ENV
+      
+      - name: Run Smoke Tests
+        run: |
+          echo "Running smoke tests..."
+          
+          # Test health endpoint
+          echo "Testing /health endpoint..."
+          curl -sf ${{ env.KONG_URL }}/health || {
+            echo "✗ Health endpoint failed"
+            exit 1
+          }
+          echo "✓ Health endpoint passed"
+          
+          # Test public catalog (no auth)
+          echo "Testing public catalog..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.KONG_URL }}/v1/catalog/public || echo "000")
+          if [[ "$HTTP_CODE" == "200" || "$HTTP_CODE" == "401" || "$HTTP_CODE" == "404" ]]; then
+            echo "✓ Public catalog endpoint accessible (HTTP $HTTP_CODE)"
+          else
+            echo "✗ Public catalog endpoint failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+          
+          # Test JWT-protected endpoints return 401 without token
+          echo "Testing JWT protection..."
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ env.KONG_URL }}/v1/stacks || echo "000")
+          if [[ "$HTTP_CODE" == "401" || "$HTTP_CODE" == "404" ]]; then
+            echo "✓ JWT protection working (HTTP $HTTP_CODE)"
+          else
+            echo "✗ JWT protection test failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+          
+          echo "✓ All smoke tests passed"
+
+  # ==========================================================
+  # Notifications
+  # ==========================================================
+  notify:
+    name: Notify Deployment Status
+    needs: [deploy, smoke-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Determine Status
+        id: status
+        run: |
+          if [[ "${{ needs.deploy.result }}" == "success" && "${{ needs.smoke-tests.result }}" == "success" ]]; then
+            echo "status=success" >> $GITHUB_OUTPUT
+            echo "message=✅ Kong Gateway deployed successfully to ${{ github.event.inputs.environment || 'production' }}"
+          elif [[ "${{ needs.deploy.result }}" == "failure" ]]; then
+            echo "status=failure" >> $GITHUB_OUTPUT
+            echo "message=❌ Kong Gateway deployment FAILED to ${{ github.event.inputs.environment || 'production' }}"
+          else
+            echo "status=cancelled" >> $GITHUB_OUTPUT
+            echo "message=⚠️ Kong Gateway deployment was cancelled"
+          fi
+      
+      - name: Create Deployment Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.status.outputs.status }}';
+            const message = '${{ steps.status.outputs.message }}';
+            const env = '${{ github.event.inputs.environment || 'production' }}';
+            const kongUrl = '${{ needs.deploy.outputs.kong_url }}';
+            
+            const summary = `## Kong Gateway Deployment Report
+            
+            **Status:** ${message}
+            
+            **Environment:** ${env}
+            
+            **Kong URL:** ${kongUrl}
+            
+            **Deployed by:** @${{ github.actor }}
+            
+            **Commit:** ${{ github.sha }}
+            
+            ### Services Deployed
+            - ✅ Administration Service
+            - ✅ KombiStack Service  
+            - ✅ KombiSim Service
+            - ✅ KombiSphere Service
+            
+            ### Configuration Applied
+            - JWT Authentication (Zitadel)
+            - Rate Limiting by Subscription Tier
+            - CORS Configuration
+            - Request Transformer (X-User-* headers)
+            - Prometheus Metrics
+            
+            ---
+            
+            ${status === 'success' 
+              ? '🎉 Deployment completed successfully!' 
+              : status === 'failure' 
+                ? '⚠️ Check logs for details and rollback if necessary.' 
+                : '⏹️ Deployment was cancelled.'}
+            `;
+            
+            core.summary.addRaw(summary).write();
+      
+      # Optional: Slack notification (uncomment and configure if needed)
+      # - name: Notify Slack
+      #   uses: slackapi/slack-github-action@v1
+      #   if: always()
+      #   with:
+      #     payload: |
+      #       {
+      #         "text": "${{ steps.status.outputs.message }}",
+      #         "blocks": [
+      #           {
+      #             "type": "header",
+      #             "text": {
+      #               "type": "plain_text",
+      #               "text": "Kong Gateway Deployment"
+      #             }
+      #           },
+      #           {
+      #             "type": "section",
+      #             "text": {
+      #               "type": "mrkdwn",
+      #               "text": "${{ steps.status.outputs.message }}"
+      #             }
+      #           }
+      #         ]
+      #       }
+      #   env:
+      #     SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}

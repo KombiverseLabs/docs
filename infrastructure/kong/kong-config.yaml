@@ -1,0 +1,722 @@
+# ============================================================
+# Kong Gateway Declarative Configuration
+# kombify Platform - Production Deployment
+# ============================================================
+# This file configures Kong Gateway for the kombify platform
+# including JWT authentication, rate limiting, CORS, and
+# request transformation for all backend services.
+#
+# Deployment: Use with deck (Kong declarative configuration tool)
+# Command: deck sync -s kong-config.yaml --kong-addr $KONG_ADMIN_URL
+# ============================================================
+
+_format_version: "3.0"
+_transform: true
+
+# ============================================================
+# SERVICES
+# Backend services that Kong will proxy traffic to
+# ============================================================
+
+services:
+  # Administration Service
+  # Provides: Tool catalog, user management, platform administration
+  - name: administration
+    url: http://${ADMIN_SERVICE_HOST}:${ADMIN_SERVICE_PORT}
+    protocol: http
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags:
+      - production
+      - administration
+
+  # KombiStack Service
+  # Provides: Stack management, orchestration, job processing
+  - name: kombistack
+    url: http://${STACK_SERVICE_HOST}:${STACK_SERVICE_PORT}
+    protocol: http
+    connect_timeout: 60000
+    write_timeout: 120000
+    read_timeout: 120000
+    retries: 3
+    tags:
+      - production
+      - kombistack
+
+  # KombiSim Service
+  # Provides: Simulation management, node operations
+  - name: kombisim
+    url: http://${SIM_SERVICE_HOST}:${SIM_SERVICE_PORT}
+    protocol: http
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags:
+      - production
+      - kombisim
+
+  # KombiSphere Portal Service
+  # Provides: User portal, SSO, billing integration
+  - name: kombisphere
+    url: http://${SPHERE_SERVICE_HOST}:${SPHERE_SERVICE_PORT}
+    protocol: http
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags:
+      - production
+      - kombisphere
+
+  # Kong Admin API (internal)
+  # Provides: Gateway management, health checks
+  - name: kong-admin
+    url: http://localhost:8001
+    protocol: http
+    connect_timeout: 5000
+    write_timeout: 10000
+    read_timeout: 10000
+    retries: 1
+    tags:
+      - internal
+      - kong
+
+# ============================================================
+# ROUTES
+# URL path routing to backend services
+# ============================================================
+
+routes:
+  # Administration Routes
+  - name: admin-routes
+    service: administration
+    paths:
+      - /v1/admin
+      - /v1/tools
+      - /v1/catalog/internal
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    tags:
+      - production
+      - administration
+
+  # Public Catalog Routes (no auth required)
+  - name: catalog-public-routes
+    service: administration
+    paths:
+      - /v1/catalog/public
+      - /v1/catalog/categories
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - OPTIONS
+    tags:
+      - production
+      - catalog
+      - public
+
+  # KombiStack Routes
+  - name: kombistack-routes
+    service: kombistack
+    paths:
+      - /v1/stacks
+      - /v1/orchestrator
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    tags:
+      - production
+      - kombistack
+
+  # KombiSim Routes
+  - name: kombisim-routes
+    service: kombisim
+    paths:
+      - /v1/simulations
+      - /v1/nodes
+      - /v1/templates
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    tags:
+      - production
+      - kombisim
+
+  # KombiSphere Routes
+  - name: kombisphere-routes
+    service: kombisphere
+    paths:
+      - /v1/portal
+      - /api/internal/sso
+      - /api/sso
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    tags:
+      - production
+      - kombisphere
+
+  # Health Check Route (public, no auth)
+  - name: health-route
+    service: kong-admin
+    paths:
+      - /health
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+    tags:
+      - health
+      - public
+
+# ============================================================
+# CONSUMERS
+# JWT consumers for authentication
+# ============================================================
+
+consumers:
+  # Zitadel OIDC Provider - JWT authentication
+  - username: zitadel-jwt
+    custom_id: zitadel-oidc-provider
+    tags:
+      - auth
+      - jwt
+
+# ============================================================
+# PLUGINS
+# Global and per-route plugin configurations
+# ============================================================
+
+plugins:
+  # =========================================================
+  # GLOBAL PLUGINS (applied to all routes)
+  # =========================================================
+
+  # CORS Configuration
+  # Allow cross-origin requests from authorized domains
+  - name: cors
+    config:
+      origins:
+        - "https://app.kombify.io"
+        - "https://admin.kombify.io"
+        - "https://api.kombify.io"
+        - "https://kombify.io"
+        - "https://*.kombify.io"
+        - "http://localhost:3000"
+        - "http://localhost:5173"
+      methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      headers:
+        - Authorization
+        - Content-Type
+        - X-Request-ID
+        - X-User-ID
+        - X-User-Email
+        - X-User-Roles
+        - X-User-Name
+        - X-Org-ID
+        - X-Forwarded-By
+        - X-Subscription-Plan
+      exposed_headers:
+        - X-RateLimit-Limit
+        - X-RateLimit-Remaining
+        - X-RateLimit-Reset
+        - X-Request-ID
+      max_age: 3600
+      credentials: true
+      preflight_continue: false
+    tags:
+      - global
+      - cors
+
+  # Request ID Generation
+  # Adds unique request ID for distributed tracing
+  - name: correlation-id
+    config:
+      header_name: X-Request-ID
+      generator: uuid
+      echo_downstream: true
+    tags:
+      - global
+      - tracing
+
+  # Prometheus Metrics
+  # Export metrics for monitoring
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+      upstream_health_metrics: true
+    tags:
+      - global
+      - monitoring
+
+  # =========================================================
+  # SERVICE-SPECIFIC PLUGINS
+  # =========================================================
+
+  # JWT Plugin - Administration Service
+  - name: jwt
+    service: administration
+    config:
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+        - iss
+      maximum_expiration: 3600
+    tags:
+      - auth
+      - jwt
+      - administration
+
+  # Rate Limiting - Administration Service (by subscription tier)
+  - name: rate-limiting-advanced
+    service: administration
+    config:
+      limit:
+        - 50
+        - 200
+        - 500
+      window_size:
+        - 60
+        - 60
+        - 60
+      window_type: sliding
+      identifier: jwt_claim_plan
+      redis_host: ${REDIS_HOST}
+      redis_port: ${REDIS_PORT}
+      redis_password: ${REDIS_PASSWORD}
+      redis_timeout: 2000
+      fault_tolerant: true
+      hide_client_headers: false
+    tags:
+      - rate-limiting
+      - administration
+
+  # Request Transformer - Administration Service
+  # Adds X-User-* headers from JWT claims
+  - name: request-transformer
+    service: administration
+    config:
+      add:
+        headers:
+          - X-Forwarded-By:Kong
+          - X-Service-Name:Administration
+      rename:
+        headers:
+          - Authorization:X-Original-Authorization
+      replace:
+        headers:
+          - X-User-ID:$(jwt_claims.sub)
+          - X-User-Email:$(jwt_claims.email)
+          - X-User-Name:$(jwt_claims.name)
+          - X-Org-ID:$(jwt_claims."urn:zitadel:iam:org:id")
+          - X-User-Roles:$(jwt_claims."urn:zitadel:iam:org:project:roles")
+          - X-Subscription-Plan:$(jwt_claims.plan)
+    tags:
+      - transform
+      - administration
+
+  # JWT Plugin - KombiStack Service
+  - name: jwt
+    service: kombistack
+    config:
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+        - iss
+      maximum_expiration: 3600
+    tags:
+      - auth
+      - jwt
+      - kombistack
+
+  # Rate Limiting - KombiStack Service (by subscription tier)
+  - name: rate-limiting-advanced
+    service: kombistack
+    config:
+      limit:
+        - 100
+        - 500
+        - 1000
+      window_size:
+        - 60
+        - 60
+        - 60
+      window_type: sliding
+      identifier: jwt_claim_plan
+      redis_host: ${REDIS_HOST}
+      redis_port: ${REDIS_PORT}
+      redis_password: ${REDIS_PASSWORD}
+      redis_timeout: 2000
+      fault_tolerant: true
+      hide_client_headers: false
+    tags:
+      - rate-limiting
+      - kombistack
+
+  # Request Transformer - KombiStack Service
+  - name: request-transformer
+    service: kombistack
+    config:
+      add:
+        headers:
+          - X-Forwarded-By:Kong
+          - X-Service-Name:KombiStack
+      rename:
+        headers:
+          - Authorization:X-Original-Authorization
+      replace:
+        headers:
+          - X-User-ID:$(jwt_claims.sub)
+          - X-User-Email:$(jwt_claims.email)
+          - X-User-Name:$(jwt_claims.name)
+          - X-Org-ID:$(jwt_claims."urn:zitadel:iam:org:id")
+          - X-User-Roles:$(jwt_claims."urn:zitadel:iam:org:project:roles")
+          - X-Subscription-Plan:$(jwt_claims.plan)
+    tags:
+      - transform
+      - kombistack
+
+  # JWT Plugin - KombiSim Service
+  - name: jwt
+    service: kombisim
+    config:
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+        - iss
+      maximum_expiration: 3600
+    tags:
+      - auth
+      - jwt
+      - kombisim
+
+  # Rate Limiting - KombiSim Service (by subscription tier)
+  - name: rate-limiting-advanced
+    service: kombisim
+    config:
+      limit:
+        - 50
+        - 200
+        - 1000
+      window_size:
+        - 60
+        - 60
+        - 60
+      window_type: sliding
+      identifier: jwt_claim_plan
+      redis_host: ${REDIS_HOST}
+      redis_port: ${REDIS_PORT}
+      redis_password: ${REDIS_PASSWORD}
+      redis_timeout: 2000
+      fault_tolerant: true
+      hide_client_headers: false
+    tags:
+      - rate-limiting
+      - kombisim
+
+  # Request Transformer - KombiSim Service
+  - name: request-transformer
+    service: kombisim
+    config:
+      add:
+        headers:
+          - X-Forwarded-By:Kong
+          - X-Service-Name:KombiSim
+      rename:
+        headers:
+          - Authorization:X-Original-Authorization
+      replace:
+        headers:
+          - X-User-ID:$(jwt_claims.sub)
+          - X-User-Email:$(jwt_claims.email)
+          - X-User-Name:$(jwt_claims.name)
+          - X-Org-ID:$(jwt_claims."urn:zitadel:iam:org:id")
+          - X-User-Roles:$(jwt_claims."urn:zitadel:iam:org:project:roles")
+          - X-Subscription-Plan:$(jwt_claims.plan)
+    tags:
+      - transform
+      - kombisim
+
+  # JWT Plugin - KombiSphere Service
+  - name: jwt
+    service: kombisphere
+    config:
+      uri_param_names: []
+      cookie_names: []
+      key_claim_name: iss
+      secret_is_base64: false
+      claims_to_verify:
+        - exp
+        - iss
+      maximum_expiration: 3600
+    tags:
+      - auth
+      - jwt
+      - kombisphere
+
+  # Rate Limiting - KombiSphere Service
+  - name: rate-limiting-advanced
+    service: kombisphere
+    config:
+      limit:
+        - 300
+        - 500
+        - 1000
+      window_size:
+        - 60
+        - 60
+        - 60
+      window_type: sliding
+      identifier: jwt_claim_plan
+      redis_host: ${REDIS_HOST}
+      redis_port: ${REDIS_PORT}
+      redis_password: ${REDIS_PASSWORD}
+      redis_timeout: 2000
+      fault_tolerant: true
+      hide_client_headers: false
+    tags:
+      - rate-limiting
+      - kombisphere
+
+  # Request Transformer - KombiSphere Service
+  - name: request-transformer
+    service: kombisphere
+    config:
+      add:
+        headers:
+          - X-Forwarded-By:Kong
+          - X-Service-Name:KombiSphere
+      rename:
+        headers:
+          - Authorization:X-Original-Authorization
+      replace:
+        headers:
+          - X-User-ID:$(jwt_claims.sub)
+          - X-User-Email:$(jwt_claims.email)
+          - X-User-Name:$(jwt_claims.name)
+          - X-Org-ID:$(jwt_claims."urn:zitadel:iam:org:id")
+          - X-User-Roles:$(jwt_claims."urn:zitadel:iam:org:project:roles")
+          - X-Subscription-Plan:$(jwt_claims.plan)
+    tags:
+      - transform
+      - kombisphere
+
+  # Public Catalog - Rate Limiting Only (no auth)
+  - name: rate-limiting
+    route: catalog-public-routes
+    config:
+      minute: 500
+      hour: 10000
+      policy: redis
+      redis_host: ${REDIS_HOST}
+      redis_port: ${REDIS_PORT}
+      redis_password: ${REDIS_PASSWORD}
+      fault_tolerant: true
+      hide_client_headers: false
+    tags:
+      - rate-limiting
+      - catalog
+      - public
+
+# ============================================================
+# JWT CREDENTIALS
+# Zitadel OIDC JWT configuration
+# ============================================================
+
+jwt_secrets:
+  - consumer: zitadel-jwt
+    algorithm: RS256
+    key: https://auth.kombisphere.io
+    rsa_public_key: |
+      -----BEGIN PUBLIC KEY-----
+      # NOTE: This is a placeholder. In production, Kong will fetch
+      # the actual public keys from Zitadel's JWKS endpoint:
+      # https://auth.kombisphere.io/oauth/v2/keys
+      # The JWT plugin supports JWKS URL-based key fetching.
+      -----END PUBLIC KEY-----
+    tags:
+      - jwt
+      - zitadel
+
+# ============================================================
+# UPSTREAMS
+# Health check configurations for backend services
+# ============================================================
+
+upstreams:
+  - name: administration-upstream
+    targets:
+      - target: ${ADMIN_SERVICE_HOST}:${ADMIN_SERVICE_PORT}
+        weight: 100
+    healthchecks:
+      active:
+        http_path: /health
+        timeout: 10
+        interval: 30
+        unhealthy:
+          http_statuses:
+            - 429
+            - 500
+            - 502
+            - 503
+          tcp_failures: 2
+          timeouts: 2
+          http_failures: 2
+          interval: 10
+        healthy:
+          http_statuses:
+            - 200
+            - 302
+          successes: 2
+          interval: 10
+    tags:
+      - upstream
+      - administration
+
+  - name: kombistack-upstream
+    targets:
+      - target: ${STACK_SERVICE_HOST}:${STACK_SERVICE_PORT}
+        weight: 100
+    healthchecks:
+      active:
+        http_path: /health
+        timeout: 10
+        interval: 30
+        unhealthy:
+          http_statuses:
+            - 429
+            - 500
+            - 502
+            - 503
+          tcp_failures: 2
+          timeouts: 2
+          http_failures: 2
+          interval: 10
+        healthy:
+          http_statuses:
+            - 200
+            - 302
+          successes: 2
+          interval: 10
+    tags:
+      - upstream
+      - kombistack
+
+  - name: kombisim-upstream
+    targets:
+      - target: ${SIM_SERVICE_HOST}:${SIM_SERVICE_PORT}
+        weight: 100
+    healthchecks:
+      active:
+        http_path: /health
+        timeout: 10
+        interval: 30
+        unhealthy:
+          http_statuses:
+            - 429
+            - 500
+            - 502
+            - 503
+          tcp_failures: 2
+          timeouts: 2
+          http_failures: 2
+          interval: 10
+        healthy:
+          http_statuses:
+            - 200
+            - 302
+          successes: 2
+          interval: 10
+    tags:
+      - upstream
+      - kombisim
+
+  - name: kombisphere-upstream
+    targets:
+      - target: ${SPHERE_SERVICE_HOST}:${SPHERE_SERVICE_PORT}
+        weight: 100
+    healthchecks:
+      active:
+        http_path: /health
+        timeout: 10
+        interval: 30
+        unhealthy:
+          http_statuses:
+            - 429
+            - 500
+            - 502
+            - 503
+          tcp_failures: 2
+          timeouts: 2
+          http_failures: 2
+          interval: 10
+        healthy:
+          http_statuses:
+            - 200
+            - 302
+          successes: 2
+          interval: 10
+    tags:
+      - upstream
+      - kombisphere
+
+# ============================================================
+# CERTIFICATES (for mTLS with upstream services - future)
+# ============================================================
+
+certificates: []
+
+# ============================================================
+# CA CERTIFICATES (for upstream TLS verification - future)
+# ============================================================
+
+ca_certificates: []
+
+# ============================================================
+# SNIs (Server Name Indication for TLS - future)
+# ============================================================
+
+snis: []
