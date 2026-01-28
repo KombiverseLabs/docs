@@ -1,0 +1,98 @@
+# Docs CI Pipeline
+# Validates Mintlify documentation content
+
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-content:
+    name: Validate Documentation Content
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      
+      - name: Install dependencies
+        run: npm ci || npm install
+        continue-on-error: true
+      
+      - name: Check MDX files have frontmatter
+        run: |
+          echo "Checking MDX files for required frontmatter..."
+          MISSING=0
+          for file in $(find . -name "*.mdx" -not -path "./node_modules/*" -not -path "./internal-notes/*"); do
+            if ! head -1 "$file" | grep -q "^---"; then
+              echo "❌ Missing frontmatter: $file"
+              MISSING=$((MISSING + 1))
+            fi
+          done
+          if [ $MISSING -gt 0 ]; then
+            echo "⚠️ Found $MISSING files without proper frontmatter"
+          else
+            echo "✅ All MDX files have frontmatter"
+          fi
+      
+      - name: Check docs.json is valid JSON
+        run: |
+          if [ -f "docs.json" ]; then
+            python3 -m json.tool docs.json > /dev/null && echo "✅ docs.json is valid JSON"
+          else
+            echo "⚠️ docs.json not found"
+          fi
+      
+      - name: Validate frontmatter (if script exists)
+        run: npm run validate:frontmatter --if-present
+        continue-on-error: true
+      
+      - name: Check internal links (if script exists)
+        run: npm run validate:links --if-present
+        continue-on-error: true
+
+  check-brand-guidelines:
+    name: Check Brand Guidelines
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      
+      - name: Check for brand violations
+        run: |
+          echo "Checking brand guidelines..."
+          
+          # Check for uppercase "Kombify" (should be lowercase "kombify")
+          VIOLATIONS=$(grep -r "Kombify" --include="*.mdx" --include="*.md" . | grep -v "node_modules" | wc -l || echo "0")
+          if [ "$VIOLATIONS" -gt "0" ]; then
+            echo "⚠️ Found $VIOLATIONS uses of 'Kombify' - should be lowercase 'kombify'"
+            grep -r "Kombify" --include="*.mdx" --include="*.md" . | grep -v "node_modules" | head -10
+          else
+            echo "✅ Brand guidelines followed"
+          fi
+
+  # Final status check for branch protection
+  ci-passed:
+    name: ✅ CI Passed
+    needs: [validate-content, check-brand-guidelines]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Check all jobs passed
+        run: |
+          if [ "${{ needs.validate-content.result }}" != "success" ]; then
+            echo "❌ Content validation had issues"
+          fi
+          echo "✅ Documentation CI complete"

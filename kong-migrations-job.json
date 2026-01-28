@@ -1,0 +1,60 @@
+{
+  "properties": {
+    "configuration": {
+      "triggerType": "Manual",
+      "manualTriggerConfig": {
+        "parallelism": 1,
+        "replicaCompletionCount": 1
+      },
+      "replicaTimeout": 1800,
+      "replicaRetryLimit": 0,
+      "secrets": [
+        {
+          "name": "kong-pg-host",
+          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-host"
+        },
+        {
+          "name": "kong-pg-user",
+          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-user"
+        },
+        {
+          "name": "kong-pg-password",
+          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-password"
+        },
+        {
+          "name": "kong-pg-database",
+          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-database"
+        }
+      ]
+    },
+    "template": {
+      "containers": [
+        {
+          "name": "kong-migrations",
+          "image": "kong:3.9",
+          "command": ["kong", "migrations", "bootstrap"],
+          "env": [
+            {"name": "KONG_DATABASE", "value": "postgres"},
+            {"name": "KONG_PG_HOST", "secretRef": "kong-pg-host"},
+            {"name": "KONG_PG_USER", "secretRef": "kong-pg-user"},
+            {"name": "KONG_PG_PASSWORD", "secretRef": "kong-pg-password"},
+            {"name": "KONG_PG_DATABASE", "secretRef": "kong-pg-database"},
+            {"name": "KONG_PG_PORT", "value": "5432"},
+            {"name": "KONG_PG_SSL", "value": "on"},
+            {"name": "KONG_PG_SSL_VERIFY", "value": "off"}
+          ],
+          "resources": {
+            "cpu": 0.5,
+            "memory": "1Gi"
+          }
+        }
+      ]
+    },
+    "environmentId": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod"
+  },
+  "location": "West Europe"
+}
