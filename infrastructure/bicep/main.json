@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "12624442433192083914"
+      "templateHash": "8579425008752518997"
     }
   },
   "parameters": {
@@ -217,6 +217,27 @@
         "description": "Custom domain for API"
       }
     },
+    "useExistingContainerAppEnv": {
+      "type": "bool",
+      "defaultValue": false,
+      "metadata": {
+        "description": "Use existing Container App Environment instead of creating new one"
+      }
+    },
+    "existingContainerAppEnvId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Existing Container App Environment ID (required if useExistingContainerAppEnv is true)"
+      }
+    },
+    "existingLogAnalyticsId": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Existing Log Analytics Workspace ID (required if useExistingContainerAppEnv is true)"
+      }
+    },
     "tags": {
       "type": "object",
       "defaultValue": {
@@ -245,7 +266,8 @@
       "postgresSubnet": "postgres-subnet",
       "containerAppSubnet": "ca-subnet",
       "privateEndpointSubnet": "pe-subnet"
-    }
+    },
+    "containerAppEnvId": "[if(parameters('useExistingContainerAppEnv'), parameters('existingContainerAppEnvId'), resourceId('Microsoft.App/managedEnvironments', variables('resourceNames').containerAppEnv))]"
   },
   "resources": [
     {
@@ -271,6 +293,11 @@
                   "properties": {
                     "serviceName": "Microsoft.App/environments"
                   }
+                }
+              ],
+              "serviceEndpoints": [
+                {
+                  "service": "Microsoft.KeyVault"
                 }
               ]
             }
@@ -642,7 +669,7 @@
           "storageSizeGB": "[parameters('postgresStorageSizeGB')]",
           "autoGrow": "Enabled"
         },
-        "highAvailability": "[if(parameters('enablePostgresHA'), createObject('mode', 'ZoneRedundant', 'standbyAvailabilityZone', '2'), null())]",
+        "highAvailability": "[if(parameters('enablePostgresHA'), createObject('mode', 'ZoneRedundant', 'standbyAvailabilityZone', '1'), null())]",
         "network": {
           "delegatedSubnetResourceId": "[reference(resourceId('Microsoft.Network/virtualNetworks', variables('resourceNames').vnet), '2023-09-01').subnets[1].id]",
           "privateDnsZoneArmResourceId": "[resourceId('Microsoft.Network/privateDnsZones', format('{0}.private.postgres.database.azure.com', variables('resourceNames').postgres))]",
@@ -698,6 +725,7 @@
       ]
     },
     {
+      "condition": "[not(parameters('useExistingContainerAppEnv'))]",
       "type": "Microsoft.App/managedEnvironments",
       "apiVersion": "2024-03-01",
       "name": "[variables('resourceNames').containerAppEnv]",
@@ -751,7 +779,7 @@
             "value": "[parameters('environment')]"
           },
           "containerAppEnvironmentId": {
-            "value": "[resourceId('Microsoft.App/managedEnvironments', variables('resourceNames').containerAppEnv)]"
+            "value": "[variables('containerAppEnvId')]"
           },
           "managedIdentityId": {
             "value": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('resourceNames').managedIdentity)]"

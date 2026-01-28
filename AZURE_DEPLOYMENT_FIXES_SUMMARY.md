@@ -69,7 +69,7 @@ const ENDPOINTS = {
 ```typescript
 const ENDPOINTS = {
     portal: process.env.PORTAL_URL || 'https://app.kombify.io',
-    stack: process.env.STACK_URL || 'https://api.kombify.io',
+    stack: process.env.STACK_URL || 'https://stack.kombify.io',
     // ... secure with fallbacks
 };
 ```

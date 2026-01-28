@@ -1,0 +1,85 @@
+# Kong Gateway Configuration for KombiSphere-Admin Service
+# Apply this configuration to update the administration service URL
+#
+# To apply:
+#   export KONG_ADMIN_URL=http://ca-kong-kombify-prod:8001
+#   deck sync -s kong-admin-service-config.yaml --kong-addr $KONG_ADMIN_URL
+
+_format_version: "3.0"
+_transform: true
+
+services:
+  - name: administration
+    url: http://ca-kombify-admin-prod.internal.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:8090
+    protocol: http
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 3
+    tags:
+      - production
+      - administration
+
+routes:
+  - name: admin-routes
+    service: administration
+    paths:
+      - /v1/admin
+      - /v1/tools
+      - /v1/catalog/internal
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+    tags:
+      - production
+      - administration
+
+  - name: catalog-public-routes
+    service: administration
+    paths:
+      - /v1/catalog/public
+      - /v1/catalog/categories
+    strip_path: false
+    preserve_host: false
+    methods:
+      - GET
+      - OPTIONS
+    tags:
+      - production
+      - catalog
+      - public
+
+upstreams:
+  - name: administration-upstream
+    targets:
+      - target: ca-kombify-admin-prod.internal.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:8090
+        weight: 100
+    healthchecks:
+      active:
+        http_path: /health
+        timeout: 10
+        interval: 30
+        unhealthy:
+          http_statuses:
+            - 429
+            - 500
+            - 502
+            - 503
+          tcp_failures: 2
+          timeouts: 2
+          http_failures: 2
+          interval: 10
+        healthy:
+          http_statuses:
+            - 200
+            - 302
+          successes: 2
+          interval: 10
+    tags:
+      - upstream
+      - administration

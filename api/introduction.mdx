@@ -50,9 +50,9 @@ graph LR
 
 | API | Use case | Auth method | Base URL |
 |-----|----------|-------------|----------|
-| **Stack** | Deploy to your homelab | API key / mTLS | `http://localhost:8080/api/v1` |
+| **Stack** | Orchestrate your homelab | API key / mTLS | `http://localhost:5260/api/v1` (local) or `https://stack.kombify.io` |
 | **Sim** | Test configurations | None (local) | `http://localhost:5270/api/v1` |
-| **Sphere** | Managed SaaS platform | JWT / API key | `https://api.kombify.io/v1` |
+| **Sphere** | Managed SaaS platform | JWT / API key | `https://api.kombify.io/v1` (via Kong Gateway) |
 
 ## Common request format
 

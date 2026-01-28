@@ -1,0 +1,105 @@
+# Kong Gateway Configuration for KombiSim Service
+# This configuration routes external traffic to the KombiSim simulation service
+#
+# To apply this configuration:
+# Option 1: Via kubectl exec into Kong container:
+#   kubectl exec -n kong deploy/kong -- curl -X POST http://localhost:8001/services \
+#     -H "Content-Type: application/json" \
+#     -d '{"name":"kombisim","url":"http://ca-kombify-sim-prod.internal.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5270"}'
+#
+#   kubectl exec -n kong deploy/kong -- curl -X POST http://localhost:8001/services/kombisim/routes \
+#     -H "Content-Type: application/json" \
+#     -d '{"name":"kombisim-routes","paths":["/api/v1/sim","/api/v1/simulations","/api/v1/nodes","/api/v1/templates","/api/v1/discovery","/health","/api/v1/health"],"strip_path":false}'
+#
+# Option 2: Using deck sync (requires deck.yaml with Kong admin URL):
+#   deck sync -s infrastructure/kong/kong-kombisim-config.yaml
+
+_format_version: "3.0"
+
+services:
+  - name: kombisim
+    url: http://ca-kombify-sim-prod.internal.gentlemoss-1ad74075.westeurope.azurecontainerapps.io:5270
+    protocol: http
+    host: ca-kombify-sim-prod.internal.gentlemoss-1ad74075.westeurope.azurecontainerapps.io
+    port: 5270
+    path: /
+    connect_timeout: 60000
+    write_timeout: 60000
+    read_timeout: 60000
+    retries: 5
+    plugins:
+      - name: cors
+        config:
+          origins:
+            - "https://kombify.io"
+            - "https://*.kombify.io"
+            - "https://app.kombify.io"
+          methods:
+            - GET
+            - POST
+            - PUT
+            - PATCH
+            - DELETE
+            - OPTIONS
+          headers:
+            - Authorization
+            - Content-Type
+            - X-Request-ID
+          exposed_headers:
+            - X-Request-ID
+          credentials: true
+          max_age: 3600
+      - name: rate-limiting
+        config:
+          minute: 100
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: request-transformer
+        config:
+          add:
+            headers:
+              - "X-Forwarded-Host:kombify.io"
+    routes:
+      - name: kombisim-health
+        paths:
+          - /health
+          - /api/v1/health
+        methods:
+          - GET
+        strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https
+        https_redirect_status_code: 426
+      - name: kombisim-api
+        paths:
+          - /api/v1/sim
+          - /api/v1/simulations
+          - /api/v1/nodes
+          - /api/v1/templates
+          - /api/v1/discovery
+        methods:
+          - GET
+          - POST
+          - PUT
+          - PATCH
+          - DELETE
+          - OPTIONS
+        strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https
+        https_redirect_status_code: 426
+      - name: kombisim-websocket
+        paths:
+          - /api/v1/ws
+        methods:
+          - GET
+        strip_path: false
+        preserve_host: false
+        protocols:
+          - http
+          - https

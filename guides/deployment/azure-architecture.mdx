@@ -19,28 +19,32 @@ This page describes the **managed SaaS** infrastructure. For self-hosting, see [
                     │   (CDN + WAF + SSL + Custom Domains)       │
                     └──────────────────────┬──────────────────────┘
                                            │
-         ┌─────────────────────────────────┼─────────────────────────────────┐
-         │                                 │                                 │
-         ▼                                 ▼                                 ▼
-┌─────────────────────┐       ┌─────────────────────┐       ┌─────────────────────┐
-│   App Service       │       │   Container Apps    │       │   Container Apps    │
-│   kombify Portal    │       │   kombify Stack     │       │   kombify Sim       │
-│   (SvelteKit)       │       │   (Go + gRPC)       │       │   (Go + REST)       │
-│                     │       │                     │       │                     │
-│   app.kombify.io    │       │   api.kombify.io    │       │   sim.kombify.io    │
-└─────────────────────┘       └─────────────────────┘       └─────────────────────┘
+         ┌─────────────────┬───────────────┼───────────────┬─────────────────┐
+         │                 │               │               │                 │
+         ▼                 ▼               ▼               ▼                 ▼
+┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
+│  App Service    │ │ Container Apps  │ │ Container Apps  │ │ Container Apps  │
+│  kombify Portal │ │ kombify API GW  │ │ kombify Stack   │ │ kombify Sim     │
+│  (SvelteKit)    │ │ (Kong Gateway)  │ │ (Go + gRPC)     │ │ (Go + REST)     │
+│                 │ │                 │ │                 │ │                 │
+│ app.kombify.io  │ │ api.kombify.io  │ │stack.kombify.io │ │ sim.kombify.io  │
+└─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────────┘
 ```
 
 ## Core services
 
 <CardGroup cols={2}>
-  <Card title="kombify Portal" icon="browser" href="/sphere/cloud/overview">
+  <Card title="kombify Portal" icon="browser" href="/sphere/overview">
     SvelteKit web application serving the user dashboard at `app.kombify.io`.
     Handles authentication, billing, and tool orchestration.
   </Card>
+  <Card title="kombify API Gateway" icon="code" href="/api/introduction">
+    Kong-based API gateway providing unified access to all microservices 
+    at `api.kombify.io`. Handles authentication, rate limiting, and routing.
+  </Card>
   <Card title="kombify Stack" icon="server" href="/stack/overview">
-    Go-based orchestration API with gRPC support. Manages infrastructure
-    provisioning and node communication at `api.kombify.io`.
+    Go-based orchestration engine with gRPC support. Manages infrastructure
+    provisioning and node communication at `stack.kombify.io`.
   </Card>
   <Card title="kombify Sim" icon="flask" href="/sim/overview">
     Homelab simulation engine. Provides virtual infrastructure for testing
@@ -57,7 +61,7 @@ This page describes the **managed SaaS** infrastructure. For self-hosting, see [
 |---------|---------|------|
 | **Azure Front Door** | CDN, WAF, SSL termination, global routing | Standard |
 | **App Service** | Portal web application | B1 (Basic) |
-| **Container Apps** | Stack and Sim APIs | Consumption |
+| **Container Apps** | API Gateway, Stack, and Sim services | Consumption |
 | **PostgreSQL Flexible** | Relational database | Burstable B1ms |
 | **Key Vault** | Secrets management | Standard |
 | **Container Registry** | Docker image storage | Basic |
@@ -72,7 +76,8 @@ Azure Front Door handles all incoming traffic with intelligent routing:
 |--------|-------------|---------|
 | `kombify.io` | App Service | Marketing website |
 | `app.kombify.io` | App Service | User dashboard |
-| `api.kombify.io` | Container App | Stack API |
+| `api.kombify.io` | Container App | API Gateway (Kong) |
+| `stack.kombify.io` | Container App | Stack Orchestrator |
 | `sim.kombify.io` | Container App | Sim API |
 | `stackkits.kombify.io` | Container App | Documentation |
 

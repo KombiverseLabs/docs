@@ -11,9 +11,10 @@ The kombify API provides programmatic access to all kombify tools: Stack, Sim, S
 
 | Service | Base URL | Purpose |
 |---------|----------|---------|
-| **kombify Stack** | `http://localhost:5260/api/v1` | Infrastructure orchestration |
-| **kombify Sim** | `http://localhost:5270/api/v1` | Simulation management |
-| **kombify Sphere** | `https://api.kombisphere.io/v1` | SaaS platform |
+| **kombify API Gateway** | `https://api.kombify.io/v1` | Central API entry point (Kong) |
+| **kombify Stack** | `http://localhost:5260/api/v1` or `https://stack.kombify.io` | Infrastructure orchestration |
+| **kombify Sim** | `http://localhost:5270/api/v1` or `https://sim.kombify.io` | Simulation management |
+| **kombify Sphere** | Via API Gateway | SaaS platform features |
 
 ## Authentication
 
