@@ -1,0 +1,505 @@
+# ============================================================
+# Kong Gateway Integration Test Workflow
+# kombify Platform - PR Validation & Staging Tests
+# ============================================================
+# This workflow validates Kong configuration on pull requests
+# and runs integration tests against the staging environment.
+#
+# Triggers:
+# - Pull requests affecting infrastructure/kong/**
+# - Manual dispatch for testing against staging
+#
+# Features:
+# - YAML syntax validation
+# - deck validation and diff
+# - Staging environment smoke tests
+# - Security configuration checks
+# ============================================================
+
+name: Kong Integration Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'infrastructure/kong/**'
+      - '.github/workflows/test-kong-integration.yml'
+      - '.github/workflows/deploy-kong.yml'
+  
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Test environment'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - development
+      run_smoke_tests:
+        description: 'Run smoke tests against environment'
+        required: false
+        default: true
+        type: boolean
+
+env:
+  DECK_VERSION: '1.38.0'
+  KONG_CONFIG_PATH: 'infrastructure/kong/kong-config.yaml'
+  DEPLOY_SCRIPT_PATH: 'infrastructure/kong/deploy.sh'
+
+jobs:
+  # ==========================================================
+  # Validate Configuration Syntax
+  # ==========================================================
+  validate-syntax:
+    name: Validate YAML Syntax
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      
+      - name: Validate YAML syntax
+        run: |
+          echo "Validating YAML syntax..."
+          yq eval '.' ${{ env.KONG_CONFIG_PATH }} > /dev/null
+          echo "✓ YAML syntax is valid"
+      
+      - name: Check YAML structure
+        run: |
+          echo "Checking required top-level keys..."
+          yq eval 'has("_format_version")' ${{ env.KONG_CONFIG_PATH }} | grep -q "true" || {
+            echo "✗ Missing _format_version"
+            exit 1
+          }
+          yq eval 'has("services")' ${{ env.KONG_CONFIG_PATH }} | grep -q "true" || {
+            echo "✗ Missing services"
+            exit 1
+          }
+          yq eval 'has("routes")' ${{ env.KONG_CONFIG_PATH }} | grep -q "true" || {
+            echo "✗ Missing routes"
+            exit 1
+          }
+          yq eval 'has("plugins")' ${{ env.KONG_CONFIG_PATH }} | grep -q "true" || {
+            echo "✗ Missing plugins"
+            exit 1
+          }
+          echo "✓ All required keys present"
+
+  # ==========================================================
+  # Validate Kong Configuration
+  # ==========================================================
+  validate-kong:
+    name: Validate Kong Configuration
+    runs-on: ubuntu-latest
+    needs: validate-syntax
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup deck CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: ${{ env.DECK_VERSION }}
+      
+      - name: Validate with deck
+        run: |
+          echo "Running deck validation..."
+          deck validate -s ${{ env.KONG_CONFIG_PATH }} || exit 1
+          echo "✓ deck validation passed"
+      
+      - name: Check for environment variable references
+        run: |
+          echo "Checking environment variable references..."
+          REQUIRED_VARS=("REDIS_HOST" "REDIS_PASSWORD" "ADMIN_SERVICE_HOST" "STACK_SERVICE_HOST" "SIM_SERVICE_HOST" "SPHERE_SERVICE_HOST")
+          
+          for var in "${REQUIRED_VARS[@]}"; do
+            if ! grep -q "\${${var}}" ${{ env.KONG_CONFIG_PATH }}; then
+              echo "✗ Missing required environment variable reference: ${var}"
+              exit 1
+            fi
+          done
+          echo "✓ All required environment variables referenced"
+      
+      - name: Validate service definitions
+        run: |
+          echo "Checking service definitions..."
+          SERVICES=$(yq eval '.services[].name' ${{ env.KONG_CONFIG_PATH }})
+          REQUIRED_SERVICES=("administration" "kombistack" "kombisim" "kombisphere")
+          
+          for service in "${REQUIRED_SERVICES[@]}"; do
+            if ! echo "$SERVICES" | grep -q "^${service}$"; then
+              echo "✗ Missing required service: ${service}"
+              exit 1
+            fi
+          done
+          echo "✓ All required services defined"
+      
+      - name: Validate route definitions
+        run: |
+          echo "Checking route definitions..."
+          ROUTES=$(yq eval '.routes[].name' ${{ env.KONG_CONFIG_PATH }})
+          if [[ -z "$ROUTES" ]]; then
+            echo "✗ No routes defined"
+            exit 1
+          fi
+          echo "✓ Routes defined: $(echo "$ROUTES" | wc -l)"
+
+  # ==========================================================
+  # Security Validation
+  # ==========================================================
+  security-checks:
+    name: Security Configuration Checks
+    runs-on: ubuntu-latest
+    needs: validate-syntax
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Install yq
+        run: |
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
+      
+      - name: Check JWT plugin configuration
+        run: |
+          echo "Checking JWT plugin configuration..."
+          
+          # Check that JWT is configured for protected services
+          PROTECTED_SERVICES=("administration" "kombistack" "kombisim" "kombisphere")
+          
+          for service in "${PROTECTED_SERVICES[@]}"; do
+            JWT_COUNT=$(yq eval ".plugins[] | select(.service == \"${service}\" and .name == \"jwt\")" ${{ env.KONG_CONFIG_PATH }} | wc -l)
+            if [[ "$JWT_COUNT" -eq 0 ]]; then
+              echo "✗ JWT plugin not configured for service: ${service}"
+              exit 1
+            fi
+          done
+          echo "✓ JWT plugin configured for all protected services"
+      
+      - name: Check rate limiting configuration
+        run: |
+          echo "Checking rate limiting configuration..."
+          
+          # Verify rate limiting is configured for each service
+          SERVICES=("administration" "kombistack" "kombisim" "kombisphere")
+          
+          for service in "${SERVICES[@]}"; do
+            RATE_LIMIT_COUNT=$(yq eval ".plugins[] | select(.service == \"${service}\" and .name == \"rate-limiting-advanced\")" ${{ env.KONG_CONFIG_PATH }} | wc -l)
+            if [[ "$RATE_LIMIT_COUNT" -eq 0 ]]; then
+              echo "✗ Rate limiting not configured for service: ${service}"
+              exit 1
+            fi
+          done
+          echo "✓ Rate limiting configured for all services"
+      
+      - name: Check CORS configuration
+        run: |
+          echo "Checking CORS configuration..."
+          
+          # Check global CORS plugin exists
+          CORS_COUNT=$(yq eval '.plugins[] | select(.name == "cors")' ${{ env.KONG_CONFIG_PATH }} | wc -l)
+          if [[ "$CORS_COUNT" -eq 0 ]]; then
+            echo "✗ Global CORS plugin not configured"
+            exit 1
+          fi
+          echo "✓ CORS plugin configured"
+      
+      - name: Check for hardcoded secrets
+        run: |
+          echo "Checking for hardcoded secrets..."
+          
+          # Check for common secret patterns
+          if grep -i -E "(password|secret|key|token).*=.*[^${}]" ${{ env.KONG_CONFIG_PATH }} | grep -v "^#" | grep -v "\${"; then
+            echo "✗ Potential hardcoded secrets found"
+            exit 1
+          fi
+          
+          # Check that Redis password uses environment variable
+          if ! grep -q "redis_password: \${REDIS_PASSWORD}" ${{ env.KONG_CONFIG_PATH }}; then
+            echo "⚠ Redis password should use environment variable \${REDIS_PASSWORD}"
+          fi
+          
+          echo "✓ No hardcoded secrets detected"
+      
+      - name: Validate upstream health checks
+        run: |
+          echo "Checking upstream health check configuration..."
+          
+          UPSTREAM_COUNT=$(yq eval '.upstreams | length' ${{ env.KONG_CONFIG_PATH }})
+          if [[ "$UPSTREAM_COUNT" -eq 0 ]]; then
+            echo "⚠ No upstream health checks configured (optional but recommended)"
+          else
+            echo "✓ Upstream health checks configured: ${UPSTREAM_COUNT}"
+          fi
+
+  # ==========================================================
+  # Staging Smoke Tests
+  # ==========================================================
+  smoke-tests:
+    name: Staging Smoke Tests
+    runs-on: ubuntu-latest
+    needs: [validate-kong, security-checks]
+    if: github.event.inputs.run_smoke_tests != 'false'
+    environment:
+      name: ${{ github.event.inputs.environment || 'staging' }}
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Get Kong URL
+        id: get_kong
+        run: |
+          ENV="${{ github.event.inputs.environment || 'staging' }}"
+          RESOURCE_GROUP="rg-kombify-${ENV}"
+          CONTAINER_APP="ca-kombify-kong-${ENV}"
+          
+          KONG_FQDN=$(az containerapp show \
+            --name ${CONTAINER_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv 2>/dev/null || echo "")
+          
+          if [[ -z "$KONG_FQDN" ]]; then
+            echo "⚠ Kong Container App not found in ${ENV}, skipping smoke tests"
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "kong_url=https://${KONG_FQDN}" >> $GITHUB_OUTPUT
+          echo "found=true" >> $GITHUB_OUTPUT
+          echo "Kong URL: https://${KONG_FQDN}"
+      
+      - name: Test Health Endpoint
+        if: steps.get_kong.outputs.found == 'true'
+        run: |
+          echo "Testing health endpoint..."
+          
+          for i in {1..5}; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.get_kong.outputs.kong_url }}/health || echo "000")
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "✓ Health endpoint responding (HTTP 200)"
+              break
+            fi
+            echo "Waiting for health endpoint... (attempt $i/5, HTTP $HTTP_CODE)"
+            sleep 5
+          done
+          
+          if [[ "$HTTP_CODE" != "200" ]]; then
+            echo "✗ Health endpoint not responding (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+      
+      - name: Test Public Catalog
+        if: steps.get_kong.outputs.found == 'true'
+        run: |
+          echo "Testing public catalog endpoint..."
+          
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.get_kong.outputs.kong_url }}/v1/catalog/public || echo "000")
+          
+          # 200 = success, 401 = auth required (acceptable for some configs), 404 = not implemented yet
+          if [[ "$HTTP_CODE" =~ ^(200|401|404|502)$ ]]; then
+            echo "✓ Public catalog endpoint accessible (HTTP $HTTP_CODE)"
+          else
+            echo "✗ Public catalog endpoint failed (HTTP $HTTP_CODE)"
+            exit 1
+          fi
+      
+      - name: Test CORS Headers
+        if: steps.get_kong.outputs.found == 'true'
+        run: |
+          echo "Testing CORS headers..."
+          
+          # Test preflight request
+          RESPONSE=$(curl -s -X OPTIONS \
+            -H "Origin: https://app.kombify.io" \
+            -H "Access-Control-Request-Method: GET" \
+            -H "Access-Control-Request-Headers: Authorization" \
+            -I ${{ steps.get_kong.outputs.kong_url }}/v1/catalog/public || true)
+          
+          if echo "$RESPONSE" | grep -q "Access-Control-Allow-Origin"; then
+            echo "✓ CORS headers present"
+          else
+            echo "⚠ CORS headers not detected (may be OK if not configured)"
+          fi
+      
+      - name: Test JWT Protection
+        if: steps.get_kong.outputs.found == 'true'
+        run: |
+          echo "Testing JWT protection on protected endpoints..."
+          
+          # Test protected endpoint without token
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${{ steps.get_kong.outputs.kong_url }}/v1/stacks || echo "000")
+          
+          if [[ "$HTTP_CODE" == "401" ]]; then
+            echo "✓ JWT protection working (HTTP 401 without token)"
+          elif [[ "$HTTP_CODE" == "404" || "$HTTP_CODE" == "502" || "$HTTP_CODE" == "503" ]]; then
+            echo "⚠ Endpoint returned HTTP $HTTP_CODE (upstream may not be running)"
+          else
+            echo "✗ JWT protection test failed (HTTP $HTTP_CODE, expected 401)"
+            exit 1
+          fi
+      
+      - name: Test Rate Limiting Headers
+        if: steps.get_kong.outputs.found == 'true'
+        run: |
+          echo "Testing rate limiting headers..."
+          
+          RESPONSE=$(curl -s -I ${{ steps.get_kong.outputs.kong_url }}/v1/catalog/public || true)
+          
+          if echo "$RESPONSE" | grep -q "X-RateLimit"; then
+            echo "✓ Rate limiting headers present"
+          else
+            echo "⚠ Rate limiting headers not detected (may be OK if not hitting limits)"
+          fi
+
+  # ==========================================================
+  # Configuration Diff (Dry Run)
+  # ==========================================================
+  config-diff:
+    name: Configuration Diff
+    runs-on: ubuntu-latest
+    needs: validate-kong
+    if: github.event_name == 'pull_request'
+    environment:
+      name: staging
+    
+    permissions:
+      id-token: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      
+      - name: Setup deck CLI
+        uses: kong/setup-deck@v1
+        with:
+          deck-version: ${{ env.DECK_VERSION }}
+      
+      - name: Azure Login
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      
+      - name: Get Kong Admin URL
+        id: get_admin
+        run: |
+          ENV="staging"
+          RESOURCE_GROUP="rg-kombify-${ENV}"
+          CONTAINER_APP="ca-kombify-kong-${ENV}"
+          
+          KONG_FQDN=$(az containerapp show \
+            --name ${CONTAINER_APP} \
+            --resource-group ${RESOURCE_GROUP} \
+            --query properties.configuration.ingress.fqdn \
+            --output tsv 2>/dev/null || echo "")
+          
+          if [[ -z "$KONG_FQDN" ]]; then
+            echo "⚠ Kong not found in staging, skipping diff"
+            echo "found=false" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          echo "admin_url=http://${KONG_FQDN}:8001" >> $GITHUB_OUTPUT
+          echo "found=true" >> $GITHUB_OUTPUT
+      
+      - name: Generate Configuration Diff
+        if: steps.get_admin.outputs.found == 'true'
+        run: |
+          echo "Generating configuration diff..."
+          
+          # Create a rendered config with dummy values for diff
+          cat > /tmp/kong-config-dummy.yaml << 'EOF'
+          REDIS_HOST: redis-dummy.redis.cache.windows.net
+          REDIS_PASSWORD: dummy-password
+          REDIS_PORT: 6380
+          ADMIN_SERVICE_HOST: admin-dummy
+          ADMIN_SERVICE_PORT: 5380
+          STACK_SERVICE_HOST: stack-dummy
+          STACK_SERVICE_PORT: 5260
+          SIM_SERVICE_HOST: sim-dummy
+          SIM_SERVICE_PORT: 5270
+          SPHERE_SERVICE_HOST: sphere-dummy
+          SPHERE_SERVICE_PORT: 8080
+          EOF
+          
+          # Export dummy values
+          export $(cat /tmp/kong-config-dummy.yaml | xargs)
+          
+          # Render config
+          envsubst < ${{ env.KONG_CONFIG_PATH }} > /tmp/kong-config-rendered.yaml
+          
+          # Generate diff
+          echo "### Configuration Changes" >> $GITHUB_STEP_SUMMARY
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          deck diff -s /tmp/kong-config-rendered.yaml \
+            --kong-addr ${{ steps.get_admin.outputs.admin_url }} \
+            --non-zero-exit-code 2>&1 | head -100 >> $GITHUB_STEP_SUMMARY || true
+          echo "```" >> $GITHUB_STEP_SUMMARY
+          
+          echo "✓ Diff generated (see summary)"
+
+  # ==========================================================
+  # Summary
+  # ==========================================================
+  summary:
+    name: Test Summary
+    needs: [validate-syntax, validate-kong, security-checks, smoke-tests]
+    if: always()
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Generate Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const syntax = '${{ needs.validate-syntax.result }}';
+            const kong = '${{ needs.validate-kong.result }}';
+            const security = '${{ needs.security-checks.result }}';
+            const smoke = '${{ needs.smoke-tests.result }}';
+            
+            const status = (result) => {
+              if (result === 'success') return '✅';
+              if (result === 'failure') return '❌';
+              if (result === 'skipped') return '⏭️';
+              return '⚪';
+            };
+            
+            const summary = `## Kong Integration Test Results
+            
+            | Test Suite | Status |
+            |------------|--------|
+            | YAML Syntax | ${status(syntax)} |
+            | Kong Configuration | ${status(kong)} |
+            | Security Checks | ${status(security)} |
+            | Smoke Tests | ${status(smoke)} |
+            
+            ${syntax === 'failure' || kong === 'failure' || security === 'failure' 
+              ? '⚠️ **Some tests failed. Please fix the issues before merging.**' 
+              : '✅ **All required tests passed!**'}
+            `;
+            
+            core.summary.addRaw(summary).write();

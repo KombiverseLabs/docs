@@ -405,7 +405,7 @@ resource redisCache 'Microsoft.Cache/redis@2023-08-01' = {
     minimumTlsVersion: '1.2'
     publicNetworkAccess: 'Disabled'
     redisConfiguration: {
-      maxmemory-policy: 'allkeys-lru'
+      'maxmemory-policy': 'allkeys-lru'
     }
   }
 }
