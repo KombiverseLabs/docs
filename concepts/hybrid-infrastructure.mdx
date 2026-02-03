@@ -3,13 +3,12 @@ title: Hybrid infrastructure
 description: Manage both cloud VPS and local servers in a unified control plane
 ---
 
-# Hybrid infrastructure
 
-KombiSphere enables you to manage **cloud VPS** and **local home servers** as a single logical infrastructure, with secure networking and unified configuration.
+kombify Cloud enables you to manage **cloud VPS** and **local home servers** as a single logical infrastructure, with secure networking and unified configuration.
 
 ## What is hybrid infrastructure?
 
-Traditional infrastructure management treats cloud and on-premises as separate worlds. KombiSphere unifies them:
+Traditional infrastructure management treats cloud and on-premises as separate worlds. kombify Cloud unifies them:
 
 <CardGroup cols={2}>
   <Card title="Cloud resources" icon="cloud">
@@ -26,7 +25,7 @@ Traditional infrastructure management treats cloud and on-premises as separate w
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│                         KOMBISPHERE CONTROL PLANE                            │
+│                         kombify Cloud CONTROL PLANE                            │
 │                              (KombiStack Core)                               │
 └────────────────────────────┬────────────────────────────────────────────────┘
                              │
@@ -53,7 +52,7 @@ Traditional infrastructure management treats cloud and on-premises as separate w
 
 ## Node types
 
-KombiSphere distinguishes between different node types:
+kombify Cloud distinguishes between different node types:
 
 | Type | Location | Provider | Use case |
 |------|----------|----------|----------|
@@ -114,7 +113,7 @@ services:
 
 ## Secure networking with Headscale
 
-KombiSphere uses [Headscale](https://github.com/juanfont/headscale) (self-hosted Tailscale) to create a secure mesh network between all nodes.
+kombify Cloud uses [Headscale](https://github.com/juanfont/headscale) (self-hosted Tailscale) to create a secure mesh network between all nodes.
 
 ### How it works
 

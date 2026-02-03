@@ -16,7 +16,7 @@ graph TB
         CLI["CLI Tools"]
     end
 
-    subgraph Sphere["kombify Sphere (Optional SaaS)"]
+    subgraph Cloud["kombify Cloud (Optional SaaS)"]
         direction LR
         Auth["Zitadel SSO"]
         Billing["Stripe Billing"]
@@ -59,9 +59,9 @@ graph TB
         Agent3["Agent 3<br/>(k8s-01)"]
     end
 
-    User --> Sphere
+    User --> Cloud
     User --> Stack
-    Sphere --> Stack
+    Cloud --> Stack
     
     Stack --> StackKits
     Sim --> StackKits
@@ -70,7 +70,7 @@ graph TB
     ToFu --> Infra
 
     style User fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style Sphere fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Cloud fill:#1e293b,stroke:#4ade80,color:#f8fafc
     style Stack fill:#1e293b,stroke:#4ade80,color:#f8fafc
     style Sim fill:#1e293b,stroke:#4ade80,color:#f8fafc
     style StackKits fill:#1e293b,stroke:#4ade80,color:#f8fafc
@@ -207,7 +207,7 @@ graph TB
     style Layer1 fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-### kombify Sphere
+### kombify Cloud
 
 The managed SaaS platform (optional).
 
@@ -218,7 +218,7 @@ graph TB
         User2["Team"]
     end
 
-    subgraph Sphere["kombify Sphere"]
+    subgraph Cloud["kombify Cloud"]
         direction TB
         Frontend["SvelteKit App"]
         
@@ -240,7 +240,7 @@ graph TB
     Auth --> Stack & Sim
 
     style Users fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
     style Tools fill:#1e293b,stroke:#fbbf24,color:#f8fafc
 ```
 
@@ -337,22 +337,22 @@ All agent communication uses **mutual TLS (mTLS)**:
 3. **Mutual Authentication**: Both sides verify certificates before communication
 4. **Encrypted Channel**: All data is encrypted in transit
 
-### Authentication Flow (Sphere)
+### Authentication Flow (Cloud)
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant Sphere as kombify Sphere
+    participant Cloud as kombify Cloud
     participant Zitadel
     participant Stack as kombify Stack
 
-    User->>Sphere: Access dashboard
-    Sphere->>Zitadel: Redirect to login
+    User->>Cloud: Access dashboard
+    Cloud->>Zitadel: Redirect to login
     User->>Zitadel: Authenticate
-    Zitadel-->>Sphere: ID Token + Access Token
+    Zitadel-->>Cloud: ID Token + Access Token
     
-    User->>Sphere: Launch Stack
-    Sphere->>Stack: Forward request + Token
+    User->>Cloud: Launch Stack
+    Cloud->>Stack: Forward request + Token
     Stack->>Zitadel: Validate token
     Zitadel-->>Stack: Token valid
     Stack-->>User: Access granted
@@ -370,12 +370,12 @@ sequenceDiagram
     docker compose up -d
     ```
   </Card>
-  <Card title="Hybrid (Stack + Sphere)" icon="cloud">
-    Use kombify Sphere for SSO and billing while self-hosting Stack.
+  <Card title="Hybrid (Stack + Cloud)" icon="cloud">
+    Use kombify Cloud for SSO and billing while self-hosting Stack.
     
     **Best for:** Teams, enterprise users
     
-    Connect via Sphere dashboard
+    Connect via Cloud dashboard
   </Card>
 </Columns>
 

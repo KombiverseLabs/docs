@@ -5,7 +5,6 @@ sidebarTitle: Configuration
 icon: gear
 ---
 
-# Stack configuration
 
 Configure kombify Stack using environment variables, config files, or the web UI. This page covers all available options.
 
@@ -35,7 +34,7 @@ Configure kombify Stack using environment variables, config files, or the web UI
     | Variable | Default | Description |
     |----------|---------|-------------|
     | `KOMBISTACK_AUTH_ENABLED` | `false` | Enable authentication |
-    | `KOMBISTACK_AUTH_PROVIDER` | `local` | Auth provider: local, oidc, sphere |
+    | `KOMBISTACK_AUTH_PROVIDER` | `local` | Auth provider: local, oidc, Cloud |
     | `KOMBISTACK_ADMIN_USERNAME` | `admin` | Default admin username |
     | `KOMBISTACK_ADMIN_PASSWORD` | - | Default admin password (required) |
   </Tab>
@@ -48,12 +47,12 @@ Configure kombify Stack using environment variables, config files, or the web UI
     | `KOMBISTACK_OIDC_CLIENT_SECRET` | - | OIDC client secret |
     | `KOMBISTACK_OIDC_SCOPES` | `openid profile email` | Requested scopes |
   </Tab>
-  <Tab title="Sphere SSO">
+  <Tab title="Cloud SSO">
     | Variable | Default | Description |
     |----------|---------|-------------|
-    | `KOMBISTACK_AUTH_PROVIDER` | `sphere` | Use kombify Sphere for auth |
-    | `KOMBISTACK_SPHERE_ENDPOINT` | - | Sphere API endpoint |
-    | `KOMBISTACK_SPHERE_API_KEY` | - | Sphere API key |
+    | `KOMBISTACK_AUTH_PROVIDER` | `Cloud` | Use kombify Cloud for auth |
+    | `KOMBISTACK_Cloud_ENDPOINT` | - | Cloud API endpoint |
+    | `KOMBISTACK_Cloud_API_KEY` | - | Cloud API key |
   </Tab>
 </Tabs>
 

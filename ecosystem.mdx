@@ -1,10 +1,9 @@
 ---
 title: kombify Ecosystem
-description: How Stack, Sim, StackKits, and Sphere work together
+description: How Stack, Sim, StackKits, and Cloud work together
 icon: sitemap
 ---
 
-# kombify Ecosystem
 
 The kombify platform consists of four interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
 
@@ -68,7 +67,7 @@ graph TB
     → *"Deploy it!"*
   </Card>
   
-  <Card title="kombify Platform" icon="globe" href="/sphere/overview">
+  <Card title="kombify Platform" icon="globe" href="/Cloud/overview">
     **Managed Platform**
     
     SaaS platform with SSO, team management, and multi-homelab support. Let us handle the complexity.
@@ -192,7 +191,7 @@ This single file works with:
 | **StackKits** | Validates against CUE schemas |
 | **Sim** | Creates simulated test environment |
 | **Stack** | Generates & deploys infrastructure |
-| **Sphere** | Stores & version-controls configs |
+| **Cloud** | Stores & version-controls configs |
 
 ### Data Flow
 
@@ -251,17 +250,17 @@ graph LR
   </Tab>
   
   <Tab title="Hybrid (Recommended)">
-    Self-hosted tools with Sphere management:
+    Self-hosted tools with Cloud management:
     
     ```mermaid
     graph TB
-        subgraph Sphere["Sphere (Cloud)"]
+        subgraph Cloud["Cloud (Cloud)"]
             Dashboard["Dashboard"]
             SSO["SSO"]
         end
         
         subgraph Your["Your Infrastructure"]
-            Agent["Sphere Agent"]
+            Agent["Cloud Agent"]
             Stack["Stack"]
             HL["Homelab"]
         end
@@ -270,7 +269,7 @@ graph LR
         Agent --> Stack
         Stack --> HL
         
-        style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+        style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
         style Your fill:#1e293b,stroke:#4ade80,color:#f8fafc
     ```
     
@@ -282,13 +281,13 @@ graph LR
     
     ```mermaid
     graph TB
-        subgraph Sphere["Sphere (Cloud)"]
+        subgraph Cloud["Cloud (Cloud)"]
             Dashboard["Dashboard"]
             Stack["Hosted Stack"]
         end
         
         subgraph Your["Your Infrastructure"]
-            Agent["Sphere Agent"]
+            Agent["Cloud Agent"]
             HL["Homelab"]
         end
         
@@ -296,7 +295,7 @@ graph LR
         Stack --> Agent
         Agent --> HL
         
-        style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+        style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
         style Your fill:#1e293b,stroke:#fbbf24,color:#f8fafc
     ```
     
@@ -332,7 +331,7 @@ graph LR
     Jump straight into deployment if you already know what you want.
   </Card>
   
-  <Card title="Start with Sphere" icon="globe" href="/sphere/overview">
+  <Card title="Start with Cloud" icon="globe" href="/Cloud/overview">
     **Managed experience**
     
     Let us handle the setup—focus on your applications.
@@ -341,7 +340,7 @@ graph LR
 
 ## Comparison Table
 
-| Feature | Self-Hosted | Sphere Managed |
+| Feature | Self-Hosted | Cloud Managed |
 |---------|:-----------:|:--------------:|
 | **Setup Time** | ~1 hour | ~5 minutes |
 | **Updates** | Manual | Automatic |
@@ -352,7 +351,7 @@ graph LR
 | **Cost** | Free | $0-49/month |
 | **Data Location** | Your choice | Your premises* |
 
-*Sphere only manages configuration—your data stays on your infrastructure.
+*Cloud only manages configuration—your data stays on your infrastructure.
 
 ## Next Steps
 

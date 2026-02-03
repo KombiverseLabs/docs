@@ -1,15 +1,14 @@
 ---
 title: Spec-driven architecture
-description: Understand how KombiSphere uses declarative specifications to manage infrastructure
+description: Understand how kombify Cloud uses declarative specifications to manage infrastructure
 ---
 
-# Spec-driven architecture
 
-KombiSphere follows a **spec-driven architecture** where you define your desired infrastructure state in a single specification file, and the system handles validation, resolution, and execution.
+kombify Cloud follows a **spec-driven architecture** where you define your desired infrastructure state in a single specification file, and the system handles validation, resolution, and execution.
 
 ## The kombination.yaml file
 
-At the heart of KombiSphere is the `kombination.yaml` file - your infrastructure's source of truth.
+At the heart of kombify Cloud is the `kombination.yaml` file - your infrastructure's source of truth.
 
 ```yaml kombination.yaml
 version: "1.0"
@@ -44,7 +43,7 @@ services:
 
 ## The unifier pipeline
 
-KombiSphere uses a multi-stage pipeline to transform user intent into executable infrastructure:
+kombify Cloud uses a multi-stage pipeline to transform user intent into executable infrastructure:
 
 <Steps>
   <Step title="Pre-validation">
@@ -160,7 +159,7 @@ services:
 
 ## Validation with CUE
 
-KombiSphere uses [CUE](https://cuelang.org/) for constraint-based validation:
+kombify Cloud uses [CUE](https://cuelang.org/) for constraint-based validation:
 
 ```cue StackKit schema example
 package base_homelab
@@ -203,7 +202,7 @@ package base_homelab
 
 ## Deployment modes
 
-KombiSphere supports two deployment modes based on infrastructure complexity:
+kombify Cloud supports two deployment modes based on infrastructure complexity:
 
 <Tabs>
   <Tab title="Simple mode">
@@ -265,7 +264,7 @@ KombiSphere supports two deployment modes based on infrastructure complexity:
     icon="cloud-arrow-up"
     href="/concepts/hybrid-infrastructure"
   >
-    Learn how KombiSphere manages cloud and local resources
+    Learn how kombify Cloud manages cloud and local resources
   </Card>
   <Card
     title="StackKits system"

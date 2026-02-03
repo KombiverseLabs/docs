@@ -1,24 +1,23 @@
 ---
-title: Sphere Getting Started
-description: Connect your homelab to kombify Sphere
+title: Cloud Getting Started
+description: Connect your homelab to kombify Cloud
 sidebarTitle: Getting Started
 icon: rocket
 ---
 
-# Getting Started with Sphere
 
-Connect your homelab to kombify Sphere for managed monitoring, updates, and team collaboration.
+Connect your homelab to kombify Cloud for managed monitoring, updates, and team collaboration.
 
 ## Prerequisites
 
 - A kombify Stack installation (self-hosted or managed)
-- A Sphere account at [sphere.kombify.dev](https://sphere.kombify.dev)
+- A Cloud account at [Cloud.kombify.dev](https://Cloud.kombify.dev)
 
 ## Step 1: Create Account
 
 <Steps>
   <Step title="Sign up">
-    Visit [sphere.kombify.dev](https://sphere.kombify.dev) and click **Sign Up**.
+    Visit [Cloud.kombify.dev](https://Cloud.kombify.dev) and click **Sign Up**.
   </Step>
   <Step title="Verify email">
     Check your inbox and verify your email address.
@@ -40,9 +39,9 @@ Connect your homelab to kombify Sphere for managed monitoring, updates, and team
   <Step title="Install agent">
     On your homelab server:
     ```bash
-    curl -fsSL https://get.kombify.dev/sphere-agent | bash
-    sphere-agent init --token YOUR_TOKEN
-    sudo systemctl enable --now sphere-agent
+    curl -fsSL https://get.kombify.dev/Cloud-agent | bash
+    Cloud-agent init --token YOUR_TOKEN
+    sudo systemctl enable --now Cloud-agent
     ```
   </Step>
   <Step title="Verify connection">
@@ -63,13 +62,13 @@ Once connected, you can:
 
 ```mermaid
 graph LR
-    subgraph Sphere["Sphere Cloud"]
+    subgraph Cloud["Cloud Cloud"]
         Dashboard["Dashboard"]
-        API["Sphere API"]
+        API["Cloud API"]
     end
     
     subgraph YourNetwork["Your Network"]
-        Agent["Sphere Agent"]
+        Agent["Cloud Agent"]
         Stack["kombify Stack"]
         Nodes["Your Nodes"]
     end
@@ -79,16 +78,16 @@ graph LR
     Agent --> Stack
     Stack --> Nodes
     
-    style Sphere fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
     style YourNetwork fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-**Important:** Your data stays on your infrastructure. Sphere only manages configuration and provides monitoring.
+**Important:** Your data stays on your infrastructure. Cloud only manages configuration and provides monitoring.
 
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Team Management" icon="users" href="/sphere/team-management">
+  <Card title="Team Management" icon="users" href="/Cloud/team-management">
     Invite your team members
   </Card>
   <Card title="SSO Setup" icon="key" href="/guides/auth/sso-integration">

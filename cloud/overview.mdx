@@ -1,18 +1,17 @@
 ---
-title: kombify Sphere
+title: kombify Cloud
 description: Manage your homelabs from anywhere — no setup required
 sidebarTitle: Overview
 icon: globe
 ---
 
-# kombify Sphere
 
-**kombify Sphere** is the easiest way to manage your homelab. Sign up, connect your servers, and you're done — we handle the rest.
+**kombify Cloud** is the easiest way to manage your homelab. Sign up, connect your servers, and you're done — we handle the rest.
 
 ## The simple version
 
-<Card title="What is Sphere?" icon="lightbulb">
-  Sphere is like having a professional IT team for your homelab. It provides a web dashboard where you can manage all your servers, deploy services, and invite team members — without setting up any infrastructure yourself.
+<Card title="What is Cloud?" icon="lightbulb">
+  Cloud is like having a professional IT team for your homelab. It provides a web dashboard where you can manage all your servers, deploy services, and invite team members — without setting up any infrastructure yourself.
 </Card>
 
 ## Self-hosted vs. managed
@@ -27,7 +26,7 @@ icon: globe
     - ❌ You set up user management
     - ❌ One homelab at a time
   </Tab>
-  <Tab title="Managed (Sphere)">
+  <Tab title="Managed (Cloud)">
     **We handle the complexity:**
     - ✅ Automatic updates and security
     - ✅ Built-in backups
@@ -39,14 +38,14 @@ icon: globe
 </Tabs>
 
 <Accordion title="🔧 Technical details" icon="code">
-  Sphere is a multi-tenant SaaS platform built with:
+  Cloud is a multi-tenant SaaS platform built with:
   - **Frontend:** SvelteKit with real-time updates
   - **Backend:** Go API with PocketBase for state
   - **Identity:** Zitadel for OIDC/SAML/passkey authentication
   - **Billing:** Stripe for subscriptions
   - **Agent:** Lightweight Go binary with mTLS for secure homelab connectivity
   
-  Your data stays on your servers — Sphere only stores configuration and metadata.
+  Your data stays on your servers — Cloud only stores configuration and metadata.
 </Accordion>
 
 ## How it works
@@ -59,7 +58,7 @@ flowchart TB
         Viewer["Viewer"]
     end
     
-    subgraph Sphere["☁️ kombify Sphere"]
+    subgraph Cloud["☁️ kombify Cloud"]
         Dashboard["🖥️ Dashboard"]
         Auth["🔐 Login<br/><small>Passkeys, SSO</small>"]
         API["🔌 API"]
@@ -79,7 +78,7 @@ flowchart TB
     API <-->|"Encrypted tunnel"| Homelabs
     
     style You fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Sphere fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Cloud fill:#1e293b,stroke:#fbbf24,color:#f8fafc
     style Homelabs fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
@@ -88,9 +87,9 @@ flowchart TB
 | Data | Location | Why |
 |------|----------|-----|
 | **Your files & databases** | Your servers | Your data never leaves your infrastructure |
-| **Configuration** | Sphere cloud | So you can access it from anywhere |
-| **User accounts** | Sphere cloud | Managed securely by Zitadel |
-| **Deployment history** | Sphere cloud | Track who changed what, when |
+| **Configuration** | Cloud cloud | So you can access it from anywhere |
+| **User accounts** | Cloud cloud | Managed securely by Zitadel |
+| **Deployment history** | Cloud cloud | Track who changed what, when |
 
 ## Key features
 
@@ -119,7 +118,7 @@ flowchart TB
 
 ```mermaid
 graph TB
-    subgraph Cloud["☁️ Sphere Cloud"]
+    subgraph Cloud["☁️ Cloud Cloud"]
         subgraph Frontend["Frontend"]
             SvelteKit["🖥️ Dashboard<br/><small>SvelteKit</small>"]
         end
@@ -159,23 +158,23 @@ graph TB
 ```mermaid
 sequenceDiagram
     participant Homelab as Your Server
-    participant Agent as Sphere Agent
-    participant Sphere as Sphere Cloud
+    participant Agent as Cloud Agent
+    participant Cloud as Cloud Cloud
     
-    Note over Agent,Sphere: Initial Setup (once)
-    Agent->>Sphere: Register with pairing token
-    Sphere->>Agent: Issue mTLS certificate
+    Note over Agent,Cloud: Initial Setup (once)
+    Agent->>Cloud: Register with pairing token
+    Cloud->>Agent: Issue mTLS certificate
     
-    Note over Agent,Sphere: Normal Operation
+    Note over Agent,Cloud: Normal Operation
     loop Every 30 seconds
-        Agent->>Sphere: Heartbeat + metrics
-        Sphere->>Agent: Any pending commands?
+        Agent->>Cloud: Heartbeat + metrics
+        Cloud->>Agent: Any pending commands?
     end
     
-    Note over Agent,Sphere: Deployment
-    Sphere->>Agent: Deploy command
+    Note over Agent,Cloud: Deployment
+    Cloud->>Agent: Deploy command
     Agent->>Homelab: Execute deployment
-    Agent->>Sphere: Report status
+    Agent->>Cloud: Report status
 ```
 
 **Key points:**
@@ -185,31 +184,31 @@ sequenceDiagram
 
 </Accordion>
     Agent->>Homelab: Execute deployment
-    Agent->>Sphere: Report status
+    Agent->>Cloud: Report status
 ```
 
 ### Agent Installation
 
 <Steps>
   <Step title="Get pairing token">
-    In Sphere dashboard, go to **Homelabs → Add Homelab** and copy your pairing token.
+    In Cloud dashboard, go to **Homelabs → Add Homelab** and copy your pairing token.
   </Step>
   
   <Step title="Install agent">
     ```bash
-    curl -fsSL https://get.kombify.dev/sphere-agent | bash
+    curl -fsSL https://get.kombify.dev/Cloud-agent | bash
     ```
   </Step>
   
   <Step title="Configure agent">
     ```bash
-    sphere-agent init --token YOUR_PAIRING_TOKEN
+    Cloud-agent init --token YOUR_PAIRING_TOKEN
     ```
   </Step>
   
   <Step title="Start agent">
     ```bash
-    sudo systemctl enable --now sphere-agent
+    sudo systemctl enable --now Cloud-agent
     ```
   </Step>
 </Steps>
@@ -228,17 +227,17 @@ sequenceDiagram
 
 ### SSO Configuration
 
-Sphere uses Zitadel for enterprise-grade authentication:
+Cloud uses Zitadel for enterprise-grade authentication:
 
 ```mermaid
 sequenceDiagram
     participant User
-    participant Sphere
+    participant Cloud
     participant Zitadel
     participant IdP as Your IdP (Optional)
     
-    User->>Sphere: Access dashboard
-    Sphere->>Zitadel: Redirect to login
+    User->>Cloud: Access dashboard
+    Cloud->>Zitadel: Redirect to login
     
     alt Native Login
         Zitadel->>User: Show login form
@@ -249,8 +248,8 @@ sequenceDiagram
         IdP->>Zitadel: Return assertion
     end
     
-    Zitadel->>Sphere: Return tokens
-    Sphere->>User: Authenticated session
+    Zitadel->>Cloud: Return tokens
+    Cloud->>User: Authenticated session
 ```
 
 Supported identity providers:
@@ -345,9 +344,9 @@ Built-in monitoring:
   </Accordion>
 </AccordionGroup>
 
-## Self-Hosted vs Sphere
+## Self-Hosted vs Cloud
 
-| Feature | Self-Hosted (Stack) | Managed (Sphere) |
+| Feature | Self-Hosted (Stack) | Managed (Cloud) |
 |---------|---------------------|------------------|
 | **Cost** | Free | $0-49/month |
 | **Setup** | ~1 hour | ~5 minutes |
@@ -362,7 +361,7 @@ Built-in monitoring:
 
 <Steps>
   <Step title="Create account">
-    Sign up at [sphere.kombify.dev](https://sphere.kombify.dev)
+    Sign up at [Cloud.kombify.dev](https://Cloud.kombify.dev)
   </Step>
   
   <Step title="Add your first homelab">
@@ -377,16 +376,16 @@ Built-in monitoring:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quickstart Guide" icon="rocket" href="/sphere/quickstart">
+  <Card title="Quickstart Guide" icon="rocket" href="/Cloud/quickstart">
     Get up and running in 5 minutes
   </Card>
-  <Card title="Agent Installation" icon="download" href="/sphere/agent">
+  <Card title="Agent Installation" icon="download" href="/Cloud/agent">
     Detailed agent setup instructions
   </Card>
-  <Card title="SSO Setup" icon="key" href="/sphere/sso">
+  <Card title="SSO Setup" icon="key" href="/Cloud/sso">
     Configure enterprise authentication
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/sphere">
-    Automate with the Sphere API
+  <Card title="API Reference" icon="code" href="/api-reference/Cloud">
+    Automate with the Cloud API
   </Card>
 </CardGroup>

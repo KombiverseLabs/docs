@@ -3,9 +3,8 @@ title: Zitadel integration
 description: Configure Zitadel as your SSO provider for kombify
 ---
 
-# Zitadel integration
 
-Integrate Zitadel as your Single Sign-On (SSO) provider for kombify Sphere and Stack.
+Integrate Zitadel as your Single Sign-On (SSO) provider for kombify Cloud and Stack.
 
 ## Overview
 
@@ -15,7 +14,7 @@ Zitadel is an open-source identity and access management platform that provides:
 - User management
 - Role-based access control (RBAC)
 
-kombify Sphere uses Zitadel by default for enterprise SSO.
+kombify Cloud uses Zitadel by default for enterprise SSO.
 
 ## Prerequisites
 
@@ -28,7 +27,7 @@ kombify Sphere uses Zitadel by default for enterprise SSO.
   </Card>
 </CardGroup>
 
-## Setup for kombify Sphere
+## Setup for kombify Cloud
 
 ### Step 1: Create OIDC application
 
@@ -40,14 +39,14 @@ kombify Sphere uses Zitadel by default for enterprise SSO.
   <Step title="Create new project">
     Navigate to **Projects** → **Create New Project**
     
-    - Name: `kombify Sphere`
+    - Name: `kombify Cloud`
     - Description: `SSO for kombify platform`
   </Step>
 
   <Step title="Add application">
     In your project, click **New Application**:
     
-    - Name: `kombify-sphere`
+    - Name: `kombify-Cloud`
     - Type: **Web**
     - Authentication method: **PKCE**
   </Step>
@@ -62,8 +61,8 @@ kombify Sphere uses Zitadel by default for enterprise SSO.
     
     For self-hosted:
     ```
-    https://your-sphere-domain.com/auth/callback
-    https://your-sphere-domain.com/auth/refresh
+    https://your-Cloud-domain.com/auth/callback
+    https://your-Cloud-domain.com/auth/refresh
     ```
   </Step>
 
@@ -75,7 +74,7 @@ kombify Sphere uses Zitadel by default for enterprise SSO.
   </Step>
 </Steps>
 
-### Step 2: Configure kombify Sphere
+### Step 2: Configure kombify Cloud
 
 <Tabs>
   <Tab title="SaaS (Managed)">
@@ -101,12 +100,12 @@ kombify Sphere uses Zitadel by default for enterprise SSO.
     ZITADEL_CLIENT_SECRET=your-client-secret
     
     # Callback URL
-    ZITADEL_REDIRECT_URI=https://your-sphere.com/auth/callback
+    ZITADEL_REDIRECT_URI=https://your-Cloud.com/auth/callback
     ```
     
-    Restart Sphere:
+    Restart Cloud:
     ```bash
-    docker compose restart sphere
+    docker compose restart Cloud
     ```
   </Tab>
 </Tabs>

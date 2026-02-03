@@ -3,9 +3,8 @@ title: API introduction
 description: Getting started with the kombify API
 ---
 
-# API introduction
 
-The kombify API provides programmatic access to all kombify tools: Stack, Sim, StackKits, and Sphere.
+The kombify API provides programmatic access to all kombify tools: Stack, Sim, StackKits, and Cloud.
 
 ## Base URLs
 
@@ -14,7 +13,7 @@ The kombify API provides programmatic access to all kombify tools: Stack, Sim, S
 | **kombify API Gateway** | `https://api.kombify.io/v1` | Central API entry point (Kong) |
 | **kombify Stack** | `http://localhost:5260/api/v1` or `https://stack.kombify.io` | Infrastructure orchestration |
 | **kombify Sim** | `http://localhost:5270/api/v1` or `https://sim.kombify.io` | Simulation management |
-| **kombify Sphere** | Via API Gateway | SaaS platform features |
+| **kombify Cloud** | Via API Gateway | SaaS platform features |
 
 ## Authentication
 
@@ -24,14 +23,14 @@ All API requests require authentication via Bearer token:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://api.kombisphere.io/v1/stacks
+  https://api.kombify Cloud.io/v1/stacks
 ```
 
 ### Getting a token
 
 <Tabs>
-  <Tab title="Sphere (SaaS)">
-    Generate an API token in the Sphere dashboard:
+  <Tab title="Cloud (SaaS)">
+    Generate an API token in the Cloud dashboard:
     
     1. Go to **Settings** → **API Tokens**
     2. Click **"Generate Token"**
@@ -119,7 +118,7 @@ X-RateLimit-Reset: 1640000000
 List endpoints support pagination:
 
 ```bash
-curl "https://api.kombisphere.io/v1/stacks?page=1&perPage=20" \
+curl "https://api.kombify Cloud.io/v1/stacks?page=1&perPage=20" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -144,10 +143,10 @@ Filter results with query parameters:
 
 ```bash
 # Filter by status
-curl "https://api.kombisphere.io/v1/stacks?status=running"
+curl "https://api.kombify Cloud.io/v1/stacks?status=running"
 
 # Filter by multiple fields
-curl "https://api.kombisphere.io/v1/stacks?status=running&stackkit=base-homelab"
+curl "https://api.kombify Cloud.io/v1/stacks?status=running&stackkit=base-homelab"
 ```
 
 ## Sorting
@@ -156,10 +155,10 @@ Sort results with the `sort` parameter:
 
 ```bash
 # Sort by created date (descending)
-curl "https://api.kombisphere.io/v1/stacks?sort=-created"
+curl "https://api.kombify Cloud.io/v1/stacks?sort=-created"
 
 # Sort by name (ascending)
-curl "https://api.kombisphere.io/v1/stacks?sort=name"
+curl "https://api.kombify Cloud.io/v1/stacks?sort=name"
 ```
 
 ## Webhooks
@@ -167,7 +166,7 @@ curl "https://api.kombisphere.io/v1/stacks?sort=name"
 Subscribe to events via webhooks:
 
 ```bash
-curl -X POST https://api.kombisphere.io/v1/webhooks \
+curl -X POST https://api.kombify Cloud.io/v1/webhooks \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -211,7 +210,7 @@ import { KombifyClient } from '@kombify/sdk';
 
 const client = new KombifyClient({
   token: process.env.KOMBIFY_TOKEN,
-  baseUrl: 'https://api.kombisphere.io/v1'
+  baseUrl: 'https://api.kombify Cloud.io/v1'
 });
 
 // List stacks

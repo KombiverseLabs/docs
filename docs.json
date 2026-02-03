@@ -242,33 +242,33 @@
       ]
     },
     {
-      "tab": "Sphere",
+      "tab": "Cloud",
       "icon": "cloud",
       "pages": [
         {
           "group": "Overview",
           "icon": "circle-info",
           "pages": [
-            "sphere/overview",
-            "sphere/getting-started"
+            "cloud/overview",
+            "cloud/getting-started"
           ]
         },
         {
           "group": "Features",
           "icon": "star",
           "pages": [
-            "sphere/dashboard",
-            "sphere/tool-launcher",
-            "sphere/team-management"
+            "cloud/dashboard",
+            "cloud/tool-launcher",
+            "cloud/team-management"
           ]
         },
         {
           "group": "Billing",
           "icon": "credit-card",
           "pages": [
-            "sphere/pricing",
-            "sphere/subscriptions",
-            "sphere/enterprise"
+            "cloud/pricing",
+            "cloud/subscriptions",
+            "cloud/enterprise"
           ]
         }
       ]

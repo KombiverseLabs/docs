@@ -3,7 +3,6 @@ title: API introduction
 description: Get started with the kombify APIs
 ---
 
-# kombify APIs
 
 kombify provides RESTful APIs for all platform components, enabling you to automate deployments, run simulations programmatically, and integrate with your existing tooling.
 
@@ -20,16 +19,16 @@ graph LR
     subgraph "kombify APIs"
         Stack[🔧 Stack API]
         Sim[🧪 Sim API]
-        Sphere[☁️ Sphere API]
+        Cloud[☁️ Cloud API]
     end
     
     CI --> Stack
     Script --> Sim
-    App --> Sphere
+    App --> Cloud
     
     Stack --> Deploy[Deploy to Homelab]
     Sim --> Test[Test in Sandbox]
-    Sphere --> Manage[Manage SaaS]
+    Cloud --> Manage[Manage SaaS]
 ```
 
 ## Available APIs
@@ -41,7 +40,7 @@ graph LR
   <Card title="Sim API" icon="flask" href="/api/kombisim/overview">
     Create and control simulation environments for testing.
   </Card>
-  <Card title="Sphere API" icon="cloud" href="/api/kombisphere/overview">
+  <Card title="Cloud API" icon="cloud" href="/api/kombify Cloud/overview">
     Access the managed SaaS platform features.
   </Card>
 </CardGroup>
@@ -52,7 +51,7 @@ graph LR
 |-----|----------|-------------|----------|
 | **Stack** | Orchestrate your homelab | API key / mTLS | `http://localhost:5260/api/v1` (local) or `https://stack.kombify.io` |
 | **Sim** | Test configurations | None (local) | `http://localhost:5270/api/v1` |
-| **Sphere** | Managed SaaS platform | JWT / API key | `https://api.kombify.io/v1` (via Kong Gateway) |
+| **Cloud** | Managed SaaS platform | JWT / API key | `https://api.kombify.io/v1` (via Kong Gateway) |
 
 ## Common request format
 
@@ -120,7 +119,7 @@ Breaking changes are introduced in new major versions (`v2`, `v3`). Non-breaking
 
 Rate limits vary by plan and API:
 
-| Plan | Stack API | Sim API | Sphere API |
+| Plan | Stack API | Sim API | Cloud API |
 |------|-----------|---------|------------|
 | Free | 60/min | Unlimited | 30/min |
 | Hobby | 300/min | Unlimited | 100/min |

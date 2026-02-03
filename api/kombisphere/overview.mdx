@@ -1,11 +1,10 @@
 ---
-title: kombify Sphere API overview
+title: kombify Cloud API overview
 description: Unified API gateway for the managed SaaS platform
 ---
 
-# kombify Sphere API
 
-The Sphere API provides programmatic access to kombify's managed SaaS platform. Use it to manage subscriptions, access tools, and integrate kombify into your workflows.
+The Cloud API provides programmatic access to kombify's managed SaaS platform. Use it to manage subscriptions, access tools, and integrate kombify into your workflows.
 
 ## Base URLs
 
@@ -16,7 +15,7 @@ The Sphere API provides programmatic access to kombify's managed SaaS platform. 
 
 ## Authentication
 
-Sphere supports two authentication methods:
+Cloud supports two authentication methods:
 
 ### JWT token (recommended)
 
@@ -143,7 +142,7 @@ curl -X POST https://api.kombify.io/v1/tools/portainer/connect \
 
 </Accordion>
 
-<Accordion title="Deploy a StackKit from Sphere" icon="rocket">
+<Accordion title="Deploy a StackKit from Cloud" icon="rocket">
 
 ```bash
 curl -X POST https://api.kombify.io/v1/deployments \
@@ -205,7 +204,7 @@ All errors follow a consistent format:
 
 ## Webhooks
 
-Sphere can send webhooks to your server when events occur:
+Cloud can send webhooks to your server when events occur:
 
 ```json
 {
@@ -247,16 +246,16 @@ Configure webhooks in your [dashboard settings](https://app.kombify.io/settings/
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Authentication" icon="lock" href="/api/kombisphere/authentication">
+  <Card title="Authentication" icon="lock" href="/api/kombify Cloud/authentication">
     OAuth 2.0 and OIDC flows
   </Card>
-  <Card title="Tools API" icon="wrench" href="/api/kombisphere/tools">
+  <Card title="Tools API" icon="wrench" href="/api/kombify Cloud/tools">
     Manage connected tools
   </Card>
-  <Card title="Subscriptions" icon="credit-card" href="/api/kombisphere/subscriptions">
+  <Card title="Subscriptions" icon="credit-card" href="/api/kombify Cloud/subscriptions">
     Billing and plan management
   </Card>
-  <Card title="Webhooks" icon="webhook" href="/api/kombisphere/webhooks">
+  <Card title="Webhooks" icon="webhook" href="/api/kombify Cloud/webhooks">
     Event notifications
   </Card>
 </CardGroup>

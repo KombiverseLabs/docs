@@ -3,7 +3,6 @@ title: Security
 description: How kombify keeps your infrastructure secure
 ---
 
-# Security
 
 kombify is designed with security as a core principle. This page explains our security model and best practices.
 
@@ -56,7 +55,7 @@ kombify is designed with security as a core principle. This page explains our se
 
 ### Zitadel OIDC
 
-kombify Sphere uses Zitadel for enterprise-grade authentication:
+kombify Cloud uses Zitadel for enterprise-grade authentication:
 
 <CardGroup cols={2}>
   <Card title="OAuth 2.0" icon="key">
@@ -78,7 +77,7 @@ kombify Sphere uses Zitadel for enterprise-grade authentication:
 ```json
 {
   "sub": "user-123",
-  "iss": "https://auth.kombisphere.io",
+  "iss": "https://auth.kombify Cloud.io",
   "aud": "kombify-stack",
   "exp": 1640000000,
   "iat": 1639996400,
@@ -95,7 +94,7 @@ kombify Sphere uses Zitadel for enterprise-grade authentication:
 
 ### Local authentication
 
-For self-hosted Stack without Sphere:
+For self-hosted Stack without Cloud:
 
 ```yaml
 # Local user database

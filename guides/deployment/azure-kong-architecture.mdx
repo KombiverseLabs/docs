@@ -3,7 +3,6 @@ title: "Azure + Kong Gateway Architecture"
 description: "Complete API Gateway setup with Kong, Azure, and Zitadel SSO"
 ---
 
-# Azure + Kong Gateway Architecture
 
 This guide describes the recommended architecture for deploying Kong Gateway as the central API middleware in Azure, integrated with Zitadel for authentication and Azure Front Door for edge routing.
 
@@ -40,7 +39,7 @@ This guide describes the recommended architecture for deploying Kong Gateway as 
 │         │                          │                          │             │
 │         ▼                          ▼                          ▼             │
 │  ┌─────────────────────┐  ┌─────────────────────┐  ┌─────────────────────┐ │
-│  │   KombiStack        │  │   KombiSim          │  │   KombiSphere       │ │
+│  │   KombiStack        │  │   KombiSim          │  │   kombify Cloud       │ │
 │  │   (Container App)   │  │   (Container App)   │  │   (App Service)     │ │
 │  │   :5260             │  │   :5270             │  │   :8080             │ │
 │  └─────────────────────┘  └─────────────────────┘  └─────────────────────┘ │
@@ -207,8 +206,8 @@ services:
           minute: 50
           policy: redis
 
-  # KombiSphere Portal (Internal)
-  - name: kombisphere
+  # kombify Cloud Portal (Internal)
+  - name: kombify Cloud
     url: http://app-kombify-portal-prod.azurewebsites.net
     routes:
       - name: portal-routes

@@ -4,7 +4,6 @@ description: Zero-trust architecture for homelab and SaaS
 sidebarTitle: Identity
 ---
 
-# Identity & security
 
 kombify implements a **zero-trust identity architecture** that combines strong security defaults with intentional flexibility for advanced users. This page explains how identity, authentication, and authorization work across the platform.
 
@@ -46,7 +45,7 @@ kombify uses a layered identity stack that works across SaaS and self-hosted dep
 graph TB
     subgraph Cloud["☁️ Cloud Layer"]
         Zitadel["Zitadel<br/>(Global IdP)"]
-        Sphere["kombify Sphere"]
+        Cloud["kombify Cloud"]
     end
     
     subgraph Broker["🔗 Identity Broker"]
@@ -168,9 +167,9 @@ graph LR
 
 ## Role model
 
-kombify defines roles at two levels: SaaS (kombify Sphere) and homelab (kombify Stack).
+kombify defines roles at two levels: SaaS (kombify Cloud) and homelab (kombify Stack).
 
-### SaaS roles (kombify Sphere)
+### SaaS roles (kombify Cloud)
 
 | Role | Permissions |
 |------|-------------|
@@ -201,7 +200,7 @@ All roles appear as standardized claims in OIDC/JWT tokens:
 
 ## SaaS vs. self-hosted
 
-### SaaS mode (kombify Sphere)
+### SaaS mode (kombify Cloud)
 
 - **tinyauth** is registered as an OIDC client with **Zitadel**
 - SaaS owners and users log in with their central kombify account

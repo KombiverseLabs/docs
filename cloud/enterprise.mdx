@@ -1,13 +1,12 @@
 ---
 title: Enterprise
-description: Enterprise features and deployment options for Sphere
+description: Enterprise features and deployment options for Cloud
 sidebarTitle: Enterprise
 icon: building
 ---
 
-# Sphere Enterprise
 
-kombify Sphere Enterprise is designed for organizations requiring advanced security, compliance, and scalability features.
+kombify Cloud Enterprise is designed for organizations requiring advanced security, compliance, and scalability features.
 
 ## Enterprise features
 
@@ -71,11 +70,11 @@ kombify Sphere Enterprise is designed for organizations requiring advanced secur
 ### OIDC setup
 
 <Steps>
-  <Step title="Get Sphere OIDC details">
-    In Sphere: **Settings** → **Security** → **SSO**
+  <Step title="Get Cloud OIDC details">
+    In Cloud: **Settings** → **Security** → **SSO**
     
     Copy:
-    - Redirect URI: `https://sphere.kombify.dev/auth/callback`
+    - Redirect URI: `https://Cloud.kombify.dev/auth/callback`
     - Client ID: (provided)
   </Step>
   <Step title="Configure your IdP">
@@ -85,17 +84,17 @@ kombify Sphere Enterprise is designed for organizations requiring advanced secur
     - Configure scopes: `openid`, `profile`, `email`
     - Copy Client Secret
   </Step>
-  <Step title="Complete Sphere setup">
-    Enter in Sphere:
+  <Step title="Complete Cloud setup">
+    Enter in Cloud:
     - Issuer URL
     - Client ID
     - Client Secret
   </Step>
   <Step title="Configure role mapping">
-    Map IdP groups to Sphere roles:
-    - `sphere-admins` → Admin
-    - `sphere-operators` → Operator
-    - `sphere-viewers` → Viewer
+    Map IdP groups to Cloud roles:
+    - `Cloud-admins` → Admin
+    - `Cloud-operators` → Operator
+    - `Cloud-viewers` → Viewer
   </Step>
   <Step title="Enable SSO">
     Toggle **Enable SSO**
@@ -107,10 +106,10 @@ kombify Sphere Enterprise is designed for organizations requiring advanced secur
 ### SAML setup
 
 <Accordion title="SAML configuration details">
-**Sphere SAML metadata:**
-- Entity ID: `https://sphere.kombify.dev/saml/metadata`
-- ACS URL: `https://sphere.kombify.dev/saml/acs`
-- SLO URL: `https://sphere.kombify.dev/saml/slo`
+**Cloud SAML metadata:**
+- Entity ID: `https://Cloud.kombify.dev/saml/metadata`
+- ACS URL: `https://Cloud.kombify.dev/saml/acs`
+- SLO URL: `https://Cloud.kombify.dev/saml/slo`
 
 **Required attributes:**
 - `email` (required)
@@ -126,7 +125,7 @@ Automatically sync users from your IdP:
 1. Enable SCIM in **Settings** → **Security** → **SCIM**
 2. Copy SCIM endpoint and token
 3. Configure SCIM in your IdP
-4. Map groups to Sphere roles
+4. Map groups to Cloud roles
 
 **Supported operations:**
 - Create user
@@ -136,7 +135,7 @@ Automatically sync users from your IdP:
 
 ## Self-hosted deployment
 
-Run Sphere in your own infrastructure.
+Run Cloud in your own infrastructure.
 
 ### Deployment options
 
@@ -182,17 +181,17 @@ Run Sphere in your own infrastructure.
   </Step>
   <Step title="Download package">
     ```bash
-    curl -L https://get.kombify.dev/sphere-enterprise | bash
+    curl -L https://get.kombify.dev/Cloud-enterprise | bash
     ```
   </Step>
   <Step title="Configure">
-    Edit `sphere-config.yaml`:
+    Edit `Cloud-config.yaml`:
     ```yaml
     license_key: "your-license-key"
-    domain: "sphere.yourcompany.com"
+    domain: "Cloud.yourcompany.com"
     database:
       host: "postgres.internal"
-      name: "sphere"
+      name: "Cloud"
     redis:
       host: "redis.internal"
     ```
@@ -200,7 +199,7 @@ Run Sphere in your own infrastructure.
   <Step title="Deploy">
     **Kubernetes:**
     ```bash
-    helm install sphere ./sphere-chart -f sphere-config.yaml
+    helm install Cloud ./Cloud-chart -f Cloud-config.yaml
     ```
     
     **Docker Compose:**
@@ -209,7 +208,7 @@ Run Sphere in your own infrastructure.
     ```
   </Step>
   <Step title="Initialize">
-    Access `https://sphere.yourcompany.com/setup` to complete initial configuration.
+    Access `https://Cloud.yourcompany.com/setup` to complete initial configuration.
   </Step>
 </Steps>
 
@@ -221,10 +220,10 @@ Self-hosted instances receive updates via:
 
 ```bash
 # Check for updates
-sphere-ctl update check
+Cloud-ctl update check
 
 # Apply update
-sphere-ctl update apply
+Cloud-ctl update apply
 ```
 
 ## Custom integrations

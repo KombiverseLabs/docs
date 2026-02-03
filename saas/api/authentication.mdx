@@ -1,24 +1,23 @@
 ---
 title: API authentication
-description: Authentication methods for KombiSphere API
+description: Authentication methods for kombify Cloud API
 ---
 
-# API authentication
 
-KombiSphere API supports JWT tokens and API keys.
+kombify Cloud API supports JWT tokens and API keys.
 
 ## JWT tokens
 
 ```bash
 # Get token from Zitadel
-curl -X POST https://auth.kombisphere.io/oauth/token \
+curl -X POST https://auth.kombify Cloud.io/oauth/token \
   -d grant_type=client_credentials \
   -d client_id=YOUR_CLIENT_ID \
   -d client_secret=YOUR_CLIENT_SECRET
 
 # Use token
 curl -H "Authorization: Bearer $TOKEN" \
-  https://api.kombisphere.io/v1/tools
+  https://api.kombify Cloud.io/v1/tools
 ```
 
 ## API keys
@@ -27,5 +26,5 @@ curl -H "Authorization: Bearer $TOKEN" \
 # Create API key in dashboard
 # Use in requests
 curl -H "X-API-Key: YOUR_API_KEY" \
-  https://api.kombisphere.io/v1/tools
+  https://api.kombify Cloud.io/v1/tools
 ```
