@@ -1,0 +1,220 @@
+---
+title: Stack API overview
+description: REST API reference for kombify Stack
+sidebarTitle: Overview
+icon: server
+---
+
+# Stack API overview
+
+The kombify Stack API provides programmatic access to all orchestration features. Use it to automate deployments, manage infrastructure, and integrate with CI/CD pipelines.
+
+## Base URL
+
+```
+http://localhost:5260/api/v1
+```
+
+For production deployments with TLS:
+```
+https://your-stack-server.example.com/api/v1
+```
+
+## Authentication
+
+See [Authentication](/api/authentication) for details on API keys, JWT tokens, and OAuth2.
+
+```bash
+# API Key
+curl -H "Authorization: Bearer sk_live_abc123" \
+  http://localhost:5260/api/v1/stacks
+
+# JWT Token (from PocketBase)
+curl -H "Authorization: Bearer eyJ..." \
+  http://localhost:5260/api/v1/stacks
+```
+
+## API structure
+
+The Stack API is organized into these resource groups:
+
+| Group | Description |
+|-------|-------------|
+| **Health** | Server health and status endpoints |
+| **Stacks** | Stack lifecycle management |
+| **Workers** | Node/agent management |
+| **Jobs** | Async job tracking |
+| **Unifier** | Spec validation and IaC generation |
+| **StackKits** | Blueprint discovery |
+| **Features** | Feature flags |
+| **AI** | AI assistant integration |
+
+## Quick reference
+
+### Health endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Server health status |
+| GET | `/health/live` | Kubernetes liveness probe |
+| GET | `/health/ready` | Kubernetes readiness probe |
+| GET | `/info` | Server version and config |
+
+### Stack endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/stacks` | List all stacks |
+| POST | `/stacks` | Create new stack |
+| GET | `/stacks/{id}` | Get stack details |
+| DELETE | `/stacks/{id}` | Delete stack |
+| POST | `/stacks/{id}/provision` | Provision infrastructure |
+| POST | `/stacks/{id}/deploy` | Deploy services |
+| POST | `/stacks/{id}/destroy` | Destroy stack |
+
+### Worker endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/workers` | List all workers |
+| POST | `/workers` | Register new worker |
+| GET | `/workers/{id}` | Get worker details |
+| POST | `/workers/{id}/approve` | Approve pending worker |
+| POST | `/workers/{id}/prechecks` | Run pre-deployment checks |
+
+### Unifier endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/unifier/validate` | Validate spec file |
+| POST | `/unifier/unify` | Run full unifier pipeline |
+| POST | `/unifier/generate` | Generate IaC |
+| POST | `/unifier/preview` | Preview changes |
+
+### Job endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/jobs` | List recent jobs |
+| GET | `/jobs/{id}` | Get job status |
+| POST | `/jobs/{id}/cancel` | Cancel running job |
+
+## Request format
+
+### JSON requests
+
+```bash
+curl -X POST http://localhost:5260/api/v1/stacks \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "name": "my-homelab",
+    "stackkit": "base-homelab",
+    "nodes": [{"name": "main", "host": "192.168.1.100"}]
+  }'
+```
+
+### YAML requests (for specs)
+
+```bash
+curl -X POST http://localhost:5260/api/v1/unifier/validate \
+  -H "Content-Type: application/yaml" \
+  -H "Authorization: Bearer $TOKEN" \
+  --data-binary @kombination.yaml
+```
+
+## Response format
+
+### Success response
+
+```json
+{
+  "data": {
+    "id": "stack_abc123",
+    "name": "my-homelab",
+    "status": "active"
+  }
+}
+```
+
+### Error response
+
+```json
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid configuration",
+    "details": {
+      "field": "nodes[0].host",
+      "reason": "Invalid IP address format"
+    }
+  }
+}
+```
+
+### List response with pagination
+
+```json
+{
+  "data": [...],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 45,
+    "total_pages": 3
+  }
+}
+```
+
+## Rate limiting
+
+| Tier | Limit | Description |
+|------|-------|-------------|
+| Default | 10 req/s | Standard rate limit |
+| Authenticated | 100 req/s | With valid API key |
+| Internal | Unlimited | From localhost |
+
+Rate limit headers:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1706961600
+```
+
+## Webhooks
+
+Configure webhooks to receive notifications:
+
+```bash
+curl -X POST http://localhost:5260/api/v1/webhooks \
+  -d '{
+    "url": "https://your-server.com/webhook",
+    "events": ["stack.deployed", "drift.detected", "job.failed"],
+    "secret": "your-webhook-secret"
+  }'
+```
+
+## SDKs and client libraries
+
+<CardGroup cols={3}>
+  <Card title="Go" icon="golang" href="https://github.com/kombify/sdk-go">
+    Official Go SDK
+  </Card>
+  <Card title="Python" icon="python" href="https://github.com/kombify/sdk-python">
+    Python SDK
+  </Card>
+  <Card title="TypeScript" icon="js" href="https://github.com/kombify/sdk-ts">
+    TypeScript/JavaScript SDK
+  </Card>
+</CardGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Stacks API" icon="layer-group" href="/api/stack/stacks">
+    Manage stack lifecycle
+  </Card>
+  <Card title="Workers API" icon="microchip" href="/api/stack/nodes">
+    Manage nodes and agents
+  </Card>
+</CardGroup>

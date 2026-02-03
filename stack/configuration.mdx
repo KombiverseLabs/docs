@@ -1,58 +1,123 @@
 ---
-title: Stack Configuration
+title: Stack configuration
 description: Configure kombify Stack for your environment
 sidebarTitle: Configuration
 icon: gear
 ---
 
-# Stack Configuration
+# Stack configuration
 
-Configure Stack using environment variables, config files, or the web UI.
+Configure kombify Stack using environment variables, config files, or the web UI. This page covers all available options.
 
-## Environment Variables
+<Note>
+  All environment variables use the `KOMBISTACK_` prefix. The web UI provides visual configuration for most settings.
+</Note>
 
-### Core Settings
+## Environment variables
+
+### Core settings
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `KOMBISTACK_PORT` | `5260` | API server port |
-| `KOMBISTACK_UI_PORT` | `5261` | Web UI port |
-| `KOMBISTACK_GRPC_PORT` | `5263` | Agent gRPC port |
-| `KOMBISTACK_DATA_DIR` | `./data` | Data directory |
-| `KOMBISTACK_LOG_LEVEL` | `info` | Log level |
+| `KOMBISTACK_PORT` | `5260` | REST API port |
+| `KOMBISTACK_UI_PORT` | `5261` | Web UI port (SvelteKit dashboard) |
+| `KOMBISTACK_GRPC_PORT` | `5263` | gRPC agent port (mTLS encrypted) |
+| `KOMBISTACK_DATA_DIR` | `./data` | Data directory for PocketBase |
+| `KOMBISTACK_LOG_LEVEL` | `info` | Log level: debug, info, warn, error |
+| `KOMBISTACK_ENVIRONMENT` | `development` | Environment: development, staging, production |
+| `KOMBISTACK_RATELIMIT_RPS` | `10` | API rate limit (requests per second) |
+| `KOMBISTACK_COMMAND_QUEUE_SIZE` | `1000` | Max commands in queue per agent |
 
 ### Authentication
 
+<Tabs>
+  <Tab title="Local auth">
+    | Variable | Default | Description |
+    |----------|---------|-------------|
+    | `KOMBISTACK_AUTH_ENABLED` | `false` | Enable authentication |
+    | `KOMBISTACK_AUTH_PROVIDER` | `local` | Auth provider: local, oidc, sphere |
+    | `KOMBISTACK_ADMIN_USERNAME` | `admin` | Default admin username |
+    | `KOMBISTACK_ADMIN_PASSWORD` | - | Default admin password (required) |
+  </Tab>
+  <Tab title="OIDC">
+    | Variable | Default | Description |
+    |----------|---------|-------------|
+    | `KOMBISTACK_AUTH_PROVIDER` | `oidc` | Set to `oidc` |
+    | `KOMBISTACK_OIDC_ISSUER` | - | OIDC issuer URL |
+    | `KOMBISTACK_OIDC_CLIENT_ID` | - | OIDC client ID |
+    | `KOMBISTACK_OIDC_CLIENT_SECRET` | - | OIDC client secret |
+    | `KOMBISTACK_OIDC_SCOPES` | `openid profile email` | Requested scopes |
+  </Tab>
+  <Tab title="Sphere SSO">
+    | Variable | Default | Description |
+    |----------|---------|-------------|
+    | `KOMBISTACK_AUTH_PROVIDER` | `sphere` | Use kombify Sphere for auth |
+    | `KOMBISTACK_SPHERE_ENDPOINT` | - | Sphere API endpoint |
+    | `KOMBISTACK_SPHERE_API_KEY` | - | Sphere API key |
+  </Tab>
+</Tabs>
+
+### TLS/mTLS
+
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `KOMBISTACK_AUTH_ENABLED` | `false` | Enable authentication |
-| `KOMBISTACK_AUTH_PROVIDER` | `local` | Auth provider: local, oidc |
-| `KOMBISTACK_OIDC_ISSUER` | - | OIDC issuer URL |
-| `KOMBISTACK_OIDC_CLIENT_ID` | - | OIDC client ID |
-| `KOMBISTACK_OIDC_CLIENT_SECRET` | - | OIDC client secret |
-
-### TLS
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `KOMBISTACK_TLS_ENABLED` | `false` | Enable TLS |
+| `KOMBISTACK_TLS_ENABLED` | `false` | Enable TLS for API |
 | `KOMBISTACK_TLS_CERT` | - | TLS certificate path |
-| `KOMBISTACK_TLS_KEY` | - | TLS key path |
-| `KOMBISTACK_TLS_CA` | - | CA certificate path |
+| `KOMBISTACK_TLS_KEY` | - | TLS private key path |
+| `KOMBISTACK_TLS_CA` | - | CA certificate for mTLS |
+| `KOMBISTACK_GRPC_MTLS_REQUIRED` | `true` | Require mTLS for agent connections |
 
-## Configuration File
+### Simulation providers
 
-```yaml
-# config.yaml
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_SIM_PROVIDER` | `kombisim` | Simulation provider: kombisim, azure, minimal, external |
+| `KOMBISTACK_SIM_ENDPOINT` | - | KombiSim or external endpoint URL |
+| `KOMBISTACK_AZURE_SUBSCRIPTION_ID` | - | Azure subscription for VM simulation |
+| `KOMBISTACK_AZURE_TENANT_ID` | - | Azure AD tenant ID |
+| `KOMBISTACK_AZURE_CLIENT_ID` | - | Azure AD app client ID |
+| `KOMBISTACK_AZURE_CLIENT_SECRET` | - | Azure AD app client secret |
+
+### AI assistant
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_AI_PROVIDER` | `ollama` | AI provider: ollama, googleai, openai |
+| `KOMBISTACK_AI_TIER` | `standard` | Model tier: minimal, standard, powerful, cloud |
+| `KOMBISTACK_AI_MAX_TOKENS` | `4096` | Max response tokens |
+| `KOMBISTACK_AI_TEMPERATURE` | `0.7` | Response creativity (0.0–2.0) |
+| `KOMBISTACK_OLLAMA_HOST` | `http://localhost:11434` | Ollama API endpoint |
+| `KOMBISTACK_OPENAI_API_KEY` | - | OpenAI API key |
+| `KOMBISTACK_GOOGLE_AI_API_KEY` | - | Google AI API key |
+
+### Backup settings
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_BACKUP_INTERVAL` | `24h` | Backup frequency |
+| `KOMBISTACK_BACKUP_RETENTION` | `7` | Number of backups to keep |
+| `KOMBISTACK_BACKUP_S3_ENABLED` | `false` | Upload backups to S3/MinIO |
+| `KOMBISTACK_BACKUP_S3_BUCKET` | - | S3 bucket name |
+| `KOMBISTACK_BACKUP_S3_ENDPOINT` | - | S3 endpoint (for MinIO) |
+
+## Configuration file
+
+You can also use a YAML configuration file for complex setups:
+
+```yaml config.yaml
+# Server settings
 server:
   api_port: 5260
   ui_port: 5261
   grpc_port: 5263
   host: 0.0.0.0
+  environment: production
 
+# Database (PocketBase with SQLite)
 database:
   path: ./data/kombistack.db
 
+# Authentication
 auth:
   enabled: true
   provider: oidc
@@ -60,45 +125,117 @@ auth:
     issuer: https://auth.example.com
     client_id: kombistack
     client_secret: ${OIDC_SECRET}
+    scopes: ["openid", "profile", "email"]
 
+# TLS/mTLS settings
 tls:
   enabled: true
   cert: /etc/certs/server.crt
   key: /etc/certs/server.key
   ca: /etc/certs/ca.crt
 
+# Logging
 logging:
   level: info
-  format: json
+  format: json  # json or text
 
+# Unifier engine
 unifier:
   stackkits_path: /etc/kombistack/stackkits
   
+# OpenTofu runner
 tofu:
   binary: /usr/local/bin/tofu
   working_dir: /var/lib/kombistack/tofu
+
+# AI assistant
+ai:
+  provider: ollama
+  tier: standard
+  ollama:
+    host: http://localhost:11434
+    model: llama3.2
+
+# Backup configuration
+backup:
+  interval: 24h
+  retention: 7
+  s3:
+    enabled: true
+    bucket: kombistack-backups
+    endpoint: https://s3.example.com
 ```
 
-## Apply Configuration
+## Apply configuration
 
-```bash
-# Via environment
-KOMBISTACK_LOG_LEVEL=debug ./kombistack serve
+<Tabs>
+  <Tab title="Environment">
+    ```bash
+    KOMBISTACK_LOG_LEVEL=debug \
+    KOMBISTACK_AUTH_ENABLED=true \
+    ./kombistack serve
+    ```
+  </Tab>
+  <Tab title="Config file">
+    ```bash
+    ./kombistack serve --config /etc/kombistack/config.yaml
+    ```
+  </Tab>
+  <Tab title="Docker">
+    ```bash
+    docker run -d \
+      -p 5260:5260 -p 5261:5261 -p 5263:5263 \
+      -v ./config.yaml:/etc/kombistack/config.yaml \
+      -v ./data:/data \
+      ghcr.io/kombify/stack:latest
+    ```
+  </Tab>
+  <Tab title="Docker Compose">
+    ```yaml docker-compose.yml
+    services:
+      kombistack:
+        image: ghcr.io/kombify/stack:latest
+        ports:
+          - "5260:5260"  # API
+          - "5261:5261"  # UI
+          - "5263:5263"  # gRPC
+        volumes:
+          - ./config.yaml:/etc/kombistack/config.yaml
+          - ./data:/data
+          - /var/run/docker.sock:/var/run/docker.sock
+        environment:
+          - KOMBISTACK_ENVIRONMENT=production
+    ```
+  </Tab>
+</Tabs>
 
-# Via config file
-./kombistack serve --config /etc/kombistack/config.yaml
-
-# Via Docker
-docker run -v ./config.yaml:/etc/kombistack/config.yaml \
-  ghcr.io/kombify/stack:latest
-```
-
-## Dynamic Configuration
+## Dynamic configuration
 
 Some settings can be changed at runtime via the API:
 
 ```bash
 curl -X PATCH http://localhost:5260/api/v1/settings \
   -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
   -d '{"log_level": "debug"}'
 ```
+
+## Port reference
+
+| Port | Protocol | Service | Description |
+|------|----------|---------|-------------|
+| 5260 | HTTP | REST API | Main API + PocketBase admin |
+| 5261 | HTTP | Web UI | SvelteKit dashboard |
+| 5263 | gRPC | Agents | Agent communication (mTLS) |
+| 9090 | HTTP | Metrics | Prometheus metrics (optional) |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Agent setup" icon="microchip" href="/stack/agents">
+    Install and configure agents on your nodes
+  </Card>
+  <Card title="TLS certificates" icon="lock" href="/guides/self-hosting/security">
+    Configure mTLS for secure agent communication
+  </Card>
+</CardGroup>

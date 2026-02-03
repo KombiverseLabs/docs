@@ -1,0 +1,412 @@
+---
+title: Nodes API
+description: Manage simulated nodes via the API
+sidebarTitle: Nodes
+icon: server
+---
+
+# Nodes API
+
+Nodes are individual simulated servers within a simulation. Use this API to manage their lifecycle and access them via SSH.
+
+## List nodes
+
+```http
+GET /api/v1/nodes
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `simulation_id` | string | Filter by simulation |
+| `status` | string | Filter: running, stopped, creating, error |
+| `engine` | string | Filter by engine type |
+
+### Response
+
+```json
+{
+  "nodes": [
+    {
+      "id": "node_abc123",
+      "name": "main-server",
+      "simulation_id": "sim_xyz789",
+      "status": "running",
+      "engine": "container",
+      "os": "ubuntu",
+      "ip": "172.20.0.2",
+      "ssh_port": 2222,
+      "ssh_user": "root",
+      "created_at": "2026-02-01T10:00:00Z"
+    }
+  ]
+}
+```
+
+## Create standalone node
+
+Create a node outside of a simulation:
+
+```http
+POST /api/v1/nodes
+```
+
+### Request body
+
+```json
+{
+  "name": "standalone-server",
+  "engine": "container",
+  "os": "ubuntu",
+  "resources": {
+    "vcpus": 2,
+    "memory_mb": 2048,
+    "disk_gb": 20
+  },
+  "ssh_public_key": "ssh-ed25519 AAAA..."
+}
+```
+
+### Response
+
+```json
+{
+  "id": "node_def456",
+  "name": "standalone-server",
+  "status": "creating",
+  "engine": "container",
+  "os": "ubuntu"
+}
+```
+
+## Get node
+
+```http
+GET /api/v1/nodes/{node_id}
+```
+
+### Response
+
+```json
+{
+  "id": "node_abc123",
+  "name": "main-server",
+  "simulation_id": "sim_xyz789",
+  "status": "running",
+  "engine": "container",
+  "container_id": "abc123def456...",
+  "os": "ubuntu",
+  "os_version": "24.04",
+  "ip": "172.20.0.2",
+  "ssh": {
+    "host": "localhost",
+    "port": 2222,
+    "user": "root",
+    "password": "kombisim"
+  },
+  "resources": {
+    "vcpus": 2,
+    "memory_mb": 2048,
+    "disk_gb": 20
+  },
+  "metrics": {
+    "cpu_percent": 15.5,
+    "memory_percent": 45.2,
+    "memory_used_mb": 926,
+    "disk_percent": 12.3,
+    "network_rx_bytes": 1234567,
+    "network_tx_bytes": 765432
+  },
+  "created_at": "2026-02-01T10:00:00Z",
+  "started_at": "2026-02-01T10:00:30Z"
+}
+```
+
+## Start node
+
+```http
+POST /api/v1/nodes/{node_id}/start
+```
+
+### Response
+
+```json
+{
+  "id": "node_abc123",
+  "status": "running",
+  "started_at": "2026-02-03T10:00:00Z"
+}
+```
+
+## Stop node
+
+```http
+POST /api/v1/nodes/{node_id}/stop
+```
+
+### Response
+
+```json
+{
+  "id": "node_abc123",
+  "status": "stopped",
+  "stopped_at": "2026-02-03T10:00:00Z"
+}
+```
+
+## Destroy node
+
+```http
+DELETE /api/v1/nodes/{node_id}
+```
+
+### Response
+
+```json
+{
+  "message": "Node destroyed successfully"
+}
+```
+
+## Get SSH connection details
+
+```http
+GET /api/v1/nodes/{node_id}/ssh
+```
+
+### Response
+
+```json
+{
+  "host": "localhost",
+  "port": 2222,
+  "user": "root",
+  "password": "kombisim",
+  "connect_command": "ssh -o StrictHostKeyChecking=no -p 2222 root@localhost"
+}
+```
+
+### Connect via SSH
+
+```bash
+# Using the password
+sshpass -p kombisim ssh -o StrictHostKeyChecking=no -p 2222 root@localhost
+
+# Or interactively
+ssh -o StrictHostKeyChecking=no -p 2222 root@localhost
+# Password: kombisim
+```
+
+## Get node logs
+
+Get container/VM logs:
+
+```http
+GET /api/v1/nodes/{node_id}/logs
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `lines` | integer | Number of lines (default: 100) |
+| `since` | string | ISO timestamp |
+| `follow` | boolean | Stream logs (SSE) |
+
+### Response
+
+```json
+{
+  "logs": [
+    "2026-02-03T10:00:00Z [INFO] Starting SSH server...",
+    "2026-02-03T10:00:01Z [INFO] SSH server listening on port 22",
+    "2026-02-03T10:00:05Z [INFO] Connection from 172.20.0.1:54321"
+  ]
+}
+```
+
+## Get node stats
+
+Get real-time resource statistics:
+
+```http
+GET /api/v1/nodes/{node_id}/stats
+```
+
+### Response
+
+```json
+{
+  "node_id": "node_abc123",
+  "timestamp": "2026-02-03T10:30:00Z",
+  "cpu": {
+    "percent": 15.5,
+    "cores_used": 0.31
+  },
+  "memory": {
+    "percent": 45.2,
+    "used_mb": 926,
+    "total_mb": 2048,
+    "available_mb": 1122
+  },
+  "disk": {
+    "percent": 12.3,
+    "used_gb": 2.46,
+    "total_gb": 20
+  },
+  "network": {
+    "rx_bytes": 1234567,
+    "tx_bytes": 765432,
+    "rx_packets": 12345,
+    "tx_packets": 7654
+  }
+}
+```
+
+## Set network latency
+
+Simulate network latency on a node:
+
+```http
+POST /api/v1/nodes/{node_id}/latency
+```
+
+### Request body
+
+```json
+{
+  "latency_ms": 100,
+  "jitter_ms": 10,
+  "packet_loss_percent": 1
+}
+```
+
+### Response
+
+```json
+{
+  "node_id": "node_abc123",
+  "latency_applied": true,
+  "settings": {
+    "latency_ms": 100,
+    "jitter_ms": 10,
+    "packet_loss_percent": 1
+  }
+}
+```
+
+## Clear network latency
+
+Remove network simulation:
+
+```http
+DELETE /api/v1/nodes/{node_id}/latency
+```
+
+### Response
+
+```json
+{
+  "node_id": "node_abc123",
+  "latency_applied": false
+}
+```
+
+## Batch operations
+
+### Batch start
+
+```http
+POST /api/v1/nodes/batch/start
+```
+
+```json
+{
+  "node_ids": ["node_111", "node_222", "node_333"]
+}
+```
+
+### Batch stop
+
+```http
+POST /api/v1/nodes/batch/stop
+```
+
+```json
+{
+  "node_ids": ["node_111", "node_222", "node_333"]
+}
+```
+
+### Batch delete
+
+```http
+POST /api/v1/nodes/batch/delete
+```
+
+```json
+{
+  "node_ids": ["node_111", "node_222", "node_333"]
+}
+```
+
+## Node statuses
+
+| Status | Description |
+|--------|-------------|
+| `creating` | Being provisioned |
+| `running` | Up and accessible |
+| `stopped` | Container/VM stopped |
+| `error` | Failed to create/start |
+| `deleting` | Being destroyed |
+
+## Engine-specific options
+
+<Tabs>
+  <Tab title="Container (Docker)">
+    ```json
+    {
+      "engine": "container",
+      "os": "ubuntu",
+      "resources": {
+        "vcpus": 2,
+        "memory_mb": 2048
+      }
+    }
+    ```
+    
+    Supported OS: `ubuntu`, `alpine`, `debian`, `rocky`
+  </Tab>
+  <Tab title="Incus">
+    ```json
+    {
+      "engine": "incus",
+      "os": "ubuntu",
+      "os_version": "24.04",
+      "resources": {
+        "vcpus": 4,
+        "memory_mb": 4096,
+        "disk_gb": 50
+      }
+    }
+    ```
+    
+    Requires Linux host with Incus installed.
+  </Tab>
+  <Tab title="Azure">
+    ```json
+    {
+      "engine": "azure",
+      "os": "ubuntu",
+      "azure": {
+        "vm_size": "Standard_B2s",
+        "location": "westeurope",
+        "resource_group": "kombisim-rg"
+      }
+    }
+    ```
+    
+    Requires Azure credentials configured.
+  </Tab>
+</Tabs>

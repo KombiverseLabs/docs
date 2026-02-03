@@ -106,7 +106,25 @@
             "ecosystem",
             "development",
             "changelog",
-            "contributing"
+            "contributing",
+            "glossary",
+            "faq"
+          ]
+        },
+        {
+          "group": "Help & Support",
+          "icon": "circle-question",
+          "pages": [
+            "guides/troubleshooting-wizard",
+            "community"
+          ]
+        },
+        {
+          "group": "Comparisons",
+          "icon": "scale-balanced",
+          "pages": [
+            "comparisons/vs-portainer",
+            "comparisons/vs-proxmox"
           ]
         }
       ]
@@ -216,9 +234,9 @@
           "group": "Customization",
           "icon": "pen",
           "pages": [
-            "stackkits/cue-basics",
-            "stackkits/creating-custom",
-            "stackkits/contributing"
+            "stackkits/customization/cue-basics",
+            "stackkits/customization/creating-custom",
+            "stackkits/customization/contributing"
           ]
         }
       ]

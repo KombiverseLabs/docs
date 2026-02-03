@@ -1,0 +1,283 @@
+---
+title: Enterprise
+description: Enterprise features and deployment options for Sphere
+sidebarTitle: Enterprise
+icon: building
+---
+
+# Sphere Enterprise
+
+kombify Sphere Enterprise is designed for organizations requiring advanced security, compliance, and scalability features.
+
+## Enterprise features
+
+### Unlimited scale
+
+| Resource | Limit |
+|----------|-------|
+| Connected homelabs | Unlimited |
+| Team members | Unlimited |
+| Nodes per homelab | Unlimited |
+| API calls | Unlimited |
+| Webhooks | Unlimited |
+| Log retention | Custom (up to unlimited) |
+
+### Advanced security
+
+<CardGroup cols={2}>
+  <Card title="SSO / SAML" icon="key">
+    Single Sign-On with any SAML 2.0 or OIDC provider
+  </Card>
+  <Card title="SCIM Provisioning" icon="users">
+    Automatic user provisioning and deprovisioning
+  </Card>
+  <Card title="IP Allowlisting" icon="shield">
+    Restrict access to specific IP ranges
+  </Card>
+  <Card title="Audit Logging" icon="scroll">
+    Comprehensive audit trail with export
+  </Card>
+</CardGroup>
+
+### Compliance
+
+| Standard | Status |
+|----------|--------|
+| SOC 2 Type II | ✅ Certified |
+| GDPR | ✅ Compliant |
+| ISO 27001 | ✅ Certified |
+| HIPAA | Available on request |
+| PCI DSS | Available on request |
+
+### Dedicated support
+
+- **Named account manager** — Your dedicated contact
+- **Private Slack channel** — Direct access to engineering
+- **99.9% SLA** — Guaranteed uptime with credits
+- **Priority tickets** — < 4 hour response time
+- **Training sessions** — Onboarding and ongoing
+
+## SSO Configuration
+
+### Supported providers
+
+- Okta
+- Azure Active Directory
+- Google Workspace
+- OneLogin
+- Ping Identity
+- Any SAML 2.0 / OIDC provider
+
+### OIDC setup
+
+<Steps>
+  <Step title="Get Sphere OIDC details">
+    In Sphere: **Settings** → **Security** → **SSO**
+    
+    Copy:
+    - Redirect URI: `https://sphere.kombify.dev/auth/callback`
+    - Client ID: (provided)
+  </Step>
+  <Step title="Configure your IdP">
+    In your identity provider:
+    - Add new OIDC application
+    - Set redirect URI
+    - Configure scopes: `openid`, `profile`, `email`
+    - Copy Client Secret
+  </Step>
+  <Step title="Complete Sphere setup">
+    Enter in Sphere:
+    - Issuer URL
+    - Client ID
+    - Client Secret
+  </Step>
+  <Step title="Configure role mapping">
+    Map IdP groups to Sphere roles:
+    - `sphere-admins` → Admin
+    - `sphere-operators` → Operator
+    - `sphere-viewers` → Viewer
+  </Step>
+  <Step title="Enable SSO">
+    Toggle **Enable SSO**
+    
+    Optionally: **Enforce SSO** (disable password login)
+  </Step>
+</Steps>
+
+### SAML setup
+
+<Accordion title="SAML configuration details">
+**Sphere SAML metadata:**
+- Entity ID: `https://sphere.kombify.dev/saml/metadata`
+- ACS URL: `https://sphere.kombify.dev/saml/acs`
+- SLO URL: `https://sphere.kombify.dev/saml/slo`
+
+**Required attributes:**
+- `email` (required)
+- `firstName` (optional)
+- `lastName` (optional)
+- `groups` (for role mapping)
+</Accordion>
+
+### SCIM provisioning
+
+Automatically sync users from your IdP:
+
+1. Enable SCIM in **Settings** → **Security** → **SCIM**
+2. Copy SCIM endpoint and token
+3. Configure SCIM in your IdP
+4. Map groups to Sphere roles
+
+**Supported operations:**
+- Create user
+- Update user
+- Deactivate user
+- Group membership sync
+
+## Self-hosted deployment
+
+Run Sphere in your own infrastructure.
+
+### Deployment options
+
+| Option | Description |
+|--------|-------------|
+| **Kubernetes** | Helm chart for K8s clusters |
+| **Docker Compose** | Single-node deployment |
+| **VM/Bare metal** | Traditional server deployment |
+
+### Requirements
+
+<Tabs>
+  <Tab title="Kubernetes">
+    **Minimum:**
+    - Kubernetes 1.28+
+    - 3 nodes (4 CPU, 8 GB RAM each)
+    - 100 GB storage (SSD recommended)
+    - Ingress controller
+    - cert-manager (for TLS)
+    
+    **Recommended:**
+    - 5+ nodes for HA
+    - Managed PostgreSQL
+    - Managed Redis
+  </Tab>
+  <Tab title="Docker Compose">
+    **Minimum:**
+    - 4 CPU cores
+    - 16 GB RAM
+    - 100 GB SSD storage
+    - Docker 24+
+    - Docker Compose v2
+    
+    **Note:** Single-node deployment, not HA
+  </Tab>
+</Tabs>
+
+### Installation
+
+<Steps>
+  <Step title="Get license">
+    Contact sales for Enterprise license key
+  </Step>
+  <Step title="Download package">
+    ```bash
+    curl -L https://get.kombify.dev/sphere-enterprise | bash
+    ```
+  </Step>
+  <Step title="Configure">
+    Edit `sphere-config.yaml`:
+    ```yaml
+    license_key: "your-license-key"
+    domain: "sphere.yourcompany.com"
+    database:
+      host: "postgres.internal"
+      name: "sphere"
+    redis:
+      host: "redis.internal"
+    ```
+  </Step>
+  <Step title="Deploy">
+    **Kubernetes:**
+    ```bash
+    helm install sphere ./sphere-chart -f sphere-config.yaml
+    ```
+    
+    **Docker Compose:**
+    ```bash
+    docker compose up -d
+    ```
+  </Step>
+  <Step title="Initialize">
+    Access `https://sphere.yourcompany.com/setup` to complete initial configuration.
+  </Step>
+</Steps>
+
+### Updates
+
+Self-hosted instances receive updates via:
+- **Automatic** — Enabled by default, applies during maintenance window
+- **Manual** — Download and apply updates yourself
+
+```bash
+# Check for updates
+sphere-ctl update check
+
+# Apply update
+sphere-ctl update apply
+```
+
+## Custom integrations
+
+Enterprise customers get support for custom integrations:
+
+### API development
+
+- Custom API endpoints
+- Webhook extensions
+- Integration with internal systems
+
+### Dedicated integrations
+
+- CMDB integration
+- Ticketing systems (ServiceNow, Jira)
+- Monitoring platforms
+- Custom alerting
+
+## SLA details
+
+### Uptime guarantee
+
+| Tier | Uptime | Monthly credit |
+|------|--------|----------------|
+| 99.9% | Standard Enterprise | 10% per 0.1% below |
+| 99.95% | Enhanced | 25% per 0.1% below |
+| 99.99% | Premium | 50% per 0.01% below |
+
+### Exclusions
+
+SLA does not cover:
+- Scheduled maintenance (notified 72h in advance)
+- Customer-caused issues
+- Force majeure events
+- Beta features
+
+### Credit claims
+
+1. Open support ticket within 30 days
+2. Provide incident details
+3. Credit applied to next invoice
+
+## Getting started
+
+<Card title="Contact Enterprise Sales" icon="envelope" href="mailto:enterprise@kombify.dev">
+  Schedule a demo and get a custom quote for your organization.
+</Card>
+
+### What to expect
+
+1. **Discovery call** — Understand your requirements
+2. **Technical assessment** — Architecture review
+3. **Custom proposal** — Pricing and implementation plan
+4. **Pilot program** — 30-day proof of concept
+5. **Production deployment** — Full rollout with support

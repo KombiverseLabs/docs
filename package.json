@@ -1,8 +1,10 @@
 {
-  "name": "kong-zitadel-e2e-tests",
-  "version": "1.0.0",
-  "description": "E2E Test Suite for Kong Gateway and Zitadel SSO Integration",
+  "name": "kombify-docs",
+  "version": "2.0.0",
+  "description": "kombify Documentation Site - Mintlify-powered documentation with automated quality checks",
   "scripts": {
+    "dev": "mintlify dev",
+    "build": "mintlify build",
     "test": "playwright test",
     "test:ui": "playwright test --ui",
     "test:debug": "playwright test --debug",
@@ -12,29 +14,51 @@
     "test:webkit": "playwright test --project=webkit",
     "test:report": "playwright show-report",
     "test:update-snapshots": "playwright test --update-snapshots",
+    "validate": "npm run validate:frontmatter && npm run validate:links && npm run validate:navigation",
+    "validate:frontmatter": "node scripts/validate-frontmatter.js",
+    "validate:links": "node scripts/check-links.js",
+    "validate:orphans": "node scripts/check-orphaned-pages.js",
+    "validate:navigation": "node scripts/navigation-coverage.js",
+    "quality": "npm run quality:readability && npm run quality:seo && npm run quality:code",
+    "quality:readability": "node scripts/quality/check-readability.js",
+    "quality:seo": "node scripts/quality/check-seo.js",
+    "quality:code": "node scripts/quality/validate-code-examples.js",
+    "quality:links-external": "node scripts/quality/check-external-links.js",
+    "screenshots": "cd scripts/screenshots && npm run screenshots",
+    "screenshots:all": "cd scripts/screenshots && npm run screenshots:all",
+    "screenshots:annotate": "node scripts/screenshots/annotate.js",
+    "diagrams": "node scripts/diagrams/generate-all.js",
+    "changelog": "node scripts/automation/update-changelog.js",
+    "report": "npm run validate && npm run quality",
     "typecheck": "tsc --noEmit",
-    "lint": "eslint tests/**/*.ts",
-    "format": "prettier --write tests/**/*.ts"
+    "lint": "eslint scripts/**/*.js tests/**/*.ts",
+    "format": "prettier --write \"**/*.{js,ts,json,mdx}\""
   },
   "devDependencies": {
-    "@playwright/test": "^1.40.0",
+    "@playwright/test": "^1.48.0",
     "@types/node": "^20.10.0",
     "dotenv": "^16.3.0",
+    "eslint": "^8.56.0",
+    "glob": "^10.3.10",
+    "gray-matter": "^4.0.3",
+    "prettier": "^3.2.0",
     "typescript": "^5.3.0"
   },
   "engines": {
     "node": ">=18.0.0"
   },
   "keywords": [
-    "kong",
-    "zitadel",
-    "sso",
-    "oauth",
-    "oidc",
-    "e2e",
-    "playwright",
-    "testing"
+    "kombify",
+    "documentation",
+    "mintlify",
+    "homelab",
+    "infrastructure",
+    "self-hosted"
   ],
   "author": "kombify Platform Team",
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kombify/docs"
+  }
 }

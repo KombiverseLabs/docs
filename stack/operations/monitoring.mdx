@@ -1,0 +1,292 @@
+---
+title: Monitoring
+description: Monitor your infrastructure with kombify Stack
+sidebarTitle: Monitoring
+icon: chart-line
+---
+
+# Monitoring
+
+kombify Stack provides comprehensive monitoring for your infrastructure through built-in metrics, health checks, and integrations with popular observability tools.
+
+## Built-in health checks
+
+### API health endpoint
+
+```bash
+curl http://localhost:5260/api/v1/health
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "version": "1.0.0",
+  "uptime": "72h15m30s",
+  "checks": {
+    "database": "ok",
+    "grpc": "ok",
+    "workers": "ok"
+  }
+}
+```
+
+### Kubernetes probes
+
+Stack exposes Kubernetes-compatible health probes:
+
+| Endpoint | Purpose | When to use |
+|----------|---------|-------------|
+| `/health/live` | Liveness probe | Is the process running? |
+| `/health/ready` | Readiness probe | Can it handle traffic? |
+| `/health/startup` | Startup probe | Has it started successfully? |
+
+```yaml
+# Kubernetes deployment example
+livenessProbe:
+  httpGet:
+    path: /health/live
+    port: 5260
+  periodSeconds: 30
+  
+readinessProbe:
+  httpGet:
+    path: /health/ready
+    port: 5260
+  periodSeconds: 10
+```
+
+## Prometheus metrics
+
+Stack exposes metrics in Prometheus format at `/metrics`:
+
+```bash
+curl http://localhost:5260/metrics
+```
+
+### Key metrics
+
+| Metric | Type | Description |
+|--------|------|-------------|
+| `kombistack_api_requests_total` | Counter | Total API requests |
+| `kombistack_api_request_duration_seconds` | Histogram | Request latency |
+| `kombistack_workers_connected` | Gauge | Connected agent count |
+| `kombistack_workers_healthy` | Gauge | Healthy agent count |
+| `kombistack_jobs_total` | Counter | Jobs by type and status |
+| `kombistack_jobs_duration_seconds` | Histogram | Job execution time |
+| `kombistack_stacks_total` | Gauge | Total stacks managed |
+| `kombistack_drift_detected_total` | Counter | Drift detections |
+
+### Prometheus configuration
+
+```yaml prometheus.yml
+scrape_configs:
+  - job_name: 'kombistack'
+    static_configs:
+      - targets: ['localhost:5260']
+    metrics_path: /metrics
+    scheme: http
+```
+
+## Worker (node) monitoring
+
+Each connected agent reports metrics about its node:
+
+```bash
+# Get worker status
+curl http://localhost:5260/api/v1/workers
+```
+
+Response:
+```json
+{
+  "workers": [
+    {
+      "id": "worker_abc123",
+      "name": "main-server",
+      "status": "healthy",
+      "last_heartbeat": "2026-02-03T10:30:00Z",
+      "metrics": {
+        "cpu_percent": 25.5,
+        "memory_percent": 45.2,
+        "disk_percent": 62.0,
+        "containers_running": 12
+      }
+    }
+  ]
+}
+```
+
+### Worker health states
+
+| State | Description |
+|-------|-------------|
+| `healthy` | All checks passing |
+| `degraded` | Some non-critical issues |
+| `unhealthy` | Critical issues detected |
+| `unreachable` | No heartbeat received |
+| `pending` | Awaiting approval |
+
+## Grafana dashboards
+
+Import our pre-built Grafana dashboards:
+
+<Tabs>
+  <Tab title="Stack Overview">
+    Dashboard ID: `kombistack-overview`
+    
+    Shows:
+    - API request rates
+    - Error rates
+    - Active workers
+    - Job queue status
+  </Tab>
+  <Tab title="Workers">
+    Dashboard ID: `kombistack-workers`
+    
+    Shows:
+    - CPU/memory per worker
+    - Container counts
+    - Network traffic
+    - Heartbeat status
+  </Tab>
+  <Tab title="Jobs">
+    Dashboard ID: `kombistack-jobs`
+    
+    Shows:
+    - Job success/failure rates
+    - Duration by type
+    - Queue depth
+    - Recent failures
+  </Tab>
+</Tabs>
+
+## Alerting
+
+### Example alert rules
+
+```yaml alerting-rules.yml
+groups:
+  - name: kombistack
+    rules:
+      - alert: WorkerUnhealthy
+        expr: kombistack_workers_healthy < kombistack_workers_connected
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Worker unhealthy"
+          
+      - alert: HighErrorRate
+        expr: rate(kombistack_api_requests_total{status=~"5.."}[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API error rate"
+          
+      - alert: DriftDetected
+        expr: increase(kombistack_drift_detected_total[1h]) > 0
+        labels:
+          severity: warning
+        annotations:
+          summary: "Configuration drift detected"
+```
+
+## Log aggregation
+
+Stack outputs structured JSON logs that can be collected by any log aggregator:
+
+```json
+{
+  "time": "2026-02-03T10:30:00Z",
+  "level": "INFO",
+  "msg": "Job completed",
+  "job_id": "job_abc123",
+  "job_type": "provision",
+  "duration_ms": 45230,
+  "worker_id": "worker_xyz789"
+}
+```
+
+### Loki configuration
+
+```yaml loki-config.yml
+scrape_configs:
+  - job_name: kombistack
+    docker_sd_configs:
+      - host: unix:///var/run/docker.sock
+    relabel_configs:
+      - source_labels: ['__meta_docker_container_name']
+        regex: '/kombistack'
+        action: keep
+```
+
+## Service monitoring
+
+Monitor deployed services via Stack's built-in checks:
+
+```bash
+# Get service health for a stack
+curl http://localhost:5260/api/v1/stacks/{stack-id}/health
+```
+
+Response:
+```json
+{
+  "stack_id": "stack_abc123",
+  "overall": "healthy",
+  "services": [
+    {
+      "name": "traefik",
+      "status": "healthy",
+      "uptime": "72h",
+      "health_check": {
+        "url": "http://traefik:8080/ping",
+        "status_code": 200,
+        "latency_ms": 5
+      }
+    },
+    {
+      "name": "dokploy",
+      "status": "healthy",
+      "uptime": "71h55m"
+    }
+  ]
+}
+```
+
+## Monitoring stack deployment
+
+Deploy a complete monitoring stack with Prometheus, Grafana, and Loki:
+
+```yaml kombination.yaml
+stackkit: base-homelab
+variant: default
+
+services:
+  # ... your services
+
+monitoring:
+  enabled: true
+  prometheus:
+    retention: 15d
+    storage: 50Gi
+  grafana:
+    enabled: true
+    admin_password: ${GRAFANA_PASSWORD}
+  loki:
+    enabled: true
+    retention: 7d
+```
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Troubleshooting" icon="bug" href="/stack/troubleshooting">
+    Debug common issues
+  </Card>
+  <Card title="Drift detection" icon="arrows-rotate" href="/concepts/spec-driven">
+    Understand drift detection
+  </Card>
+</CardGroup>

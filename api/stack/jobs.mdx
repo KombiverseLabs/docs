@@ -1,0 +1,315 @@
+---
+title: Jobs API
+description: Track async job execution via the API
+sidebarTitle: Jobs
+icon: list-check
+---
+
+# Jobs API
+
+All long-running operations (provisioning, deployment, drift checks) run as background jobs. Use this API to track their progress.
+
+## List jobs
+
+```http
+GET /api/v1/jobs
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Filter: queued, running, completed, failed, cancelled |
+| `type` | string | Filter: provision, deploy, destroy, drift_check, precheck |
+| `stack_id` | string | Filter by stack |
+| `since` | string | ISO timestamp to filter from |
+| `limit` | integer | Max results (default: 50) |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "job_abc123",
+      "type": "provision",
+      "status": "completed",
+      "stack_id": "stack_xyz789",
+      "progress": 100,
+      "started_at": "2026-02-03T10:00:00Z",
+      "completed_at": "2026-02-03T10:05:30Z",
+      "duration_ms": 330000
+    },
+    {
+      "id": "job_def456",
+      "type": "deploy",
+      "status": "running",
+      "stack_id": "stack_xyz789",
+      "progress": 65,
+      "started_at": "2026-02-03T10:30:00Z"
+    }
+  ]
+}
+```
+
+## Get job
+
+```http
+GET /api/v1/jobs/{job_id}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "job_abc123",
+    "type": "provision",
+    "status": "running",
+    "stack_id": "stack_xyz789",
+    "worker_id": "worker_def456",
+    "progress": 65,
+    "started_at": "2026-02-03T10:00:00Z",
+    "steps": [
+      {
+        "name": "validate",
+        "status": "completed",
+        "started_at": "2026-02-03T10:00:00Z",
+        "completed_at": "2026-02-03T10:00:05Z"
+      },
+      {
+        "name": "generate_iac",
+        "status": "completed",
+        "started_at": "2026-02-03T10:00:05Z",
+        "completed_at": "2026-02-03T10:00:30Z"
+      },
+      {
+        "name": "tofu_plan",
+        "status": "completed",
+        "started_at": "2026-02-03T10:00:30Z",
+        "completed_at": "2026-02-03T10:01:00Z"
+      },
+      {
+        "name": "tofu_apply",
+        "status": "running",
+        "started_at": "2026-02-03T10:01:00Z",
+        "progress": 80
+      },
+      {
+        "name": "verify",
+        "status": "pending"
+      }
+    ],
+    "logs": [
+      {"time": "2026-02-03T10:00:00Z", "level": "info", "msg": "Starting provisioning"},
+      {"time": "2026-02-03T10:00:05Z", "level": "info", "msg": "Validation passed"},
+      {"time": "2026-02-03T10:00:30Z", "level": "info", "msg": "Generated OpenTofu configuration"},
+      {"time": "2026-02-03T10:01:00Z", "level": "info", "msg": "Plan: 12 to add, 0 to change, 0 to destroy"}
+    ]
+  }
+}
+```
+
+## Job statuses
+
+| Status | Description |
+|--------|-------------|
+| `queued` | Waiting to start |
+| `running` | Currently executing |
+| `completed` | Finished successfully |
+| `failed` | Finished with error |
+| `cancelled` | Manually cancelled |
+| `rolling_back` | Automatic rollback in progress |
+| `rolled_back` | Rollback completed |
+
+## Job types
+
+| Type | Description |
+|------|-------------|
+| `provision` | Infrastructure provisioning (OpenTofu) |
+| `deploy` | Service deployment (Docker/K8s) |
+| `destroy` | Infrastructure destruction |
+| `drift_check` | Check for configuration drift |
+| `drift_resolve` | Fix detected drift |
+| `precheck` | Pre-deployment validation |
+| `backup` | Backup operation |
+| `restore` | Restore from backup |
+
+## Cancel job
+
+Cancel a running or queued job:
+
+```http
+POST /api/v1/jobs/{job_id}/cancel
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "job_abc123",
+    "status": "cancelled",
+    "cancelled_at": "2026-02-03T10:05:00Z",
+    "cancelled_by": "user@example.com"
+  }
+}
+```
+
+<Note>
+  Not all jobs can be cancelled. Jobs in `tofu_apply` step may complete before cancellation takes effect.
+</Note>
+
+## Retry job
+
+Retry a failed job:
+
+```http
+POST /api/v1/jobs/{job_id}/retry
+```
+
+### Request body
+
+```json
+{
+  "skip_completed_steps": true
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "original_job_id": "job_abc123",
+    "new_job_id": "job_ghi789",
+    "status": "queued"
+  }
+}
+```
+
+## Get job logs
+
+Get detailed logs for a job:
+
+```http
+GET /api/v1/jobs/{job_id}/logs
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `level` | string | Filter: debug, info, warn, error |
+| `step` | string | Filter by step name |
+| `follow` | boolean | Stream logs in real-time (SSE) |
+
+### Response
+
+```json
+{
+  "data": {
+    "logs": [
+      {
+        "timestamp": "2026-02-03T10:00:00.123Z",
+        "level": "info",
+        "step": "validate",
+        "message": "Validating kombination.yaml"
+      },
+      {
+        "timestamp": "2026-02-03T10:00:01.456Z",
+        "level": "debug",
+        "step": "validate",
+        "message": "CUE validation passed"
+      }
+    ]
+  }
+}
+```
+
+### Stream logs (SSE)
+
+```bash
+curl -N "http://localhost:5260/api/v1/jobs/{job_id}/logs?follow=true"
+```
+
+Response is Server-Sent Events:
+
+```
+event: log
+data: {"timestamp":"2026-02-03T10:00:00Z","level":"info","message":"Starting..."}
+
+event: log
+data: {"timestamp":"2026-02-03T10:00:01Z","level":"info","message":"Step completed"}
+
+event: complete
+data: {"job_id":"job_abc123","status":"completed"}
+```
+
+## Get job artifacts
+
+Some jobs produce artifacts (plans, outputs):
+
+```http
+GET /api/v1/jobs/{job_id}/artifacts
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "artifacts": [
+      {
+        "name": "terraform_plan",
+        "type": "text/plain",
+        "size_bytes": 4523,
+        "url": "/api/v1/jobs/job_abc123/artifacts/terraform_plan"
+      },
+      {
+        "name": "deployment_manifest",
+        "type": "application/yaml",
+        "size_bytes": 8192,
+        "url": "/api/v1/jobs/job_abc123/artifacts/deployment_manifest"
+      }
+    ]
+  }
+}
+```
+
+### Download artifact
+
+```http
+GET /api/v1/jobs/{job_id}/artifacts/{artifact_name}
+```
+
+## Job webhooks
+
+Configure webhooks to be notified of job status changes:
+
+```http
+POST /api/v1/webhooks
+```
+
+```json
+{
+  "url": "https://your-server.com/webhook",
+  "events": ["job.completed", "job.failed"],
+  "secret": "your-secret"
+}
+```
+
+Webhook payload:
+
+```json
+{
+  "event": "job.completed",
+  "timestamp": "2026-02-03T10:05:30Z",
+  "job": {
+    "id": "job_abc123",
+    "type": "provision",
+    "status": "completed",
+    "stack_id": "stack_xyz789"
+  }
+}
+```

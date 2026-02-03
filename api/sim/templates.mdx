@@ -1,0 +1,320 @@
+---
+title: Templates API
+description: Use pre-built templates to create simulations
+sidebarTitle: Templates
+icon: copy
+---
+
+# Templates API
+
+Templates are pre-configured simulation blueprints for common homelab scenarios. Use them to quickly spin up realistic test environments.
+
+## List templates
+
+```http
+GET /api/v1/templates
+```
+
+### Response
+
+```json
+{
+  "templates": [
+    {
+      "id": "single-vps",
+      "name": "Single VPS",
+      "description": "Simulated VPS server with Ubuntu",
+      "category": "vps",
+      "nodes_count": 1,
+      "services": ["ssh", "docker"]
+    },
+    {
+      "id": "single-local",
+      "name": "Single Local Server",
+      "description": "Local server simulation with Ubuntu",
+      "category": "local",
+      "nodes_count": 1,
+      "services": ["ssh", "docker"]
+    },
+    {
+      "id": "hybrid-homelab",
+      "name": "Hybrid Homelab",
+      "description": "VPS + Local server combined",
+      "category": "homelab",
+      "nodes_count": 2,
+      "services": ["ssh", "docker", "traefik"]
+    },
+    {
+      "id": "homelab-basic",
+      "name": "Basic Homelab",
+      "description": "Web server + Database setup",
+      "category": "homelab",
+      "nodes_count": 2,
+      "services": ["ssh", "docker", "nginx", "postgres"]
+    },
+    {
+      "id": "homelab-advanced",
+      "name": "Advanced Homelab",
+      "description": "Full homelab with proxy, apps, database, storage",
+      "category": "homelab",
+      "nodes_count": 5,
+      "services": ["traefik", "authelia", "postgres", "redis", "minio"]
+    },
+    {
+      "id": "ha-setup",
+      "name": "High Availability Setup",
+      "description": "Load balancer with multiple backends",
+      "category": "homelab",
+      "nodes_count": 5,
+      "services": ["haproxy", "nginx", "keepalived"]
+    },
+    {
+      "id": "dev-environment",
+      "name": "Development Environment",
+      "description": "Dev server with database for testing",
+      "category": "development",
+      "nodes_count": 2,
+      "services": ["ssh", "docker", "postgres", "redis"]
+    }
+  ]
+}
+```
+
+## Get template
+
+```http
+GET /api/v1/templates/{template_id}
+```
+
+### Response
+
+```json
+{
+  "id": "homelab-basic",
+  "name": "Basic Homelab",
+  "description": "Web server + Database setup for testing homelab deployments",
+  "category": "homelab",
+  "nodes": [
+    {
+      "name": "web-server",
+      "os": "ubuntu",
+      "location": "local",
+      "role": "worker",
+      "resources": {
+        "vcpus": 2,
+        "memory_mb": 2048,
+        "disk_gb": 20
+      }
+    },
+    {
+      "name": "database",
+      "os": "ubuntu",
+      "location": "local",
+      "role": "database",
+      "resources": {
+        "vcpus": 2,
+        "memory_mb": 4096,
+        "disk_gb": 50
+      }
+    }
+  ],
+  "network": {
+    "subnet": "172.20.0.0/24"
+  },
+  "services": ["ssh", "docker", "nginx", "postgres"],
+  "requirements": {
+    "min_cpu_cores": 4,
+    "min_memory_gb": 8,
+    "min_disk_gb": 80
+  }
+}
+```
+
+## Apply template
+
+Create a simulation from a template:
+
+```http
+POST /api/v1/templates/{template_id}/apply
+```
+
+### Request body
+
+```json
+{
+  "simulation_name": "my-homelab-test",
+  "customizations": {
+    "nodes": {
+      "web-server": {
+        "resources": {
+          "memory_mb": 4096
+        }
+      }
+    }
+  },
+  "start_immediately": true
+}
+```
+
+### Response
+
+```json
+{
+  "simulation_id": "sim_abc123",
+  "name": "my-homelab-test",
+  "status": "creating",
+  "template_applied": "homelab-basic",
+  "nodes": [
+    {
+      "id": "node_111",
+      "name": "web-server",
+      "status": "creating"
+    },
+    {
+      "id": "node_222",
+      "name": "database",
+      "status": "creating"
+    }
+  ]
+}
+```
+
+## Create custom template
+
+Save a simulation as a reusable template:
+
+```http
+POST /api/v1/templates/create
+```
+
+### Request body
+
+```json
+{
+  "name": "my-custom-template",
+  "description": "Custom template for my specific use case",
+  "category": "custom",
+  "source_simulation_id": "sim_abc123"
+}
+```
+
+### Response
+
+```json
+{
+  "id": "custom-my-custom-template",
+  "name": "my-custom-template",
+  "description": "Custom template for my specific use case",
+  "category": "custom",
+  "created_at": "2026-02-03T10:00:00Z"
+}
+```
+
+## Built-in templates reference
+
+### single-vps
+
+Simulates a single VPS server:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 1 |
+| **OS** | Ubuntu 24.04 |
+| **CPU** | 1 vCPU |
+| **Memory** | 1 GB |
+| **Use case** | Testing single-server deployments |
+
+### single-local
+
+Simulates a local server:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 1 |
+| **OS** | Ubuntu 24.04 |
+| **CPU** | 2 vCPU |
+| **Memory** | 2 GB |
+| **Use case** | Testing local homelab setups |
+
+### hybrid-homelab
+
+Simulates VPS + local server combination:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 2 (1 VPS, 1 local) |
+| **OS** | Ubuntu 24.04 |
+| **Use case** | Testing hybrid cloud-local setups |
+
+Nodes:
+- `vps-entry` — Public-facing VPS with Traefik
+- `local-server` — Local server for applications
+
+### homelab-basic
+
+Basic homelab with web and database:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 2 |
+| **OS** | Ubuntu 24.04 |
+| **Use case** | Testing standard homelab deployments |
+
+Nodes:
+- `web-server` — Nginx, applications
+- `database` — PostgreSQL, Redis
+
+### homelab-advanced
+
+Full-featured homelab:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 5 |
+| **OS** | Ubuntu 24.04 |
+| **Use case** | Testing complex deployments |
+
+Nodes:
+- `proxy` — Traefik reverse proxy
+- `auth` — Authelia authentication
+- `apps` — Application server
+- `database` — PostgreSQL
+- `storage` — MinIO object storage
+
+### ha-setup
+
+High-availability test setup:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 5 |
+| **OS** | Ubuntu 24.04 |
+| **Use case** | Testing HA configurations |
+
+Nodes:
+- `lb-1`, `lb-2` — HAProxy load balancers
+- `web-1`, `web-2`, `web-3` — Backend servers
+
+### dev-environment
+
+Development and testing environment:
+
+| Property | Value |
+|----------|-------|
+| **Nodes** | 2 |
+| **OS** | Ubuntu 24.04 |
+| **Use case** | Local development testing |
+
+Nodes:
+- `dev-server` — Development server
+- `db-server` — Database server
+
+## Template categories
+
+| Category | Description |
+|----------|-------------|
+| `vps` | Single VPS simulations |
+| `local` | Local server simulations |
+| `homelab` | Full homelab setups |
+| `development` | Development environments |
+| `custom` | User-created templates |

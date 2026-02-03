@@ -1,0 +1,425 @@
+---
+title: CUE basics
+description: Learn the fundamentals of CUE for StackKits development
+sidebarTitle: CUE basics
+icon: code
+---
+
+# CUE basics for StackKits
+
+CUE (Configure, Unify, Execute) is the configuration language that powers StackKits. This guide covers the fundamentals you need to understand and customize StackKits.
+
+## What is CUE?
+
+CUE is a data validation and configuration language that combines:
+- **JSON superset** — All JSON is valid CUE
+- **Types and constraints** — Define what values are allowed
+- **Unification** — Merge configurations safely
+- **Defaults** — Provide sensible default values
+
+## Why CUE for StackKits?
+
+| Benefit | Description |
+|---------|-------------|
+| **Validation** | Catch errors before deployment |
+| **Composition** | Build complex configs from simple pieces |
+| **Reusability** | Share schemas across StackKits |
+| **Documentation** | Schema IS the documentation |
+
+## Basic syntax
+
+### Values and types
+
+```cue
+// Basic types
+name:    "my-homelab"        // string
+port:    3000                // int
+enabled: true                // bool
+ratio:   3.14                // float
+
+// Null
+optional: null
+
+// Lists
+services: ["traefik", "dokploy", "uptime-kuma"]
+
+// Structs (objects)
+node: {
+  name: "main-server"
+  role: "worker"
+  ip:   "192.168.1.100"
+}
+```
+
+### Type constraints
+
+```cue
+// Type declarations (using underscore prefix for definitions)
+_Port: int & >=1 & <=65535
+
+// Usage
+http_port: _Port
+http_port: 8080  // Valid
+
+ssh_port: _Port
+ssh_port: 70000  // Error: exceeds 65535
+```
+
+### String constraints
+
+```cue
+// String with regex pattern
+domain: =~"^[a-z0-9.-]+$"
+
+// String enums
+role: "worker" | "controller" | "database"
+
+// String with minimum length
+password: string & strings.MinRunes(8)
+```
+
+### Default values
+
+```cue
+// Default with *
+port: *3000 | int    // Default is 3000, accepts any int
+enabled: *true | bool // Default is true
+
+// Conditionals for defaults
+_os: string
+timezone: *"UTC" | string
+timezone: "Europe/Berlin" if _os == "linux"
+```
+
+## Definitions and schemas
+
+### Definitions
+
+Definitions (prefixed with `#` or `_`) are templates that don't produce output directly:
+
+```cue
+// Define a schema
+#Service: {
+  name:    string
+  image:   string
+  port:    int & >=1 & <=65535
+  enabled: *true | bool
+  
+  // Optional fields (can be omitted)
+  volumes?: [...string]
+  environment?: [string]: string
+}
+
+// Use the schema
+traefik: #Service & {
+  name:  "traefik"
+  image: "traefik:v3.0"
+  port:  80
+  volumes: [
+    "/var/run/docker.sock:/var/run/docker.sock:ro"
+  ]
+}
+```
+
+### Closed vs open schemas
+
+```cue
+// Open schema - allows extra fields
+#OpenConfig: {
+  name: string
+  ...  // Allow any additional fields
+}
+
+// Closed schema - only defined fields allowed
+#ClosedConfig: {
+  name: string
+}
+
+// Using close() to make any schema closed
+myConfig: close(#OpenConfig & {
+  name: "test"
+  extra: "not allowed!"  // Error
+})
+```
+
+## Unification
+
+CUE's core operation is unification — merging values safely.
+
+### Basic unification
+
+```cue
+// Two values unify if compatible
+a: {
+  name: "server"
+  port: int
+}
+
+a: {
+  port: 8080
+  role: "worker"
+}
+
+// Result:
+// a: {
+//   name: "server"
+//   port: 8080
+//   role: "worker"
+// }
+```
+
+### Unification with constraints
+
+```cue
+// Constraints unify
+_Port: int & >=1 & <=65535 & !=22
+
+// This succeeds
+http: _Port & 8080
+
+// This fails (22 is excluded)
+ssh: _Port & 22  // Error: conflicts with !=22
+```
+
+## Lists and comprehensions
+
+### List operations
+
+```cue
+// Simple list
+services: ["a", "b", "c"]
+
+// List with type constraint
+ports: [...int]  // List of integers
+
+// List with length constraint
+nodes: [...#Node] & list.MinItems(1)  // At least one node
+```
+
+### List comprehensions
+
+```cue
+// Generate list from another
+_numbers: [1, 2, 3, 4, 5]
+doubled: [ for n in _numbers { n * 2 } ]
+// Result: [2, 4, 6, 8, 10]
+
+// Filter and transform
+_nodes: [
+  {name: "a", enabled: true},
+  {name: "b", enabled: false},
+  {name: "c", enabled: true},
+]
+activeNodes: [ for n in _nodes if n.enabled { n.name } ]
+// Result: ["a", "c"]
+```
+
+## Imports and packages
+
+### Standard library
+
+```cue
+import (
+  "strings"
+  "list"
+  "encoding/json"
+  "encoding/yaml"
+)
+
+// Using string functions
+domain: "example.com"
+subdomain: strings.ToLower("TRAEFIK")
+fqdn: "\(subdomain).\(domain)"
+
+// List functions
+services: ["a", "b", "c"]
+hasTraefik: list.Contains(services, "traefik")
+serviceCount: len(services)
+```
+
+### Custom packages
+
+```cue
+// In file: schemas/base.cue
+package schemas
+
+#Node: {
+  name: string
+  role: "worker" | "controller" | "database"
+  ip:   =~"^[0-9.]+$"
+}
+
+// In file: stacks/homelab.cue
+package homelab
+
+import "example.com/schemas"
+
+nodes: [...schemas.#Node]
+```
+
+## StackKits patterns
+
+### Three-layer architecture
+
+```cue
+// Layer 1: Core (base.cue)
+package core
+
+#BaseService: {
+  name:    string
+  enabled: *true | bool
+  version: *"latest" | string
+}
+
+// Layer 2: Platform (docker.cue)
+package platform
+
+import "core"
+
+#DockerService: core.#BaseService & {
+  image:       string
+  ports:       [...string]
+  volumes:     [...string]
+  networks:    *["homelab"] | [...string]
+  restart:     *"unless-stopped" | string
+}
+
+// Layer 3: StackKit (base-homelab.cue)
+package stackkits
+
+import "platform"
+
+#BaseHomelabStack: {
+  domain: string
+  email:  string
+  
+  services: {
+    traefik: platform.#DockerService & {
+      name:  "traefik"
+      image: "traefik:v3.0"
+      ports: ["80:80", "443:443"]
+    }
+  }
+}
+```
+
+### Optional services pattern
+
+```cue
+#Stack: {
+  // Required services (always present)
+  services: {
+    traefik: #TraefikService
+  }
+  
+  // Optional services (user choice)
+  services: {
+    if options.dokploy {
+      dokploy: #DokployService
+    }
+    if options.uptime_kuma {
+      uptime_kuma: #UptimeKumaService
+    }
+  }
+  
+  // Options with defaults
+  options: {
+    dokploy:     *true | bool
+    uptime_kuma: *true | bool
+    dozzle:      *true | bool
+  }
+}
+```
+
+### Variant pattern
+
+```cue
+#Stack: {
+  variant: *"default" | "minimal" | "beszel"
+  
+  // Base services for all variants
+  _baseServices: {
+    traefik: #TraefikService
+  }
+  
+  // Variant-specific services
+  _variantServices: {
+    if variant == "default" {
+      dokploy: #DokployService
+      uptime_kuma: #UptimeKumaService
+      dozzle: #DozzleService
+    }
+    if variant == "minimal" {
+      // Just traefik
+    }
+    if variant == "beszel" {
+      beszel_hub: #BeszelHubService
+      beszel_agent: #BeszelAgentService
+    }
+  }
+  
+  services: _baseServices & _variantServices
+}
+```
+
+## Validation commands
+
+```bash
+# Validate CUE files
+cue vet ./schemas/...
+
+# Export to JSON
+cue export ./stacks/base-homelab.cue
+
+# Export to YAML
+cue export ./stacks/base-homelab.cue --out yaml
+
+# Evaluate with concrete values
+cue eval ./stacks/base-homelab.cue -e output
+
+# Format CUE files
+cue fmt ./schemas/...
+```
+
+## Common errors
+
+<Accordion title="Conflicting values">
+```
+services.traefik.port: conflicting values 80 and 443
+```
+
+**Cause:** Same field set to different concrete values.
+
+**Fix:** Ensure each field has exactly one value, or use proper constraints.
+</Accordion>
+
+<Accordion title="Incomplete value">
+```
+services.dokploy.image: incomplete value string
+```
+
+**Cause:** A required field wasn't given a concrete value.
+
+**Fix:** Provide a value or add a default with `*`.
+</Accordion>
+
+<Accordion title="Field not allowed">
+```
+services.traefik.extra_field: field not allowed
+```
+
+**Cause:** Using a closed schema and adding undefined fields.
+
+**Fix:** Either add the field to the schema or use `...` to allow extra fields.
+</Accordion>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Creating custom StackKits" icon="hammer" href="/stackkits/customization/creating-custom">
+    Build your own StackKit
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/stackkits/customization/contributing">
+    Share your StackKit
+  </Card>
+</CardGroup>

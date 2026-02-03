@@ -1,0 +1,408 @@
+---
+title: Simulations API
+description: Create and manage simulations via the API
+sidebarTitle: Simulations
+icon: layer-group
+---
+
+# Simulations API
+
+Simulations are groups of simulated nodes that represent your infrastructure. Use this API to create, manage, and test configurations.
+
+## List simulations
+
+```http
+GET /api/v1/simulations
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | integer | Page number (default: 1) |
+| `per_page` | integer | Items per page (default: 20) |
+| `status` | string | Filter: running, stopped, creating |
+
+### Response
+
+```json
+{
+  "simulations": [
+    {
+      "id": "sim_abc123",
+      "name": "homelab-test",
+      "description": "Testing base-homelab deployment",
+      "status": "running",
+      "nodes_count": 3,
+      "nodes_running": 3,
+      "created_at": "2026-02-01T10:00:00Z",
+      "updated_at": "2026-02-03T08:00:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 2
+  }
+}
+```
+
+## Create simulation
+
+```http
+POST /api/v1/simulations
+```
+
+### Request body
+
+```json
+{
+  "name": "my-homelab-test",
+  "description": "Testing new configuration",
+  "nodes": [
+    {
+      "name": "main-server",
+      "engine": "container",
+      "os": "ubuntu",
+      "location": "local",
+      "role": "worker",
+      "resources": {
+        "vcpus": 2,
+        "memory_mb": 2048
+      }
+    },
+    {
+      "name": "database",
+      "engine": "container",
+      "os": "ubuntu",
+      "location": "local",
+      "role": "database"
+    }
+  ]
+}
+```
+
+### Response
+
+```json
+{
+  "id": "sim_xyz789",
+  "name": "my-homelab-test",
+  "status": "creating",
+  "nodes": [
+    {
+      "id": "node_aaa111",
+      "name": "main-server",
+      "status": "creating"
+    },
+    {
+      "id": "node_bbb222",
+      "name": "database",
+      "status": "creating"
+    }
+  ],
+  "created_at": "2026-02-03T10:00:00Z"
+}
+```
+
+## Get simulation
+
+```http
+GET /api/v1/simulations/{simulation_id}
+```
+
+### Response
+
+```json
+{
+  "id": "sim_abc123",
+  "name": "homelab-test",
+  "description": "Testing base-homelab deployment",
+  "status": "running",
+  "nodes": [
+    {
+      "id": "node_111",
+      "name": "main-server",
+      "status": "running",
+      "engine": "container",
+      "os": "ubuntu",
+      "ip": "172.20.0.2",
+      "ssh_port": 2222,
+      "ssh_user": "root",
+      "resources": {
+        "vcpus": 2,
+        "memory_mb": 2048,
+        "disk_gb": 10
+      },
+      "metrics": {
+        "cpu_percent": 15.5,
+        "memory_percent": 45.2
+      }
+    },
+    {
+      "id": "node_222",
+      "name": "database",
+      "status": "running",
+      "engine": "container",
+      "os": "ubuntu",
+      "ip": "172.20.0.3",
+      "ssh_port": 2223,
+      "ssh_user": "root"
+    }
+  ],
+  "network": {
+    "name": "kombisim_sim_abc123",
+    "subnet": "172.20.0.0/24",
+    "gateway": "172.20.0.1"
+  },
+  "created_at": "2026-02-01T10:00:00Z"
+}
+```
+
+## Update simulation
+
+```http
+PATCH /api/v1/simulations/{simulation_id}
+```
+
+### Request body
+
+```json
+{
+  "name": "updated-name",
+  "description": "Updated description"
+}
+```
+
+## Delete simulation
+
+```http
+DELETE /api/v1/simulations/{simulation_id}
+```
+
+<Warning>
+  This destroys all nodes in the simulation. Any data not persisted externally will be lost.
+</Warning>
+
+### Response
+
+```json
+{
+  "message": "Simulation deleted successfully",
+  "nodes_destroyed": 3
+}
+```
+
+## Start simulation
+
+Start all stopped nodes in a simulation:
+
+```http
+POST /api/v1/simulations/{simulation_id}/start
+```
+
+### Response
+
+```json
+{
+  "id": "sim_abc123",
+  "status": "running",
+  "nodes_started": 3
+}
+```
+
+## Stop simulation
+
+Stop all running nodes:
+
+```http
+POST /api/v1/simulations/{simulation_id}/stop
+```
+
+### Response
+
+```json
+{
+  "id": "sim_abc123",
+  "status": "stopped",
+  "nodes_stopped": 3
+}
+```
+
+## Add node to simulation
+
+```http
+POST /api/v1/simulations/{simulation_id}/nodes
+```
+
+### Request body
+
+```json
+{
+  "name": "new-node",
+  "engine": "container",
+  "os": "ubuntu",
+  "location": "local",
+  "role": "worker",
+  "resources": {
+    "vcpus": 2,
+    "memory_mb": 1024
+  }
+}
+```
+
+### Node spec options
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Node name (required) |
+| `engine` | string | builtin, incus, qemu, azure |
+| `os` | string | ubuntu, alpine, debian, rocky |
+| `location` | string | local, vps, hybrid |
+| `role` | string | worker, database, gateway, controller |
+| `external_access` | boolean | Enable external SSH |
+| `ssh_port` | integer | Custom SSH port (2222-2322) |
+| `ssh_public_key` | string | SSH public key to add |
+| `resources.vcpus` | integer | Virtual CPU count |
+| `resources.memory_mb` | integer | Memory in MB |
+| `resources.disk_gb` | integer | Disk size in GB |
+
+## Remove node from simulation
+
+```http
+DELETE /api/v1/simulations/{simulation_id}/nodes/{node_id}
+```
+
+## Export simulation
+
+Export simulation configuration as JSON or YAML:
+
+```http
+GET /api/v1/simulations/{simulation_id}/export
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `format` | string | json (default) or yaml |
+
+### Response
+
+```json
+{
+  "version": "1.0",
+  "simulation": {
+    "name": "homelab-test",
+    "description": "Testing base-homelab deployment",
+    "nodes": [
+      {
+        "name": "main-server",
+        "engine": "container",
+        "os": "ubuntu",
+        "location": "local",
+        "role": "worker"
+      }
+    ]
+  },
+  "exported_at": "2026-02-03T10:00:00Z"
+}
+```
+
+## Clone simulation
+
+Create a copy of an existing simulation:
+
+```http
+POST /api/v1/simulations/{simulation_id}/clone
+```
+
+### Request body
+
+```json
+{
+  "name": "homelab-test-copy",
+  "start_immediately": false
+}
+```
+
+### Response
+
+```json
+{
+  "original_id": "sim_abc123",
+  "new_id": "sim_def456",
+  "status": "creating"
+}
+```
+
+## Import simulation
+
+Import a previously exported simulation:
+
+```http
+POST /api/v1/simulations/import
+```
+
+### Request body
+
+```json
+{
+  "data": {
+    "version": "1.0",
+    "simulation": {...}
+  },
+  "options": {
+    "rename_to": "imported-simulation",
+    "start_immediately": false
+  }
+}
+```
+
+## Test connectivity
+
+Test network connectivity between nodes in a simulation:
+
+```http
+POST /api/v1/simulations/{simulation_id}/ping
+```
+
+### Request body (optional)
+
+```json
+{
+  "source_node_id": "node_111",
+  "target_node_id": "node_222"
+}
+```
+
+### Response
+
+```json
+{
+  "results": [
+    {
+      "source": "node_111",
+      "target": "node_222",
+      "success": true,
+      "latency_ms": 2
+    },
+    {
+      "source": "node_222",
+      "target": "node_111",
+      "success": true,
+      "latency_ms": 2
+    }
+  ]
+}
+```
+
+## Simulation statuses
+
+| Status | Description |
+|--------|-------------|
+| `creating` | Nodes being provisioned |
+| `running` | At least one node running |
+| `stopped` | All nodes stopped |
+| `error` | Creation or operation failed |
+| `deleting` | Being deleted |

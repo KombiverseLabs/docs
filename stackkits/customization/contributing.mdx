@@ -1,0 +1,301 @@
+---
+title: Contributing StackKits
+description: Share your StackKit with the community
+sidebarTitle: Contributing
+icon: code-pull-request
+---
+
+# Contributing StackKits
+
+Contribute your StackKit to help the homelab community. This guide covers the process from preparation to merge.
+
+## Contribution types
+
+| Type | Description | Review process |
+|------|-------------|----------------|
+| **New StackKit** | Complete new stack definition | Full review |
+| **Variant** | New variant for existing StackKit | Standard review |
+| **Bug fix** | Fix issues in existing StackKits | Quick review |
+| **Documentation** | Improve docs or examples | Quick review |
+
+## Prerequisites
+
+Before contributing:
+
+1. **Read existing StackKits** — Understand the patterns used
+2. **Test locally** — Validate with `cue vet` and kombify Sim
+3. **Follow conventions** — Match existing code style
+4. **Sign CLA** — Required for first-time contributors
+
+## Preparing your contribution
+
+### StackKit requirements
+
+Every StackKit must include:
+
+<Steps>
+  <Step title="Valid CUE schema">
+    ```bash
+    # Validate all CUE files
+    cue vet ./my-stackkit/...
+    
+    # No errors should appear
+    ```
+  </Step>
+  
+  <Step title="Tests">
+    Include at least:
+    - Valid configuration test
+    - Invalid configuration test (negative test)
+    - Variant-specific tests
+    
+    ```cue
+    // tests/stack_test.cue
+    _testValid: #MyStack & {
+      domain: "test.example.com"
+      email:  "admin@example.com"
+      // ...
+    }
+    ```
+  </Step>
+  
+  <Step title="Documentation">
+    - README.md with overview and usage
+    - Inline comments in CUE files
+    - Example configurations
+  </Step>
+  
+  <Step title="Output generators">
+    Support at least Docker Compose output:
+    ```cue
+    // outputs/compose.cue
+    #ComposeOutput: { ... }
+    ```
+  </Step>
+</Steps>
+
+### Naming conventions
+
+| Element | Convention | Example |
+|---------|------------|---------|
+| StackKit name | `kebab-case` | `media-server`, `dev-homelab` |
+| CUE definitions | `#PascalCase` | `#MediaStack`, `#PlexService` |
+| Fields | `snake_case` | `media_path`, `admin_email` |
+| Variants | `lowercase` | `default`, `minimal`, `ha` |
+
+### Code style
+
+```cue
+// ✅ Good style
+#MyService: {
+  name:    string            // Aligned colons
+  image:   string
+  enabled: *true | bool      // Default first
+  
+  // Group related fields
+  resources: {
+    cpu:    *"1" | string
+    memory: *"512Mi" | string
+  }
+}
+
+// ❌ Bad style
+#MyService: {
+name: string  // Inconsistent alignment
+image:string  // No space after colon
+enabled: bool | *true  // Default after union
+resources: {cpu: "1", memory: "512Mi"}  // Cramped
+}
+```
+
+## Submission process
+
+### 1. Fork the repository
+
+```bash
+# Clone your fork
+git clone https://github.com/YOUR-USERNAME/kombify-stackkits.git
+cd kombify-stackkits
+
+# Add upstream remote
+git remote add upstream https://github.com/kombify/stackkits.git
+```
+
+### 2. Create a branch
+
+```bash
+# Sync with upstream
+git fetch upstream
+git checkout -b add-media-server upstream/main
+```
+
+Branch naming:
+- `add-<stackkit-name>` — New StackKit
+- `variant-<stackkit>-<variant>` — New variant
+- `fix-<stackkit>-<issue>` — Bug fix
+- `docs-<description>` — Documentation
+
+### 3. Add your StackKit
+
+```bash
+# Create directory structure
+mkdir -p stacks/media-server/{services,variants,tests,outputs,examples}
+
+# Add your files
+# ... develop your StackKit
+
+# Validate
+cue vet ./stacks/media-server/...
+```
+
+### 4. Run checks
+
+```bash
+# Format CUE files
+cue fmt ./stacks/media-server/...
+
+# Run all tests
+make test
+
+# Build documentation
+make docs
+
+# Run linter
+make lint
+```
+
+### 5. Commit and push
+
+```bash
+# Stage changes
+git add stacks/media-server/
+
+# Commit with conventional message
+git commit -m "feat(stackkits): add media-server StackKit
+
+- Plex, Sonarr, Radarr, Jellyfin services
+- default and minimal variants
+- Docker Compose and OpenTofu outputs
+- Full documentation and examples"
+
+# Push to your fork
+git push origin add-media-server
+```
+
+### 6. Create pull request
+
+On GitHub:
+1. Go to your fork
+2. Click "Compare & pull request"
+3. Fill in the PR template
+4. Request review
+
+## PR template
+
+```markdown
+## Description
+
+Brief description of the StackKit and its purpose.
+
+## Checklist
+
+- [ ] CUE files validate (`cue vet`)
+- [ ] Tests pass (`make test`)
+- [ ] Documentation complete
+- [ ] Examples provided
+- [ ] Follows naming conventions
+- [ ] Signed CLA
+
+## Services included
+
+- [ ] Service 1
+- [ ] Service 2
+
+## Variants
+
+- [ ] default — Description
+- [ ] minimal — Description
+
+## Screenshots (if applicable)
+
+Add screenshots of the running stack.
+
+## Testing performed
+
+Describe how you tested this StackKit.
+```
+
+## Review process
+
+### Timeline
+
+| Type | Expected review time |
+|------|---------------------|
+| Bug fix | 1-2 days |
+| Documentation | 1-2 days |
+| New variant | 3-5 days |
+| New StackKit | 1-2 weeks |
+
+### Review criteria
+
+Reviewers check for:
+
+1. **Correctness** — Does it work as described?
+2. **Schema quality** — Proper types, constraints, defaults
+3. **Security** — No exposed secrets, safe defaults
+4. **Documentation** — Clear, complete, accurate
+5. **Tests** — Adequate coverage
+6. **Style** — Matches project conventions
+
+### Responding to feedback
+
+- Address all comments
+- Push fixes as new commits (don't force-push during review)
+- Reply to comments to discuss or confirm fixes
+- Request re-review when ready
+
+### After merge
+
+- Delete your branch
+- Sync your fork
+- Update any dependent projects
+
+## Community guidelines
+
+### Be respectful
+
+- Constructive feedback only
+- Assume good intentions
+- Help new contributors
+
+### Be responsive
+
+- Reply to comments within a few days
+- If you can't continue, let maintainers know
+- Update stale PRs or close them
+
+### Be collaborative
+
+- Open issues before big changes
+- Discuss design decisions early
+- Credit prior art and inspirations
+
+## Getting help
+
+<CardGroup cols={2}>
+  <Card title="Discord" icon="discord" href="https://discord.gg/kombify">
+    Join #stackkits channel for help
+  </Card>
+  <Card title="GitHub Discussions" icon="github" href="https://github.com/kombify/stackkits/discussions">
+    Ask questions, share ideas
+  </Card>
+</CardGroup>
+
+## Recognition
+
+Contributors are recognized in:
+- CONTRIBUTORS.md file
+- Release notes for their contributions
+- Special Discord role for active contributors
+
+Thank you for contributing to kombify StackKits!

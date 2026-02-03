@@ -1,0 +1,377 @@
+name: Documentation Auto-Update & Enhancement
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '**.mdx'
+      - 'docs.json'
+      - 'snippets/**'
+      - 'scripts/**'
+  
+  pull_request:
+    branches: [main]
+    paths:
+      - '**.mdx'
+      - 'docs.json'
+  
+  schedule:
+    # Daily at 6 AM UTC for content freshness
+    - cron: '0 6 * * *'
+  
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'Action to perform'
+        required: true
+        default: 'validate'
+        type: choice
+        options:
+          - validate
+          - update-screenshots
+          - generate-diagrams
+          - check-content
+          - full-refresh
+          - ai-suggestions
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+env:
+  NODE_VERSION: '20'
+
+jobs:
+  # ============================================
+  # VALIDATION JOBS (Run on every push/PR)
+  # ============================================
+  
+  validate-structure:
+    name: 📋 Validate Documentation Structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Validate frontmatter
+        run: node scripts/validate-frontmatter.js
+      
+      - name: Check internal links
+        run: node scripts/check-links.js
+      
+      - name: Check orphaned pages
+        run: node scripts/check-orphaned-pages.js
+        continue-on-error: true
+      
+      - name: Check navigation coverage
+        run: node scripts/navigation-coverage.js
+      
+      - name: Check for duplicate content
+        run: node scripts/quality/check-duplicates.js || true
+
+  validate-content-quality:
+    name: 📝 Validate Content Quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check readability scores
+        run: node scripts/quality/check-readability.js
+        continue-on-error: true
+      
+      - name: Check SEO metadata
+        run: node scripts/quality/check-seo.js
+        continue-on-error: true
+      
+      - name: Validate code examples
+        run: node scripts/quality/validate-code-examples.js
+        continue-on-error: true
+
+  # ============================================
+  # AUTOMATED UPDATE JOBS (Scheduled/Manual)
+  # ============================================
+  
+  update-screenshots:
+    name: 📸 Update Screenshots
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'schedule' || 
+      github.event_name == 'workflow_dispatch' && 
+      (inputs.action == 'update-screenshots' || inputs.action == 'full-refresh')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      
+      - name: Install screenshot dependencies
+        working-directory: scripts/screenshots
+        run: npm ci
+      
+      - name: Install Playwright browsers
+        working-directory: scripts/screenshots
+        run: npx playwright install chromium --with-deps
+      
+      - name: Capture screenshots
+        working-directory: scripts/screenshots
+        run: npm run screenshots:all
+        env:
+          SPHERE_URL: ${{ secrets.SPHERE_URL }}
+          STACK_URL: ${{ secrets.STACK_URL }}
+          SIM_URL: ${{ secrets.SIM_URL }}
+          AUTH_TOKEN: ${{ secrets.DOCS_AUTH_TOKEN }}
+        continue-on-error: true
+      
+      - name: Annotate screenshots
+        run: node scripts/screenshots/annotate.js || true
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          git add images/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs(screenshots): automated update'
+          title: '📸 Automated screenshot update'
+          body: |
+            ## Automated Screenshot Update
+            
+            This PR contains automatically captured screenshots from live environments.
+            
+            **Screenshots updated:**
+            $(git diff --staged --name-only | grep -E '\.(png|jpg|gif)$' | head -20)
+            
+            **Review checklist:**
+            - [ ] Screenshots look correct
+            - [ ] No sensitive information visible
+            - [ ] Images are properly sized
+          branch: automated/screenshots-update
+          labels: documentation,automated
+
+  generate-diagrams:
+    name: 🎨 Generate Diagrams
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && 
+      (inputs.action == 'generate-diagrams' || inputs.action == 'full-refresh')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Install D2 diagram tool
+        run: |
+          curl -fsSL https://d2lang.com/install.sh | sh -s --
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      
+      - name: Generate architecture diagrams
+        run: node scripts/diagrams/generate-all.js
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          git add images/diagrams/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Create Pull Request
+        if: steps.changes.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'docs(diagrams): regenerate from sources'
+          title: '🎨 Regenerated diagrams'
+          body: |
+            ## Automated Diagram Generation
+            
+            Diagrams have been regenerated from their source definitions.
+          branch: automated/diagrams-update
+          labels: documentation,automated
+
+  check-external-links:
+    name: 🔗 Check External Links
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check external links
+        run: node scripts/quality/check-external-links.js
+        continue-on-error: true
+      
+      - name: Create issue for broken links
+        if: failure()
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: '🔗 Broken external links detected'
+          content-filepath: ./reports/broken-links.md
+          labels: documentation,bug
+
+  # ============================================
+  # AI-POWERED IMPROVEMENT SUGGESTIONS
+  # ============================================
+  
+  ai-content-review:
+    name: 🤖 AI Content Review
+    runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' && 
+      (inputs.action == 'ai-suggestions' || inputs.action == 'full-refresh')
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Analyze content for improvements
+        run: node scripts/ai/analyze-content.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        continue-on-error: true
+      
+      - name: Generate improvement suggestions
+        run: node scripts/ai/generate-suggestions.js
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        continue-on-error: true
+      
+      - name: Upload suggestions report
+        uses: actions/upload-artifact@v4
+        with:
+          name: ai-suggestions
+          path: reports/ai-suggestions.md
+          retention-days: 30
+
+  # ============================================
+  # CHANGELOG & VERSION TRACKING
+  # ============================================
+  
+  update-changelog:
+    name: 📝 Update Changelog
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [validate-structure]
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate changelog entry
+        run: node scripts/automation/update-changelog.js
+      
+      - name: Check for changes
+        id: changes
+        run: |
+          if git diff --quiet changelog.mdx; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Commit changelog
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add changelog.mdx
+          git commit -m "docs: auto-update changelog"
+          git push
+
+  # ============================================
+  # REPORTING & NOTIFICATIONS
+  # ============================================
+  
+  generate-health-report:
+    name: 📊 Generate Health Report
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule'
+    needs: [validate-structure, validate-content-quality, check-external-links]
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Generate comprehensive report
+        run: node scripts/reports/generate-health-report.js
+      
+      - name: Upload report
+        uses: actions/upload-artifact@v4
+        with:
+          name: docs-health-report
+          path: reports/health-report.md
+          retention-days: 90
+      
+      - name: Post to Slack
+        if: ${{ secrets.SLACK_WEBHOOK }}
+        run: |
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"📊 Weekly docs health report generated. Check GitHub Actions for details."}' \
+            ${{ secrets.SLACK_WEBHOOK }}

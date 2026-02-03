@@ -1,0 +1,452 @@
+---
+title: Creating custom StackKits
+description: Build your own StackKit for specialized homelab configurations
+sidebarTitle: Creating custom
+icon: hammer
+---
+
+# Creating custom StackKits
+
+Build a custom StackKit to define reusable infrastructure patterns for your specific needs.
+
+## Prerequisites
+
+Before creating a StackKit:
+
+- Understand [CUE basics](/stackkits/customization/cue-basics)
+- Review existing StackKits in the repository
+- Have a clear use case in mind
+
+## StackKit structure
+
+A complete StackKit includes:
+
+```
+my-stackkit/
+├── stack.cue           # Main stack definition
+├── services/           # Service definitions
+│   ├── app.cue
+│   └── database.cue
+├── variants/           # Variant configurations
+│   ├── default.cue
+│   └── minimal.cue
+├── tests/              # Validation tests
+│   └── stack_test.cue
+├── outputs/            # Output generators
+│   ├── compose.cue
+│   └── tofu.cue
+└── README.md           # Documentation
+```
+
+## Step-by-step guide
+
+### 1. Define your schema
+
+Start with the main stack definition:
+
+```cue
+// stack.cue
+package mystackkit
+
+import (
+  "kombify.dev/stackkits/core"
+  "kombify.dev/stackkits/platform/docker"
+)
+
+// Stack configuration schema
+#MyStack: {
+  // Metadata
+  name:        *"my-stack" | string
+  description: *"My custom StackKit" | string
+  version:     *"1.0.0" | string
+  
+  // Required configuration
+  domain: string & =~"^[a-z0-9.-]+$"
+  email:  string & =~"^[^@]+@[^@]+$"
+  
+  // Optional configuration
+  timezone: *"UTC" | string
+  
+  // Node configuration
+  nodes: [...core.#Node] & list.MinItems(1)
+  
+  // Services (defined below)
+  services: #Services
+  
+  // Variant selection
+  variant: *"default" | "minimal" | "ha"
+}
+```
+
+### 2. Define services
+
+Create service definitions:
+
+```cue
+// services/app.cue
+package mystackkit
+
+import "kombify.dev/stackkits/platform/docker"
+
+#AppService: docker.#Service & {
+  name:  "my-app"
+  image: string | *"myapp/app:latest"
+  
+  ports: [...docker.#PortMapping]
+  ports: [{
+    host:      *8080 | int
+    container: 8080
+  }]
+  
+  environment: {
+    APP_ENV: *"production" | string
+    ...     // Allow additional env vars
+  }
+  
+  volumes: [...docker.#Volume]
+  
+  labels: {
+    "traefik.enable": "true"
+    "traefik.http.routers.app.rule": string
+  }
+}
+
+#DatabaseService: docker.#Service & {
+  name:  "database"
+  image: *"postgres:16-alpine" | string
+  
+  environment: {
+    POSTGRES_USER:     string
+    POSTGRES_PASSWORD: string
+    POSTGRES_DB:       string
+  }
+  
+  volumes: [{
+    name: "db-data"
+    path: "/var/lib/postgresql/data"
+  }]
+}
+```
+
+### 3. Create variants
+
+Define different configurations:
+
+```cue
+// variants/default.cue
+package mystackkit
+
+#DefaultVariant: #MyStack & {
+  variant: "default"
+  
+  services: {
+    app:      #AppService
+    database: #DatabaseService
+    traefik:  #TraefikService
+    backup:   #BackupService
+  }
+}
+
+// variants/minimal.cue
+package mystackkit
+
+#MinimalVariant: #MyStack & {
+  variant: "minimal"
+  
+  services: {
+    app:      #AppService
+    database: #DatabaseService
+    // No traefik, no backup
+  }
+}
+
+// variants/ha.cue
+package mystackkit
+
+#HAVariant: #MyStack & {
+  variant: "ha"
+  
+  services: {
+    app: #AppService & {
+      replicas: *3 | int & >=2
+    }
+    database: #DatabaseService & {
+      replication: {
+        enabled: true
+        replicas: 2
+      }
+    }
+    traefik:  #TraefikService
+    haproxy:  #HAProxyService
+    backup:   #BackupService
+  }
+}
+```
+
+### 4. Add output generators
+
+Generate deployment artifacts:
+
+```cue
+// outputs/compose.cue
+package mystackkit
+
+import "encoding/yaml"
+
+// Generate Docker Compose from stack config
+#ComposeOutput: {
+  _stack: #MyStack
+  
+  output: yaml.Marshal({
+    version: "3.8"
+    
+    services: {
+      for name, svc in _stack.services {
+        (name): {
+          image:         svc.image
+          container_name: svc.name
+          restart:       svc.restart
+          
+          if len(svc.ports) > 0 {
+            ports: [ for p in svc.ports { "\(p.host):\(p.container)" } ]
+          }
+          
+          if len(svc.environment) > 0 {
+            environment: svc.environment
+          }
+          
+          if len(svc.volumes) > 0 {
+            volumes: [ for v in svc.volumes { "\(v.name):\(v.path)" } ]
+          }
+          
+          if len(svc.labels) > 0 {
+            labels: svc.labels
+          }
+          
+          networks: svc.networks
+        }
+      }
+    }
+    
+    networks: {
+      homelab: {
+        driver: "bridge"
+      }
+    }
+    
+    volumes: {
+      for name, svc in _stack.services {
+        for v in svc.volumes {
+          (v.name): {}
+        }
+      }
+    }
+  })
+}
+```
+
+### 5. Write tests
+
+Validate your schema with tests:
+
+```cue
+// tests/stack_test.cue
+package mystackkit
+
+// Test: Valid minimal configuration
+_testMinimal: #MyStack & {
+  domain: "test.example.com"
+  email:  "admin@example.com"
+  nodes: [{
+    name: "test-node"
+    role: "worker"
+    ip:   "192.168.1.100"
+  }]
+  variant: "minimal"
+}
+
+// Test: Valid default configuration
+_testDefault: #MyStack & {
+  domain:   "homelab.example.com"
+  email:    "admin@example.com"
+  timezone: "Europe/Berlin"
+  nodes: [
+    {name: "main", role: "worker", ip: "192.168.1.100"},
+    {name: "db", role: "database", ip: "192.168.1.101"},
+  ]
+  variant: "default"
+}
+
+// Test: Invalid - missing required field
+// This should fail validation
+_testInvalid: #MyStack & {
+  // domain: missing!
+  email: "admin@example.com"
+  nodes: [{name: "x", role: "worker", ip: "1.2.3.4"}]
+}
+```
+
+Run tests:
+
+```bash
+# Validate all CUE files
+cue vet ./...
+
+# Run specific test
+cue eval ./tests/stack_test.cue -e _testMinimal
+```
+
+### 6. Document your StackKit
+
+Create comprehensive documentation:
+
+```markdown
+# My StackKit
+
+Description of what this StackKit does and who it's for.
+
+## Features
+
+- Feature 1
+- Feature 2
+
+## Variants
+
+| Variant | Description | Use case |
+|---------|-------------|----------|
+| default | Full-featured setup | Production |
+| minimal | Bare essentials | Development |
+| ha | High-availability | Critical workloads |
+
+## Configuration
+
+### Required
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `domain` | string | Primary domain |
+| `email` | string | Admin email |
+
+### Optional
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `timezone` | string | UTC | Server timezone |
+
+## Services
+
+### App Service
+
+Main application service.
+
+**Environment variables:**
+- `APP_ENV` - Environment (production/development)
+
+## Quick Start
+
+\```yaml
+# kombination.yaml
+stackkit: my-stackkit
+variant: default
+
+domain: homelab.example.com
+email: admin@example.com
+
+nodes:
+  - name: main-server
+    role: worker
+    ip: 192.168.1.100
+\```
+
+## Examples
+
+See `/examples/` for complete configurations.
+```
+
+## Best practices
+
+### Schema design
+
+<Accordion title="Use explicit constraints">
+```cue
+// ✅ Good - explicit constraints
+port: int & >=1 & <=65535
+
+// ❌ Bad - no validation
+port: int
+```
+</Accordion>
+
+<Accordion title="Provide sensible defaults">
+```cue
+// ✅ Good - default with override option
+timezone: *"UTC" | string
+replicas: *1 | int & >=1
+
+// ❌ Bad - required when optional would suffice
+timezone: string  // Forces user to specify
+```
+</Accordion>
+
+<Accordion title="Use definitions for reusability">
+```cue
+// ✅ Good - reusable definition
+#PortMapping: {
+  host:      int & >=1 & <=65535
+  container: int & >=1 & <=65535
+  protocol:  *"tcp" | "udp"
+}
+
+ports: [...#PortMapping]
+
+// ❌ Bad - inline repeated structure
+ports: [...{
+  host:      int
+  container: int
+}]
+```
+</Accordion>
+
+### Documentation
+
+- Document every public field
+- Include examples for complex configurations
+- Explain the purpose of each variant
+- Keep README up to date
+
+### Testing
+
+- Test valid configurations
+- Test edge cases
+- Include negative tests (expected failures)
+- Test all variants
+
+## Registering your StackKit
+
+### Local development
+
+```bash
+# Add to local registry
+cp -r my-stackkit ~/.kombify/stackkits/
+
+# Validate
+kombify stackkits validate my-stackkit
+
+# Test with Sim
+kombify sim create --stackkit my-stackkit --variant default
+```
+
+### Publishing
+
+See [Contributing](/stackkits/customization/contributing) for how to submit your StackKit to the official repository.
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="CUE basics" icon="code" href="/stackkits/customization/cue-basics">
+    Review CUE fundamentals
+  </Card>
+  <Card title="Contributing" icon="code-pull-request" href="/stackkits/customization/contributing">
+    Share your StackKit
+  </Card>
+</CardGroup>

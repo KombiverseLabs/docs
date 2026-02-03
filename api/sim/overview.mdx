@@ -1,0 +1,214 @@
+---
+title: Sim API overview
+description: REST API reference for kombify Sim
+sidebarTitle: Overview
+icon: flask
+---
+
+# Sim API overview
+
+The kombify Sim API provides programmatic access to simulation features. Use it to create, manage, and automate simulated infrastructure environments.
+
+## Base URL
+
+```
+http://localhost:5270/api/v1
+```
+
+## Authentication
+
+Sim supports multiple authentication methods:
+
+<Tabs>
+  <Tab title="API Key">
+    ```bash
+    curl -H "Authorization: Bearer sk_sim_abc123" \
+      http://localhost:5270/api/v1/simulations
+    ```
+  </Tab>
+  <Tab title="Basic Auth">
+    ```bash
+    curl -u admin:password \
+      http://localhost:5270/api/v1/simulations
+    ```
+  </Tab>
+  <Tab title="Session (Web UI)">
+    Authentication via `/api/v1/auth/login` returns a session cookie.
+  </Tab>
+</Tabs>
+
+See [Authentication](/api/authentication) for setup details.
+
+## API structure
+
+| Group | Description |
+|-------|-------------|
+| **Health** | Server health and metrics |
+| **Auth** | Authentication and sessions |
+| **Simulations** | Simulation lifecycle |
+| **Nodes** | Individual node management |
+| **Templates** | Pre-built configurations |
+| **Incus** | Incus VM management (Linux) |
+| **Providers** | Provider health checks |
+
+## Quick reference
+
+### Health endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Server health with statistics |
+| GET | `/metrics` | Prometheus metrics |
+
+### Authentication endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/auth/methods` | Available auth methods |
+| POST | `/auth/login` | Authenticate |
+| POST | `/auth/logout` | Invalidate session |
+| GET | `/auth/session` | Current session info |
+| GET | `/auth/oauth/url` | OAuth redirect URL |
+
+### Simulation endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/simulations` | List simulations |
+| POST | `/simulations` | Create simulation |
+| GET | `/simulations/{id}` | Get simulation |
+| PATCH | `/simulations/{id}` | Update simulation |
+| DELETE | `/simulations/{id}` | Delete simulation |
+| POST | `/simulations/{id}/start` | Start all nodes |
+| POST | `/simulations/{id}/stop` | Stop all nodes |
+| POST | `/simulations/{id}/nodes` | Add node |
+| DELETE | `/simulations/{id}/nodes/{nodeId}` | Remove node |
+| GET | `/simulations/{id}/export` | Export configuration |
+| POST | `/simulations/{id}/clone` | Clone simulation |
+| POST | `/simulations/import` | Import simulation |
+| POST | `/simulations/{id}/ping` | Test connectivity |
+
+### Node endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/nodes` | List all nodes |
+| POST | `/nodes` | Create standalone node |
+| GET | `/nodes/{id}` | Get node details |
+| POST | `/nodes/{id}/start` | Start node |
+| POST | `/nodes/{id}/stop` | Stop node |
+| DELETE | `/nodes/{id}` | Destroy node |
+| GET | `/nodes/{id}/ssh` | SSH connection details |
+| GET | `/nodes/{id}/logs` | Container logs |
+| GET | `/nodes/{id}/stats` | Resource stats |
+| POST | `/nodes/{id}/latency` | Set network latency |
+| DELETE | `/nodes/{id}/latency` | Clear latency |
+| POST | `/nodes/batch/start` | Batch start |
+| POST | `/nodes/batch/stop` | Batch stop |
+| POST | `/nodes/batch/delete` | Batch delete |
+
+### Template endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/templates` | List templates |
+| GET | `/templates/{id}` | Get template |
+| POST | `/templates/{id}/apply` | Apply template |
+| POST | `/templates/create` | Create custom template |
+
+## Request format
+
+```bash
+curl -X POST http://localhost:5270/api/v1/simulations \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $API_KEY" \
+  -d '{
+    "name": "test-homelab",
+    "description": "Testing base-homelab deployment"
+  }'
+```
+
+## Response format
+
+### Success response
+
+```json
+{
+  "id": "sim_abc123",
+  "name": "test-homelab",
+  "status": "running",
+  "created_at": "2026-02-03T10:00:00Z"
+}
+```
+
+### Error response
+
+```json
+{
+  "error": {
+    "code": 400,
+    "message": "Invalid node configuration",
+    "details": "ssh_port must be between 2222 and 2322"
+  }
+}
+```
+
+### List response
+
+```json
+{
+  "simulations": [...],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 5
+  }
+}
+```
+
+## Supported engines
+
+| Engine | Status | Description |
+|--------|--------|-------------|
+| `builtin` / `container` | ✅ Ready | Docker containers |
+| `incus` | ✅ Ready | Incus/LXD VMs (Linux) |
+| `qemu` | ✅ Ready | QEMU VMs via backend |
+| `azure` | ✅ Ready | Azure Virtual Machines |
+
+Specify engine when creating nodes:
+
+```json
+{
+  "engine": "container",
+  "name": "test-node",
+  "os": "ubuntu"
+}
+```
+
+## Rate limiting
+
+| Tier | Limit |
+|------|-------|
+| Default | 60 req/min |
+| Authenticated | 120 req/min |
+| Burst | 10 requests |
+
+## Webhooks (coming soon)
+
+Configure webhooks for simulation events:
+- `simulation.created`
+- `simulation.started`
+- `simulation.stopped`
+- `node.healthy`
+- `node.unhealthy`
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Simulations API" icon="layer-group" href="/api/sim/simulations">
+    Create and manage simulations
+  </Card>
+  <Card title="Nodes API" icon="server" href="/api/sim/nodes">
+    Manage individual nodes
+  </Card>
+</CardGroup>

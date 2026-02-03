@@ -1,142 +1,295 @@
 ---
-title: Sim Configuration
-description: Configure Sim for your environment
+title: Sim configuration
+description: Configure kombify Sim for your environment
 sidebarTitle: Configuration
 icon: gear
 ---
 
-# Sim Configuration
+# Sim configuration
 
-Configure Sim using environment variables or a configuration file.
+Configure kombify Sim using environment variables. This page covers all available options for different engines and authentication methods.
 
-## Environment Variables
+<Note>
+  All environment variables use the `KOMBISIM_` prefix. Most settings have sensible defaults for quick setup.
+</Note>
+
+## Core settings
 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `KOMBISIM_PORT` | `5270` | API server port |
-| `KOMBISIM_DATA_DIR` | `/data` | Data storage directory |
+| `KOMBISIM_DATA_DIR` | `/data` | Data storage directory (SQLite DB location) |
+| `KOMBISIM_DB_PATH` | - | Override SQLite path directly |
 | `KOMBISIM_LOG_LEVEL` | `info` | Log level: debug, info, warn, error |
-| `KOMBISIM_ENGINE` | `container` | Engine: container, qemu, external |
+| `KOMBISIM_STATIC_DIR` | `/app/static` | Static file directory for web UI |
+
+## Engine configuration
+
+Choose which simulation engine to use based on your needs:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_ENGINE` | `container` | Engine: container, incus, qemu, azure |
 | `KOMBISIM_ENGINE_ENDPOINT` | - | External engine endpoint URL |
 
-## Configuration File
-
-Create `kombisim.yaml`:
-
-```yaml
-# Server settings
-server:
-  port: 5270
-  host: 0.0.0.0
-
-# Storage
-data_dir: /data
-
-# Logging
-logging:
-  level: info
-  format: json
-
-# Engine configuration
-engine:
-  type: container  # container, qemu, external
-  docker:
-    socket: /var/run/docker.sock
-    network_prefix: kombisim
-    
-# Node defaults
-node_defaults:
-  os: ubuntu-22.04
-  resources:
-    cpu: 2
-    memory: 2048Mi
-    disk: 10Gi
-```
-
-## Engine Types
-
 <Tabs>
-  <Tab title="Container (Default)">
-    Uses Docker containers as simulated nodes:
+  <Tab title="Container (Docker)">
+    Uses Docker containers as simulated nodes. **Recommended for most users.**
     
-    ```yaml
-    engine:
-      type: container
-      docker:
-        socket: /var/run/docker.sock
+    ```bash
+    KOMBISIM_ENGINE=container
     ```
     
-    **Pros:** Fast startup, low overhead
-    **Cons:** Not full VM isolation
+    **Pros:**
+    - Fast startup (seconds)
+    - Low resource overhead
+    - Works everywhere Docker runs
+    
+    **Cons:**
+    - Not full VM isolation
+    - Shared kernel with host
+    
+    **Requirements:**
+    - Docker socket access (`/var/run/docker.sock`)
+    - `NET_RAW` capability for network features
+  </Tab>
+  
+  <Tab title="Incus">
+    Uses Incus (LXC/LXD successor) for VM-like containers with better isolation.
+    
+    | Variable | Default | Description |
+    |----------|---------|-------------|
+    | `KOMBISIM_INCUS_ENABLED` | `false` | Enable Incus engine |
+    | `KOMBISIM_INCUS_CONTAINER_NAME` | `kombisim-worker` | Base container name |
+    | `KOMBISIM_INCUS_SSH_PORT_START` | `30000` | SSH port range start |
+    | `KOMBISIM_INCUS_SSH_PORT_END` | `39999` | SSH port range end |
+    
+    **Pros:**
+    - Better isolation than Docker
+    - Full systemd support
+    - Linux-native performance
+    
+    **Cons:**
+    - Linux only
+    - Requires Incus installation
   </Tab>
   
   <Tab title="QEMU">
-    Uses QEMU virtual machines:
+    Uses QEMU virtual machines for full VM isolation.
     
-    ```yaml
-    engine:
-      type: qemu
-      qemu:
-        images_dir: /var/lib/kombisim/images
+    ```bash
+    KOMBISIM_ENGINE=qemu
+    KOMBISIM_ENGINE_ENDPOINT=http://qemu-backend:8080
     ```
     
-    **Pros:** Full VM isolation, accurate simulation
-    **Cons:** Slower, higher resource usage
+    **Pros:**
+    - Full VM isolation
+    - Most accurate simulation
+    - Any OS supported
+    
+    **Cons:**
+    - Slower startup
+    - Higher resource usage
+    - Requires QEMU backend
   </Tab>
   
-  <Tab title="External">
-    Uses an external simulation backend:
+  <Tab title="Azure">
+    Uses Azure Virtual Machines for cloud-based simulation.
     
-    ```yaml
-    engine:
-      type: external
-      external:
-        endpoint: http://my-backend:8080
-    ```
+    | Variable | Description |
+    |----------|-------------|
+    | `KOMBISIM_AZURE_ENABLED` | Enable Azure engine |
+    | `KOMBISIM_AZURE_SUBSCRIPTION_ID` | Azure subscription |
+    | `KOMBISIM_AZURE_TENANT_ID` | Azure AD tenant |
+    | `KOMBISIM_AZURE_CLIENT_ID` | Service principal client ID |
+    | `KOMBISIM_AZURE_CLIENT_SECRET` | Service principal secret |
+    | `KOMBISIM_AZURE_RESOURCE_GROUP` | Target resource group |
+    | `KOMBISIM_AZURE_LOCATION` | Azure region (e.g., westeurope) |
+    | `KOMBISIM_AZURE_KEYVAULT_NAME` | Key Vault for SSH keys |
     
-    **Pros:** Custom backends, cloud integration
-    **Cons:** Requires additional setup
+    **Pros:**
+    - Real cloud VMs
+    - Full isolation
+    - Any OS supported
+    
+    **Cons:**
+    - Azure costs
+    - Slower provisioning
+    - Requires Azure credentials
   </Tab>
 </Tabs>
 
-## Resource Limits
+## Authentication
 
-Configure default resources for nodes:
+kombify Sim supports multiple authentication methods via the Authentication Gateway:
 
-```yaml
-node_defaults:
-  resources:
-    cpu: 2          # CPU cores
-    memory: 2048Mi  # Memory (Mi, Gi)
-    disk: 10Gi      # Disk space
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_AUTH_ENABLED` | `false` | Enable legacy auth (deprecated) |
+| `KOMBISIM_AUTH_ADMIN_ENABLED` | `true` | Enable local admin login |
+| `KOMBISIM_AUTH_CLOUD_ENABLED` | `false` | Enable kombify Cloud SSO (Zitadel) |
+| `KOMBISIM_AUTH_STACK_ENABLED` | `false` | Enable kombify Stack auth (PocketBase) |
+| `KOMBISIM_API_KEY` | - | Static API key for automation |
+| `KOMBISIM_BASIC_USER` | - | Basic auth username |
+| `KOMBISIM_BASIC_PASS` | - | Basic auth password |
 
-## Networking
+<Accordion title="Authentication Gateway architecture" icon="diagram-project">
+  The Authentication Gateway supports multiple identity sources simultaneously:
+  
+  1. **Admin auth** — Local username/password for quick setup
+  2. **Cloud SSO** — Zitadel OIDC for kombify Cloud users
+  3. **Stack auth** — PocketBase JWT from kombify Stack
+  4. **API key** — Static key for CI/CD and automation
+  
+  Priority order: API Key → Stack JWT → Cloud SSO → Admin
+</Accordion>
 
-### Custom Network Range
+## Rate limiting
 
-```yaml
-networking:
-  subnet_prefix: "172.20"  # Creates 172.20.0.0/16
-  dns:
-    - 8.8.8.8
-    - 8.8.4.4
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_RATELIMIT_ENABLED` | `false` | Enable rate limiting |
+| `KOMBISIM_RATELIMIT_RPM` | `60` | Requests per minute |
+| `KOMBISIM_RATELIMIT_BURST` | `10` | Burst size |
 
-### SSH Port Range
+## Audit logging
 
-```yaml
-ssh:
-  port_start: 2222
-  port_end: 2322
-```
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_AUDIT_ENABLED` | `false` | Enable audit logging |
+| `KOMBISIM_AUDIT_PATH` | `/data/audit.log` | Audit log file path |
 
-## Apply Configuration
+## SSH configuration
 
-```bash
-# Via environment
-KOMBISIM_LOG_LEVEL=debug docker run ...
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_SSH_PORT_START` | `2222` | First port in SSH range |
+| `KOMBISIM_SSH_PORT_END` | `2322` | Last port in SSH range |
+| `KOMBISIM_SSH_DEFAULT_PASSWORD` | `kombisim` | Default SSH password for nodes |
 
-# Via config file
-docker run -v ./kombisim.yaml:/etc/kombisim/config.yaml ...
-```
+<Warning>
+  The default SSH password is `kombisim`. Change this in production environments!
+</Warning>
+
+## Heartbeat monitoring
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_HEARTBEAT_INTERVAL` | `30s` | Health check interval |
+| `KOMBISIM_HEARTBEAT_TIMEOUT` | `10s` | Health check timeout |
+| `KOMBISIM_HEARTBEAT_FAILURES` | `3` | Failures before marking unhealthy |
+
+## Docker Compose examples
+
+<Tabs>
+  <Tab title="Basic">
+    ```yaml docker-compose.yml
+    services:
+      kombisim:
+        image: ghcr.io/kombify/sim:latest
+        ports:
+          - "5270:5270"
+          - "5271:5271"
+          - "2222-2322:2222-2322"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - kombisim-data:/data
+        environment:
+          - KOMBISIM_LOG_LEVEL=info
+    volumes:
+      kombisim-data:
+    ```
+  </Tab>
+  <Tab title="With authentication">
+    ```yaml docker-compose.yml
+    services:
+      kombisim:
+        image: ghcr.io/kombify/sim:latest
+        ports:
+          - "5270:5270"
+          - "5271:5271"
+          - "2222-2322:2222-2322"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - kombisim-data:/data
+        environment:
+          - KOMBISIM_AUTH_ADMIN_ENABLED=true
+          - KOMBISIM_BASIC_USER=admin
+          - KOMBISIM_BASIC_PASS=${ADMIN_PASSWORD}
+          - KOMBISIM_RATELIMIT_ENABLED=true
+    volumes:
+      kombisim-data:
+    ```
+  </Tab>
+  <Tab title="Linux with Incus">
+    ```yaml docker-compose.linux.yml
+    services:
+      kombisim:
+        image: ghcr.io/kombify/sim:latest
+        network_mode: host
+        privileged: true
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /var/snap/lxd/common/lxd/unix.socket:/var/snap/lxd/common/lxd/unix.socket
+          - kombisim-data:/data
+        environment:
+          - KOMBISIM_INCUS_ENABLED=true
+          - KOMBISIM_INCUS_SSH_PORT_START=30000
+        cap_add:
+          - NET_ADMIN
+          - NET_RAW
+    volumes:
+      kombisim-data:
+    ```
+  </Tab>
+  <Tab title="With monitoring">
+    ```yaml docker-compose.monitoring.yml
+    services:
+      kombisim:
+        image: ghcr.io/kombify/sim:latest
+        ports:
+          - "5270:5270"
+          - "5271:5271"
+          - "2222-2322:2222-2322"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - kombisim-data:/data
+          
+      prometheus:
+        image: prom/prometheus:latest
+        ports:
+          - "9090:9090"
+        volumes:
+          - ./prometheus.yml:/etc/prometheus/prometheus.yml
+          
+      grafana:
+        image: grafana/grafana:latest
+        ports:
+          - "3000:3000"
+        environment:
+          - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      kombisim-data:
+    ```
+  </Tab>
+</Tabs>
+
+## Port reference
+
+| Port | Protocol | Service | Description |
+|------|----------|---------|-------------|
+| 5270 | HTTP | REST API | Main API endpoint |
+| 5271 | HTTP | Web UI | SvelteKit dashboard |
+| 2222-2322 | TCP | SSH | Simulated node SSH access |
+| 9090 | HTTP | Metrics | Prometheus metrics |
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Templates" icon="copy" href="/sim/templates">
+    Use built-in templates for common setups
+  </Card>
+  <Card title="SSH access" icon="terminal" href="/sim/ssh-access">
+    Connect to simulated nodes via SSH
+  </Card>
+</CardGroup>

@@ -7,7 +7,11 @@ icon: house
 
 # base-homelab StackKit
 
-The **base-homelab** StackKit is designed for beginners and single-node setups. It provides a carefully curated set of services that work well together out of the box.
+The **base-homelab** StackKit is designed for beginners and single-node setups. It provides a carefully curated set of services that work well together out of the box, with multiple **variants** to match your needs.
+
+<Note>
+  base-homelab follows an IaC-first approach using OpenTofu for infrastructure provisioning and Docker Compose for service deployment.
+</Note>
 
 ## Overview
 
@@ -15,121 +19,201 @@ The **base-homelab** StackKit is designed for beginners and single-node setups. 
 graph TB
     subgraph Node["Single Node"]
         subgraph Core["Core Services"]
-            Traefik["Traefik<br/>Reverse Proxy"]
-            Authelia["Authelia<br/>Authentication"]
+            Traefik["Traefik v3<br/>Reverse Proxy"]
         end
         
-        subgraph Apps["Applications"]
-            Portainer["Portainer<br/>Container Management"]
-            Homepage["Homepage<br/>Dashboard"]
-            Uptime["Uptime Kuma<br/>Monitoring"]
+        subgraph Platform["PaaS Platform"]
+            Dokploy["Dokploy<br/>Container Platform"]
         end
         
-        subgraph Data["Data Services"]
-            Postgres["PostgreSQL<br/>Database"]
-            Redis["Redis<br/>Cache"]
+        subgraph Monitoring["Observability"]
+            UptimeKuma["Uptime Kuma<br/>Status Monitoring"]
+            Dozzle["Dozzle<br/>Log Viewer"]
+        end
+        
+        subgraph Identity["Identity (Optional)"]
+            TinyAuth["TinyAuth"]
+            PocketID["PocketID"]
         end
     end
     
     Internet["Internet"] --> Traefik
-    Traefik --> Authelia
-    Authelia --> Apps
-    Apps --> Data
+    Traefik --> Platform
+    Traefik --> Monitoring
+    Traefik --> Identity
     
     style Node fill:#1e293b,stroke:#38bdf8,color:#f8fafc
     style Core fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-    style Apps fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style Data fill:#1e293b,stroke:#a78bfa,color:#f8fafc
+    style Platform fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Monitoring fill:#1e293b,stroke:#a78bfa,color:#f8fafc
+    style Identity fill:#1e293b,stroke:#ec4899,color:#f8fafc
 ```
 
-## Included Services
+## Available variants
+
+Choose a variant that matches your use case:
+
+<Tabs>
+  <Tab title="Default (Dokploy)">
+    The standard variant for users **without** their own domain. Port-based access.
+    
+    | Service | Description |
+    |---------|-------------|
+    | **Traefik v3** | Reverse proxy with auto-SSL |
+    | **Dokploy** | Container platform (like Vercel for your homelab) |
+    | **Uptime Kuma** | Status monitoring with public pages |
+    | **Dozzle** | Real-time Docker log viewer |
+    | **whoami** | Debug/test service |
+    
+    ```yaml kombination.yaml
+    stackkit: base-homelab
+    variant: default
+    ```
+  </Tab>
+  <Tab title="Beszel">
+    Focused on **server metrics** instead of uptime monitoring.
+    
+    | Service | Description |
+    |---------|-------------|
+    | **Traefik v3** | Reverse proxy with auto-SSL |
+    | **Dokploy** | Container platform |
+    | **Beszel** | Lightweight server metrics (CPU/RAM/disk) |
+    | **Dozzle** | Real-time Docker log viewer |
+    | **whoami** | Debug/test service |
+    
+    ```yaml kombination.yaml
+    stackkit: base-homelab
+    variant: beszel
+    ```
+  </Tab>
+  <Tab title="Minimal">
+    Lightweight classic stack with **direct Docker management**.
+    
+    | Service | Description |
+    |---------|-------------|
+    | **Traefik v3** | Reverse proxy with auto-SSL |
+    | **Dockge** | Docker Compose stack manager |
+    | **Portainer** | Container management UI |
+    | **Netdata** | Real-time performance monitoring |
+    | **Dozzle** | Real-time Docker log viewer |
+    
+    ```yaml kombination.yaml
+    stackkit: base-homelab
+    variant: minimal
+    ```
+  </Tab>
+</Tabs>
+
+## Included services
 
 <CardGroup cols={2}>
-  <Card title="Traefik" icon="route">
+  <Card title="Traefik v3" icon="route">
     **Reverse Proxy & SSL**
     
-    Automatic HTTPS certificates and routing for all services.
+    Automatic HTTPS certificates (Let's Encrypt), routing, and load balancing for all services.
   </Card>
-  <Card title="Authelia" icon="lock">
-    **Single Sign-On**
+  <Card title="Dokploy" icon="rocket">
+    **Container Platform**
     
-    Secure authentication for all protected services.
+    Self-hosted PaaS like Vercel/Railway. Deploy from Git, manage databases, and scale apps.
   </Card>
-  <Card title="Portainer" icon="docker">
-    **Container Management**
+  <Card title="Coolify" icon="cloud">
+    **Alternative PaaS**
     
-    Web UI to manage your Docker containers.
-  </Card>
-  <Card title="Homepage" icon="house">
-    **Dashboard**
-    
-    Beautiful landing page for your homelab.
+    Open-source alternative to Heroku. Best for users with their own domain.
   </Card>
   <Card title="Uptime Kuma" icon="heart-pulse">
-    **Monitoring**
+    **Status Monitoring**
     
-    Track the health of your services.
+    Monitor your services with beautiful status pages and alerts.
   </Card>
-  <Card title="PostgreSQL" icon="database">
-    **Database**
+  <Card title="Beszel" icon="chart-line">
+    **Server Metrics**
     
-    Reliable data storage for your applications.
+    Lightweight resource monitoring (CPU, RAM, disk, network).
+  </Card>
+  <Card title="Dozzle" icon="list">
+    **Log Viewer**
+    
+    Real-time Docker container log viewer in your browser.
+  </Card>
+</CardGroup>
+
+### Optional identity services
+
+<CardGroup cols={2}>
+  <Card title="TinyAuth" icon="key">
+    **Lightweight Auth Proxy**
+    
+    Simple authentication middleware for protecting services with basic auth or OAuth2.
+  </Card>
+  <Card title="PocketID" icon="id-card">
+    **OIDC Provider**
+    
+    Full-featured OpenID Connect provider for single sign-on across your homelab.
   </Card>
 </CardGroup>
 
 ## Requirements
 
-| Resource | Minimum | Recommended |
-|----------|---------|-------------|
-| **CPU** | 2 cores | 4 cores |
-| **RAM** | 4 GB | 8 GB |
-| **Storage** | 20 GB | 50 GB SSD |
-| **OS** | Debian 11+ / Ubuntu 22.04+ | - |
-| **Docker** | 24.0+ | Latest |
+| Resource | Low | Standard | High |
+|----------|-----|----------|------|
+| **CPU** | 2 cores | 4 cores | 8 cores |
+| **RAM** | 4 GB | 8 GB | 16 GB |
+| **Storage** | 20 GB SSD | 50 GB SSD | 100+ GB SSD |
+| **Variant** | Forces minimal | Any | Adds Prometheus/Grafana |
 
-## Quick Start
+### Supported operating systems
+
+| OS | Version | Status |
+|----|---------|--------|
+| Ubuntu | 24.04 LTS | ✅ Recommended |
+| Ubuntu | 22.04 LTS | ✅ Supported |
+| Debian | 12 (Bookworm) | ✅ Supported |
+
+## Quick start
 
 <Steps>
   <Step title="Create your spec file">
     ```yaml kombination.yaml
     stackkit: base-homelab
+    variant: default
     
-    # Your domain configuration
-    domain: homelab.local
+    # Node configuration
+    nodes:
+      - name: main-server
+        type: local  # or vps, cloud
+        connection:
+          host: 192.168.1.100
+          user: root
+          ssh_key: ~/.ssh/id_ed25519
+    
+    # Domain (optional - enables auto-SSL)
+    domain: homelab.example.com
     email: you@example.com
     
-    # SSL certificate provider
-    ssl:
-      provider: letsencrypt  # or "selfsigned" for local
-      
-    # Enable the services you want
+    # Service toggles
     services:
-      traefik:
+      dokploy:
         enabled: true
-        dashboard: true
-        
-      authelia:
+      uptime_kuma:
         enabled: true
-        
-      portainer:
-        enabled: true
-        
-      homepage:
-        enabled: true
-        
-      uptime-kuma:
+      dozzle:
         enabled: true
     ```
   </Step>
   
-  <Step title="Validate your configuration">
+  <Step title="Validate configuration">
     ```bash
-    kombify validate
+    stackkit validate
     ```
     
-    Expected output:
+    Output:
     ```
-    ✓ Configuration valid
+    ✓ StackKit: base-homelab (v1.0.0)
+    ✓ Variant: default
+    ✓ OS: ubuntu-24
+    ✓ Compute tier: standard
     ✓ All service dependencies satisfied
     ✓ No port conflicts detected
     
@@ -137,204 +221,147 @@ graph TB
     ```
   </Step>
   
-  <Step title="Generate deployment files">
+  <Step title="Generate infrastructure code">
     ```bash
-    kombify generate
+    stackkit generate
     ```
     
-    This creates:
-    - `docker-compose.yml`
-    - `traefik/` configuration directory
-    - `authelia/configuration.yml`
+    Creates:
+    - `tofu/main.tf` — OpenTofu configuration
+    - `tofu/variables.tf` — Variables
+    - `docker-compose.yml` — Service definitions
+    - `traefik/` — Reverse proxy config
   </Step>
   
-  <Step title="Deploy">
+  <Step title="Preview and apply">
     ```bash
-    docker compose up -d
+    stackkit plan   # Preview changes
+    stackkit apply  # Deploy
     ```
   </Step>
 </Steps>
 
-## Configuration Reference
+## Configuration reference
 
-### Domain Settings
+### Node settings
 
 ```yaml
-# Required
-domain: homelab.local
-
-# Optional email for Let's Encrypt
-email: you@example.com
-
-# Enable wildcard subdomains
-wildcard: true
+nodes:
+  - name: main-server
+    type: local              # local, vps, cloud
+    os: ubuntu-24            # ubuntu-24, ubuntu-22, debian-12
+    
+    connection:
+      host: 192.168.1.100
+      port: 22
+      user: root
+      ssh_key: ~/.ssh/id_ed25519
+      # OR password: ${SSH_PASSWORD}
+    
+    resources:               # Optional — auto-detected
+      cpu: 4
+      memory_gb: 8
+      disk_gb: 50
 ```
 
-### SSL Options
+### Domain and SSL
 
 <Tabs>
-  <Tab title="Let's Encrypt (Production)">
+  <Tab title="With domain">
     ```yaml
+    domain: homelab.example.com
+    email: you@example.com
+    
     ssl:
       provider: letsencrypt
-      email: you@example.com
+      # Optional: wildcard for *.homelab.example.com
+      wildcard: true
     ```
-    Automatic certificate renewal for public domains.
   </Tab>
-  <Tab title="Self-Signed (Local)">
+  <Tab title="Local only">
     ```yaml
+    # No domain — access via IP:port
+    # Dokploy will be available at http://IP:3000
+    
     ssl:
       provider: selfsigned
-    ```
-    For local development or `.local` domains.
-  </Tab>
-  <Tab title="Custom Certificate">
-    ```yaml
-    ssl:
-      provider: custom
-      cert_file: /path/to/cert.pem
-      key_file: /path/to/key.pem
     ```
   </Tab>
 </Tabs>
 
-### Service Configuration
-
-#### Traefik
+### Service configuration
 
 ```yaml
 services:
   traefik:
-    enabled: true
-    dashboard: true              # Enable web dashboard
-    dashboard_auth: true         # Protect with Authelia
-    ports:
-      http: 80
-      https: 443
+    enabled: true           # Always required
+    dashboard: true         # Enable Traefik UI
     log_level: INFO
+    
+  dokploy:
+    enabled: true
+    # Dokploy runs on port 3000 by default
+    
+  uptime_kuma:
+    enabled: true
+    public_page: true       # Enable public status page
+    
+  dozzle:
+    enabled: true
+    remote_hosts: []        # Add remote Docker hosts
+    
+  # Optional identity
+  tinyauth:
+    enabled: false
+    
+  pocketid:
+    enabled: false
 ```
 
-#### Authelia
+## Deployment modes
+
+base-homelab supports two deployment modes:
+
+| Mode | Engine | When to use |
+|------|--------|-------------|
+| **Simple** | OpenTofu only | Quick setup, one-time deployment |
+| **Advanced** | OpenTofu + Terramate | Drift detection, Day-2 operations |
+
+Advanced mode is automatically enabled when:
+- `driftDetection.enabled: true`
+- `autoUpdates.enabled: true`
+- `compliance.required: true`
 
 ```yaml
-services:
-  authelia:
+# Enable advanced mode
+operations:
+  driftDetection:
     enabled: true
-    default_policy: two_factor   # one_factor, two_factor, deny
-    session_duration: 1h
-    totp:
-      issuer: "My Homelab"
-```
-
-#### Portainer
-
-```yaml
-services:
-  portainer:
+    schedule: "0 */6 * * *"  # Every 6 hours
+  autoUpdates:
     enabled: true
-    edition: ce                  # ce (Community) or be (Business)
-    agent_mode: false           # true for multi-node
+    schedule: "0 4 * * 0"    # Sunday 4am
 ```
 
-## Network Architecture
+## File structure
 
-```mermaid
-graph LR
-    subgraph External["External"]
-        User["User"]
-        Internet["Internet"]
-    end
-    
-    subgraph Edge["Edge"]
-        Router["Router<br/>Port Forward<br/>80, 443"]
-    end
-    
-    subgraph Docker["Docker Network"]
-        Traefik["Traefik<br/>:80/:443"]
-        
-        subgraph Proxy["proxy network"]
-            Authelia["Authelia"]
-            Apps["Apps"]
-        end
-        
-        subgraph Internal["internal network"]
-            DB["Postgres"]
-            Redis["Redis"]
-        end
-    end
-    
-    User --> Internet
-    Internet --> Router
-    Router --> Traefik
-    Traefik --> Authelia
-    Authelia --> Apps
-    Apps --> Internal
-    
-    style Edge fill:#1e293b,stroke:#ef4444,color:#f8fafc
-    style Proxy fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Internal fill:#1e293b,stroke:#4ade80,color:#f8fafc
-```
-
-## File Structure
-
-After running `kombify generate`:
+After `stackkit generate`:
 
 ```
 .
 ├── kombination.yaml          # Your configuration
-├── docker-compose.yml        # Generated compose file
+├── tofu/
+│   ├── main.tf              # Infrastructure definition
+│   ├── variables.tf         # Input variables
+│   ├── outputs.tf           # Output values
+│   └── terraform.tfvars     # Generated values
+├── docker-compose.yml        # Service definitions
 ├── traefik/
-│   ├── traefik.yml          # Static configuration
+│   ├── traefik.yml          # Static config
 │   └── dynamic/
-│       └── routes.yml       # Dynamic routes
-├── authelia/
-│   └── configuration.yml    # Authelia config
+│       └── routes.yml       # Dynamic routing
 └── data/                    # Persistent volumes
-    ├── postgres/
-    ├── authelia/
-    └── portainer/
 ```
-
-## Adding Services
-
-To add optional services:
-
-<AccordionGroup>
-  <Accordion title="Add Nextcloud">
-    ```yaml
-    services:
-      # ... existing services
-      
-      nextcloud:
-        enabled: true
-        storage_path: /mnt/data/nextcloud
-        max_upload_size: 10G
-    ```
-  </Accordion>
-  
-  <Accordion title="Add Home Assistant">
-    ```yaml
-    services:
-      home-assistant:
-        enabled: true
-        zigbee:
-          enabled: true
-          device: /dev/ttyUSB0
-    ```
-  </Accordion>
-  
-  <Accordion title="Add Plex">
-    ```yaml
-    services:
-      plex:
-        enabled: true
-        claim_token: claim-xxxx   # Get from plex.tv/claim
-        media_paths:
-          movies: /mnt/media/movies
-          tv: /mnt/media/tv
-    ```
-  </Accordion>
-</AccordionGroup>
 
 ## Constraints
 
@@ -344,59 +371,50 @@ The base-homelab StackKit enforces these rules:
 |------------|-------|--------|
 | Max nodes | 1 | Single-node design |
 | Traefik required | Yes | All services need routing |
-| Network mode | bridge | Simplest networking |
+| Min RAM | 4 GB | Services won't fit in less |
 
 <Warning>
-  If you need more than 1 node, use the [ha-homelab](/stackkits/kits/ha-homelab) StackKit instead.
+  If you need more than 1 node, consider:
+  - [modern-homelab](/stackkits/kits/modern-homelab) — Multi-node with Headscale VPN
+  - [ha-homelab](/stackkits/kits/ha-homelab) — High-availability k3s cluster
 </Warning>
-
-## Upgrading to ha-homelab
-
-When you outgrow base-homelab:
-
-```bash
-# Update your kombination.yaml
-stackkit: ha-homelab  # Changed from base-homelab
-
-# Add the second node
-nodes:
-  - name: node-1
-    ip: 192.168.1.10
-  - name: node-2
-    ip: 192.168.1.11
-
-# Regenerate
-kombify generate
-```
 
 ## Troubleshooting
 
 <AccordionGroup>
   <Accordion title="Services not accessible">
-    1. Check Traefik logs: `docker logs traefik`
+    1. Check Traefik is running: `docker logs traefik`
     2. Verify DNS resolves to your server
     3. Check firewall allows ports 80/443
+    4. For local: Use `http://IP:PORT` instead of domain
   </Accordion>
   
   <Accordion title="SSL certificate errors">
-    - For Let's Encrypt: Ensure domain is publicly accessible
-    - For self-signed: Add exception in browser or use `curl -k`
+    - **Let's Encrypt**: Domain must be publicly accessible
+    - **Self-signed**: Add browser exception or use `curl -k`
+    - Check rate limits at https://letsencrypt.org/docs/rate-limits/
   </Accordion>
   
-  <Accordion title="Authelia login loop">
-    1. Clear browser cookies
-    2. Check Authelia logs: `docker logs authelia`
-    3. Verify session domain matches your domain
+  <Accordion title="Dokploy not starting">
+    1. Check port 3000 is not in use: `netstat -tlnp | grep 3000`
+    2. Verify Docker socket permissions
+    3. Check logs: `docker logs dokploy`
+  </Accordion>
+  
+  <Accordion title="Low disk space warnings">
+    1. Prune unused images: `docker image prune -a`
+    2. Check volume sizes: `docker system df`
+    3. Consider adding external storage
   </Accordion>
 </AccordionGroup>
 
-## Next Steps
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Add More Services" icon="plus" href="/guides/adding-services">
-    Expand your homelab with additional applications
+  <Card title="CUE basics" icon="code" href="/stackkits/cue-basics">
+    Learn how to customize StackKit schemas
   </Card>
-  <Card title="Backup Strategy" icon="cloud-arrow-up" href="/guides/backups">
-    Protect your data with automated backups
+  <Card title="Create custom StackKit" icon="plus" href="/stackkits/creating-custom">
+    Build your own StackKit from scratch
   </Card>
 </CardGroup>

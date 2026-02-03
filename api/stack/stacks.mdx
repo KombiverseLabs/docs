@@ -1,0 +1,376 @@
+---
+title: Stacks API
+description: Manage stack lifecycle via the API
+sidebarTitle: Stacks
+icon: layer-group
+---
+
+# Stacks API
+
+Create, deploy, and manage infrastructure stacks programmatically.
+
+## List stacks
+
+```http
+GET /api/v1/stacks
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `page` | integer | Page number (default: 1) |
+| `per_page` | integer | Items per page (default: 20, max: 100) |
+| `status` | string | Filter by status: active, deploying, failed |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "stack_abc123",
+      "name": "my-homelab",
+      "stackkit": "base-homelab",
+      "status": "active",
+      "nodes_count": 1,
+      "services_count": 5,
+      "created_at": "2026-01-15T10:00:00Z",
+      "updated_at": "2026-02-01T14:30:00Z"
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "per_page": 20,
+    "total": 3
+  }
+}
+```
+
+## Create stack
+
+```http
+POST /api/v1/stacks
+```
+
+### Request body
+
+```json
+{
+  "name": "my-homelab",
+  "stackkit": "base-homelab",
+  "variant": "default",
+  "spec": {
+    "nodes": [
+      {
+        "name": "main-server",
+        "type": "local",
+        "connection": {
+          "host": "192.168.1.100",
+          "user": "root"
+        }
+      }
+    ],
+    "services": {
+      "traefik": {"enabled": true},
+      "dokploy": {"enabled": true}
+    }
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "stack_xyz789",
+    "name": "my-homelab",
+    "status": "created",
+    "created_at": "2026-02-03T10:00:00Z"
+  }
+}
+```
+
+## Get stack
+
+```http
+GET /api/v1/stacks/{stack_id}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "stack_abc123",
+    "name": "my-homelab",
+    "stackkit": "base-homelab",
+    "variant": "default",
+    "status": "active",
+    "nodes": [
+      {
+        "id": "worker_def456",
+        "name": "main-server",
+        "status": "healthy",
+        "ip": "192.168.1.100"
+      }
+    ],
+    "services": [
+      {"name": "traefik", "status": "running"},
+      {"name": "dokploy", "status": "running"},
+      {"name": "uptime-kuma", "status": "running"}
+    ],
+    "created_at": "2026-01-15T10:00:00Z",
+    "deployed_at": "2026-01-15T10:15:00Z"
+  }
+}
+```
+
+## Delete stack
+
+```http
+DELETE /api/v1/stacks/{stack_id}
+```
+
+<Warning>
+  This removes the stack from Stack's database. Use `/destroy` first to remove infrastructure.
+</Warning>
+
+### Response
+
+```json
+{
+  "data": {
+    "message": "Stack deleted successfully"
+  }
+}
+```
+
+## Provision stack
+
+Provision infrastructure for a stack (runs OpenTofu).
+
+```http
+POST /api/v1/stacks/{stack_id}/provision
+```
+
+### Request body (optional)
+
+```json
+{
+  "dry_run": false,
+  "auto_approve": true
+}
+```
+
+### Response
+
+Returns a job ID for tracking:
+
+```json
+{
+  "data": {
+    "job_id": "job_prov_123",
+    "status": "queued"
+  }
+}
+```
+
+## Deploy stack
+
+Deploy services after provisioning.
+
+```http
+POST /api/v1/stacks/{stack_id}/deploy
+```
+
+### Request body
+
+```json
+{
+  "strategy": "rolling",
+  "auto_rollback": true
+}
+```
+
+| Strategy | Description |
+|----------|-------------|
+| `rolling` | Update services one by one (no downtime) |
+| `recreate` | Stop all, then start all |
+| `blue_green` | Deploy new, then switch |
+
+### Response
+
+```json
+{
+  "data": {
+    "job_id": "job_deploy_456",
+    "status": "queued"
+  }
+}
+```
+
+## Destroy stack
+
+Destroy all infrastructure for a stack.
+
+```http
+POST /api/v1/stacks/{stack_id}/destroy
+```
+
+### Request body
+
+```json
+{
+  "force": false,
+  "backup_first": true
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "job_id": "job_destroy_789",
+    "status": "queued"
+  }
+}
+```
+
+## Get stack specs
+
+### Intent spec (original user input)
+
+```http
+GET /api/v1/stacks/{stack_id}/intent
+```
+
+### Requirements spec (unifier analysis)
+
+```http
+GET /api/v1/stacks/{stack_id}/requirements
+```
+
+### Unified spec (final deployment plan)
+
+```http
+GET /api/v1/stacks/{stack_id}/unified
+```
+
+## Export/Import
+
+### Export stack
+
+```http
+GET /api/v1/stacks/{stack_id}/export
+```
+
+Response includes full configuration:
+
+```json
+{
+  "data": {
+    "version": "1.0",
+    "stack": {
+      "name": "my-homelab",
+      "stackkit": "base-homelab",
+      "spec": {...}
+    },
+    "exported_at": "2026-02-03T10:00:00Z"
+  }
+}
+```
+
+### Import stack
+
+```http
+POST /api/v1/stacks/import
+```
+
+```json
+{
+  "data": {...},
+  "options": {
+    "rename_to": "imported-homelab",
+    "skip_validation": false
+  }
+}
+```
+
+## Drift detection
+
+### Check for drift
+
+```http
+POST /api/v1/stacks/{stack_id}/drift/check
+```
+
+### Get drift status
+
+```http
+GET /api/v1/stacks/{stack_id}/drift
+```
+
+```json
+{
+  "data": {
+    "has_drift": true,
+    "last_check": "2026-02-03T09:00:00Z",
+    "changes": [
+      {
+        "resource": "docker.traefik",
+        "type": "modified",
+        "field": "environment.LOG_LEVEL",
+        "expected": "INFO",
+        "actual": "DEBUG"
+      }
+    ]
+  }
+}
+```
+
+### Resolve drift
+
+```http
+POST /api/v1/stacks/{stack_id}/drift/resolve
+```
+
+```json
+{
+  "action": "apply_desired",
+  "resources": ["docker.traefik"]
+}
+```
+
+| Action | Description |
+|--------|-------------|
+| `apply_desired` | Apply Stack's state to infrastructure |
+| `accept_actual` | Update Stack to match infrastructure |
+
+## Stack health
+
+```http
+GET /api/v1/stacks/{stack_id}/health
+```
+
+```json
+{
+  "data": {
+    "status": "healthy",
+    "nodes": {
+      "total": 1,
+      "healthy": 1,
+      "unhealthy": 0
+    },
+    "services": {
+      "total": 5,
+      "running": 5,
+      "stopped": 0,
+      "failed": 0
+    },
+    "last_deployment": "2026-02-01T14:30:00Z"
+  }
+}
+```

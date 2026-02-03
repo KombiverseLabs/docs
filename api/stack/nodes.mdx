@@ -1,0 +1,359 @@
+---
+title: Workers API
+description: Manage nodes and agents via the API
+sidebarTitle: Nodes
+icon: microchip
+---
+
+# Workers (Nodes) API
+
+Manage worker nodes, agents, and their connections to kombify Stack.
+
+## Terminology
+
+| Term | Description |
+|------|-------------|
+| **Worker** | A server/node managed by Stack |
+| **Agent** | Lightweight binary running on each worker |
+| **Node** | Alternative name for worker |
+
+## List workers
+
+```http
+GET /api/v1/workers
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Filter: healthy, unhealthy, pending, unreachable |
+| `stack_id` | string | Filter by stack |
+
+### Response
+
+```json
+{
+  "data": [
+    {
+      "id": "worker_abc123",
+      "name": "main-server",
+      "hostname": "homelab-01",
+      "status": "healthy",
+      "ip": "192.168.1.100",
+      "agent_version": "1.0.0",
+      "os": "Ubuntu 24.04",
+      "arch": "amd64",
+      "resources": {
+        "cpu_cores": 4,
+        "memory_total_mb": 8192,
+        "disk_total_gb": 100
+      },
+      "metrics": {
+        "cpu_percent": 25.5,
+        "memory_percent": 45.2,
+        "disk_percent": 32.1
+      },
+      "last_heartbeat": "2026-02-03T10:30:00Z",
+      "connected_at": "2026-01-15T10:00:00Z"
+    }
+  ]
+}
+```
+
+## Register worker
+
+Workers typically self-register via the agent. Manual registration:
+
+```http
+POST /api/v1/workers
+```
+
+### Request body
+
+```json
+{
+  "name": "new-server",
+  "connection": {
+    "host": "192.168.1.101",
+    "port": 22,
+    "user": "root",
+    "ssh_key": "-----BEGIN OPENSSH PRIVATE KEY-----..."
+  }
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "worker_xyz789",
+    "name": "new-server",
+    "status": "pending",
+    "pairing_token": "tok_abc123def456"
+  }
+}
+```
+
+## Get worker
+
+```http
+GET /api/v1/workers/{worker_id}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "worker_abc123",
+    "name": "main-server",
+    "status": "healthy",
+    "hostname": "homelab-01",
+    "ip": "192.168.1.100",
+    "agent": {
+      "version": "1.0.0",
+      "started_at": "2026-02-01T08:00:00Z",
+      "uptime": "48h30m"
+    },
+    "system": {
+      "os": "Ubuntu 24.04 LTS",
+      "kernel": "6.5.0-generic",
+      "arch": "amd64",
+      "docker_version": "24.0.7"
+    },
+    "resources": {
+      "cpu_cores": 4,
+      "cpu_model": "Intel Core i5-10400",
+      "memory_total_mb": 8192,
+      "disk_total_gb": 100
+    },
+    "metrics": {
+      "cpu_percent": 25.5,
+      "memory_percent": 45.2,
+      "memory_used_mb": 3702,
+      "disk_percent": 32.1,
+      "disk_used_gb": 32,
+      "network_rx_bytes": 1234567890,
+      "network_tx_bytes": 987654321,
+      "containers_running": 12,
+      "containers_total": 15
+    },
+    "stacks": ["stack_abc123"],
+    "last_heartbeat": "2026-02-03T10:30:00Z"
+  }
+}
+```
+
+## Approve worker
+
+Approve a pending worker to allow management:
+
+```http
+POST /api/v1/workers/{worker_id}/approve
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "id": "worker_xyz789",
+    "status": "healthy",
+    "approved_at": "2026-02-03T10:35:00Z"
+  }
+}
+```
+
+## Delete worker
+
+Remove a worker from Stack:
+
+```http
+DELETE /api/v1/workers/{worker_id}
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `force` | boolean | Force removal even if unhealthy |
+| `cleanup` | boolean | Run cleanup tasks on node |
+
+## Run pre-checks
+
+Run pre-deployment checks on a worker:
+
+```http
+POST /api/v1/workers/{worker_id}/prechecks
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "job_id": "job_precheck_123",
+    "status": "running"
+  }
+}
+```
+
+### Get pre-check results
+
+```http
+GET /api/v1/workers/{worker_id}/prechecks/results
+```
+
+```json
+{
+  "data": {
+    "overall": "passed",
+    "checks": [
+      {
+        "name": "connectivity",
+        "status": "passed",
+        "message": "SSH connection successful"
+      },
+      {
+        "name": "os_compatibility",
+        "status": "passed",
+        "message": "Ubuntu 24.04 is supported"
+      },
+      {
+        "name": "docker",
+        "status": "passed",
+        "message": "Docker 24.0.7 installed"
+      },
+      {
+        "name": "resources",
+        "status": "passed",
+        "message": "4 cores, 8GB RAM, 68GB free disk"
+      },
+      {
+        "name": "ports",
+        "status": "warning",
+        "message": "Port 80 in use by nginx"
+      }
+    ]
+  }
+}
+```
+
+## Worker commands
+
+Send commands to workers via gRPC:
+
+```http
+POST /api/v1/workers/{worker_id}/commands
+```
+
+### Request body
+
+```json
+{
+  "type": "exec",
+  "command": "docker ps",
+  "timeout": 30
+}
+```
+
+### Response
+
+```json
+{
+  "data": {
+    "command_id": "cmd_abc123",
+    "status": "completed",
+    "exit_code": 0,
+    "stdout": "CONTAINER ID   IMAGE...",
+    "stderr": "",
+    "duration_ms": 150
+  }
+}
+```
+
+## Worker metrics
+
+Get detailed metrics for a worker:
+
+```http
+GET /api/v1/workers/{worker_id}/metrics
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `period` | string | Time range: 1h, 6h, 24h, 7d |
+| `resolution` | string | Data points: 1m, 5m, 15m, 1h |
+
+### Response
+
+```json
+{
+  "data": {
+    "worker_id": "worker_abc123",
+    "period": "24h",
+    "metrics": {
+      "cpu": [
+        {"timestamp": "2026-02-02T10:00:00Z", "value": 25.5},
+        {"timestamp": "2026-02-02T10:15:00Z", "value": 30.2}
+      ],
+      "memory": [
+        {"timestamp": "2026-02-02T10:00:00Z", "value": 45.2},
+        {"timestamp": "2026-02-02T10:15:00Z", "value": 46.1}
+      ],
+      "disk": [...],
+      "network_rx": [...],
+      "network_tx": [...]
+    }
+  }
+}
+```
+
+## Worker logs
+
+Get agent logs from a worker:
+
+```http
+GET /api/v1/workers/{worker_id}/logs
+```
+
+### Query parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `lines` | integer | Number of lines (default: 100) |
+| `since` | string | Timestamp to start from |
+| `level` | string | Filter: debug, info, warn, error |
+
+## Connectivity check
+
+Check connectivity between workers:
+
+```http
+GET /api/v1/workers/connectivity
+```
+
+```json
+{
+  "data": {
+    "matrix": [
+      {
+        "from": "worker_abc",
+        "to": "worker_xyz",
+        "latency_ms": 2,
+        "status": "ok"
+      },
+      {
+        "from": "worker_abc",
+        "to": "worker_def",
+        "latency_ms": null,
+        "status": "unreachable"
+      }
+    ]
+  }
+}
+```
