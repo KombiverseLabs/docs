@@ -1,17 +1,17 @@
 ---
 title: StackKits
-description: Pre-validated infrastructure blueprints with CUE schemas
+description: Architecture-pattern-based infrastructure blueprints with CUE schemas
 sidebarTitle: StackKits
 ---
 
 
-**StackKits** are pre-validated, battle-tested infrastructure blueprints that provide sane defaults for common homelab scenarios.
+**StackKits** are architecture-pattern-based infrastructure blueprints built on three concepts: **StackKit** (pattern), **Node-Context** (environment), and **Add-Ons** (composable extensions).
 
 <Card title="What's a StackKit?" icon="box">
-  A StackKit is a predefined set of services, configurations, defaults, and constraints that work together. Instead of figuring out which tools to use and how to configure them, you pick a StackKit and customize it to your needs.
+  A StackKit defines an **architecture pattern** — how services relate to each other. Combined with auto-detected **Node-Context** and composable **Add-Ons**, it produces a fully validated, context-aware infrastructure configuration.
 </Card>
 
-## The Problem StackKits Solve
+## The problem StackKits solve
 
 You want to set up a homelab. You've heard of:
 
@@ -50,132 +50,119 @@ You want to set up a homelab. You've heard of:
 
 **StackKits answer all of these.**
 
-## Available StackKits
+## The three concepts
 
-```mermaid
-graph TB
-    subgraph Beginner["For Beginners"]
-        Base["base-homelab<br/>━━━━━━━━━━━<br/>4-6 services<br/>Single node<br/>Docker only"]
-    end
+### 1. StackKit = Architecture pattern
 
-    subgraph Advanced["For Advanced Users"]
-        HA["ha-homelab<br/>━━━━━━━━━━━<br/>8-12 services<br/>Multi-node<br/>High availability"]
-    end
+A StackKit defines **how infrastructure is organized**, not how many servers you need.
 
-    subgraph Power["For Advanced Users"]
-        Modern["modern-homelab<br/>━━━━━━━━━━━<br/>10+ services<br/>Multi-node Docker<br/>Full Observability"]
-    end
+| StackKit | Pattern | What it means |
+|----------|---------|--------------|
+| **base** | Single-environment | All services in one deployment target |
+| **modern** | Hybrid infrastructure | Local + cloud connected via VPN overlay |
+| **ha** | High-availability cluster | Redundancy, failover, quorum consensus |
 
-    style Beginner fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style Advanced fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-    style Power fill:#1e293b,stroke:#f472b6,color:#f8fafc
+<Tip>
+  A `base` StackKit can run on 3 Raspberry Pis. An `ha` StackKit can run on 1 powerful server. The StackKit defines the *pattern*, not the *scale*.
+</Tip>
+
+### 2. Node-Context = auto-detected environment
+
+| Context | How it's detected | What it affects |
+|---------|-------------------|----------------|
+| **local** | Physical hardware, no cloud metadata | Self-signed TLS, Dokploy, local DNS |
+| **cloud** | Cloud provider metadata detected | Let's Encrypt, Coolify, public DNS |
+| **pi** | ARM + low memory or RPi detection | ARM images, reduced services, tmpfs |
+
+### 3. Add-Ons = composable extensions
+
+Add-Ons replace the old monolithic variant system. They stack and compose:
+
+```yaml kombination.yaml
+stackkit: base
+addons:
+  - monitoring    # Prometheus + Grafana
+  - backup        # Restic + S3
+  - media         # Jellyfin + *arr
 ```
 
+## Available StackKits
+
 <CardGroup cols={3}>
-  <Card title="base-homelab" icon="house" href="/stackkits/kits/base-homelab">
-    **For beginners**
+  <Card title="base" icon="house" href="/stackkits/kits/base-homelab">
+    **Single-environment**
     
-    - 4-6 essential services
-    - Single-node deployment
-    - Simple Docker setup
+    - Docker Compose
+    - Any node count
+    - Context-aware defaults
     - Perfect first homelab
   </Card>
-  <Card title="ha-homelab" icon="shield-halved" href="/stackkits/kits/ha-homelab">
-    **For advanced users**
+  <Card title="ha" icon="shield-halved" href="/stackkits/kits/ha-homelab">
+    **High-availability**
     
-    - 8-12 services
-    - Multi-node support
-    - High availability
-    - Database clustering
+    - Docker Swarm cluster
+    - Keepalived VIP
+    - 3+ nodes recommended
+    - Automatic failover
   </Card>
-  <Card title="modern-homelab" icon="rocket" href="/stackkits/kits/modern-homelab">
-    **For advanced users**
+  <Card title="modern" icon="rocket" href="/stackkits/kits/modern-homelab">
+    **Hybrid infrastructure**
     
-    - 10+ services
-    - Multi-node Docker
-    - Full observability stack
-    - VPN overlay network
+    - Local + cloud nodes
+    - VPN overlay built-in
+    - Coolify PAAS
+    - Public endpoints
   </Card>
 </CardGroup>
 
-## How StackKits Work
+## How StackKits work
 
-### 3-Layer Architecture
+### Context-driven defaults
+
+The combination of StackKit × Context produces curated default configurations:
+
+| | local | cloud | pi |
+|---|---|---|---|
+| **base** | Dokploy, self-signed TLS | Coolify, Let's Encrypt | Lean Docker, reduced services |
+| **modern** | Tailscale exit node, hybrid DNS | Multi-cloud mesh | Edge relay role |
+| **ha** | Swarm + Keepalived | Cloud HA + managed LB | Not recommended |
+
+### 3-Layer architecture
 
 StackKits use a strict 3-layer architecture for maximum reusability:
 
-```mermaid
-graph TB
-    subgraph Layer3["Layer 3: StackKits"]
-        direction LR
-        Base["base-homelab"]
-        HA["ha-homelab"]
-        Modern["modern-homelab"]
-    end
+| Layer | Purpose | Managed by |
+|-------|---------|------------|
+| **L1: Foundation** | System, security, packages, core identity (LLDAP, Step-CA) | OpenTofu |
+| **L2: Platform** | Container runtime, PAAS, ingress, platform identity | OpenTofu |
+| **L3: Applications** | User services deployed by PAAS | PAAS (Dokploy/Coolify) |
 
-    subgraph Layer2["Layer 2: Platforms"]
-        direction LR
-        Docker["docker/<br/>Docker + Traefik"]
-    end
-
-    subgraph Layer1["Layer 1: Core"]
-        direction LR
-        Boot["Bootstrap"]
-        Sec["Security"]
-        Net["Network"]
-        Obs["Observability"]
-    end
-
-    Base --> Docker
-    HA --> Docker
-    Modern --> Docker
-    
-    Docker --> Layer1
-
-    style Layer3 fill:#1e293b,stroke:#f472b6,color:#f8fafc
-    style Layer2 fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Layer1 fill:#1e293b,stroke:#4ade80,color:#f8fafc
-```
-
-| Layer | Purpose | Examples |
-|-------|---------|----------|
-| **Core** (Base) | Shared foundation for ALL deployments | Security hardening, SSH config, firewall |
-| **Platforms** | Container orchestration | Docker + Traefik |
-| **StackKits** | Use-case specific configurations | base-homelab, ha-homelab, modern-homelab |
-
-### CUE Schema Definition
+### CUE schema definition
 
 Each StackKit is defined in [CUE](https://cuelang.org/), a powerful configuration language:
 
-```cue base-homelab/stack.cue
+```cue base-homelab/stackfile.cue
 package base_homelab
 
-import "kombify.dev/base"
+import "github.com/kombihq/stackkits/base"
 
-#Stack: base.#Stack & {
-    // Available services
+#BaseHomelabKit: base.#BaseStackKit & {
+    metadata: {
+        name: "base-homelab"
+        version: "4.0.0"
+    }
+    
+    // Services with dependency constraints
     services: {
-        traefik:  #TraefikService
-        authelia: #AutheliaService
-        homepage: #HomepageService
-        immich?:  #ImmichService  // Optional
+        traefik: #TraefikService
+        dokploy: #DokployService
+        // ...
     }
     
-    // Constraints: Dependencies enforced
-    if services.authelia != _|_ {
-        services.traefik: _  // Authelia requires Traefik
+    // Context-aware PAAS selection
+    if _context == "cloud" {
+        paas: type: "coolify"
     }
-    
-    if services.immich != _|_ {
-        services.postgres: _  // Immich requires PostgreSQL
-    }
-}
-
-#TraefikService: base.#Service & {
-    image:   "traefik:v3.0"
-    ports:   [80, 443]
-    volumes: ["/var/run/docker.sock:/var/run/docker.sock:ro"]
-    // ... more configuration
 }
 ```
 
@@ -183,7 +170,7 @@ import "kombify.dev/base"
   CUE provides type checking, validation, and default values — catching errors before deployment, not after.
 </Tip>
 
-### Validation Flow
+### Validation flow
 
 ```mermaid
 flowchart LR
@@ -191,205 +178,134 @@ flowchart LR
         YAML["kombination.yaml"]
     end
 
-    subgraph StackKit
-        CUE["CUE Schema"]
-        Defaults["Defaults"]
-        Constraints["Constraints"]
+    subgraph Resolution["CUE Resolution"]
+        Kit["StackKit Pattern"]
+        Ctx["Context Defaults"]
+        AO["Add-On Merging"]
     end
 
     subgraph Validation
-        V1["✓ YAML syntax"]
-        V2["✓ Required fields"]
-        V3["✓ Service dependencies"]
-        V4["✓ Port conflicts: none"]
-        V5["✓ Network config"]
-        V6["✓ SSL config"]
+        V1["Schema checks"]
+        V2["Constraint resolution"]
+        V3["Dependency validation"]
     end
 
     subgraph Output
         Config["Validated Config"]
     end
 
-    YAML --> StackKit
-    StackKit --> Validation
+    YAML --> Resolution
+    Resolution --> Validation
     Validation --> Config
 
     style Input fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style StackKit fill:#1e293b,stroke:#f472b6,color:#f8fafc
+    style Resolution fill:#1e293b,stroke:#f472b6,color:#f8fafc
     style Validation fill:#1e293b,stroke:#4ade80,color:#f8fafc
     style Output fill:#1e293b,stroke:#fbbf24,color:#f8fafc
 ```
 
-## Example: base-homelab
+## Progressive capability model
+
+StackKits operates at different levels depending on how you use it:
 
 ```mermaid
 graph TB
-    subgraph BaseHomelab["base-homelab StackKit"]
-        subgraph Services["Included Services"]
-            Traefik["🔀 Traefik<br/><i>Reverse Proxy</i>"]
-            Authelia["🔐 TinyAuth/PocketID<br/><i>Authentication</i>"]
-            Homepage["📊 Homepage<br/><i>Dashboard</i>"]
-            Portainer["🐳 Portainer<br/><i>Docker UI</i>"]
-        end
-
-        subgraph Preconfigured["Pre-Configured"]
-            Routes["• Traefik routes all services"]
-            Auth["• TinyAuth/PocketID protects admin pages"]
-            Discovery["• Homepage auto-discovers"]
-            SSL["• Let's Encrypt SSL"]
-        end
-
-        subgraph YouConfigure["You Configure"]
-            Domain["• Your domain"]
-            Email["• Your email (for SSL)"]
-            Users["• Your users"]
-        end
-    end
-
-    style BaseHomelab fill:#f8fafc,stroke:#e2e8f0
-    style Services fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Preconfigured fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style YouConfigure fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    L0["Level 0: Standalone CLI<br/>stackkit init/validate/generate/apply"]
+    L1["Level 1: kombify Stack Control Plane<br/>Web wizard, Unifier pipeline, StackKit resolver"]
+    L2["Level 2: Worker Agent<br/>Context auto-detection, placement engine, gRPC"]
+    L3["Level 3: Runtime Intelligence<br/>Drift detection, auto-remediation, Day-2 ops"]
+    L4["Level 4: AI-Assisted (SaaS-only)<br/>Natural language config, predictive scaling"]
+    
+    L0 --> L1 --> L2 --> L3 --> L4
+    
+    style L0 fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style L1 fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style L2 fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style L3 fill:#1e293b,stroke:#f472b6,color:#f8fafc
+    style L4 fill:#1e293b,stroke:#a78bfa,color:#f8fafc
 ```
 
-### Minimal Configuration
+## Example: base StackKit
+
+### Minimal configuration
 
 ```yaml kombination.yaml
-version: "1.0"
-stackkit: base-homelab
-
-meta:
-  name: my-homelab
-  domain: home.example.com
-  email: admin@example.com
+version: "2.0"
+stackkit: base
+domain: home.example.com
 
 nodes:
   - name: server-01
-    type: local
-    connection:
-      host: 192.168.1.100
+    host: 192.168.1.100
 
-# That's it! Traefik, TinyAuth/PocketID, Homepage are auto-configured
+# That's it! Traefik, Dokploy, TinyAuth are auto-configured
+# Context is auto-detected (local in this case)
 ```
 
-### Adding Optional Services
+### With Add-Ons
 
 ```yaml kombination.yaml
-version: "1.0"
-stackkit: base-homelab
-
-meta:
-  name: my-homelab
-  domain: home.example.com
+version: "2.0"
+stackkit: base
+domain: home.example.com
 
 nodes:
   - name: server-01
-    type: local
-    connection:
-      host: 192.168.1.100
+    host: 192.168.1.100
 
-# Enable optional services
-services:
-  immich: true      # Photo management
-  jellyfin: true    # Media server
-  vaultwarden: true # Password manager
+addons:
+  - monitoring       # Prometheus + Grafana
+  - backup           # Restic backups
+  - media            # Jellyfin + *arr stack
 ```
 
-## StackKit Comparison
+## StackKit comparison
 
-| Feature | base-homelab | ha-homelab | modern-homelab |
-|---------|-------------|------------|----------------|
-| **Target** | Beginners | Advanced | Power users |
-| **Nodes** | 1 | 2-3 | 3+ |
-| **Services** | 4-6 | 8-12 | 15+ |
-| **Orchestration** | Docker | Docker Swarm | Docker + Coolify |
-| **High Availability** | ❌ | ✅ | ✅ |
-| **Database Clustering** | ❌ | Optional | ✅ |
-| **GitOps** | ❌ | Optional | ✅ |
-| **Monitoring** | Basic | Prometheus | Full stack |
+| Feature | base | modern | ha |
+|---------|------|--------|-----|
+| **Pattern** | Single-environment | Hybrid infrastructure | HA cluster |
+| **Container runtime** | Docker Compose | Docker + Coolify | Docker Swarm |
+| **Typical nodes** | 1 (supports N) | 2+ (multi-environment) | 3+ (quorum) |
+| **Complexity** | Low | Medium | High |
+| **Failover** | No | No | Yes |
+| **Best for** | First homelab | Hybrid setups | Production workloads |
 
 ## Customization
 
-### Override Defaults
+### Override defaults
 
 ```yaml kombination.yaml
-stackkit: base-homelab
+stackkit: base
 
 services:
   traefik:
-    image: traefik:v2.11  # Use older version
-    
-  authelia:
-    config:
-      default_2fa_method: webauthn  # Enable WebAuthn
+    dashboard: true
+  monitoring:
+    retention: 30d
 ```
 
-### Add Custom Services
+### Add-On ecosystem
 
-```yaml kombination.yaml
-stackkit: base-homelab
+| Add-On | Category | Compatible with |
+|--------|----------|----------------|
+| `monitoring` | Observability | base, modern, ha |
+| `backup` | Data | base, modern, ha |
+| `vpn-overlay` | Networking | modern, ha |
+| `gpu-workloads` | Compute | base, modern |
+| `media` | Applications | base, modern |
+| `smart-home` | IoT | base |
+| `ci-cd` | Development | base, modern, ha |
 
-services:
-  # Standard services
-  traefik: true
-  authelia: true
-  
-  # Custom service (not in StackKit)
-  custom:
-    my-app:
-      image: myorg/myapp:latest
-      ports: [8080]
-      traefik:
-        host: myapp.home.example.com
-```
-
-## Creating Custom StackKits
-
-<Note>
-  Creating custom StackKits requires knowledge of CUE. Start with [CUE Basics](/stackkits/cue-basics).
-</Note>
-
-```mermaid
-flowchart LR
-    subgraph Extend["Extend Existing"]
-        Base["base-homelab"]
-        Custom["your-stackkit"]
-        Base --> Custom
-    end
-
-    subgraph Define["Define Services"]
-        CUE["services.cue"]
-        Config["defaults.cue"]
-        Constrain["constraints.cue"]
-    end
-
-    subgraph Test["Test & Validate"]
-        Validate["cue vet"]
-        Unit["Unit tests"]
-        Integration["Integration tests"]
-    end
-
-    Custom --> Define --> Test
-
-    style Extend fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Define fill:#1e293b,stroke:#f472b6,color:#f8fafc
-    style Test fill:#1e293b,stroke:#4ade80,color:#f8fafc
-```
-
-<Card title="Create Your First Custom StackKit" icon="pen" href="/stackkits/creating-custom">
-  Step-by-step guide to creating custom infrastructure blueprints
-</Card>
-
-## Next Steps
+## Next steps
 
 <Columns cols={3}>
-  <Card title="base-homelab Details" icon="house" href="/stackkits/kits/base-homelab">
+  <Card title="base-homelab details" icon="house" href="/stackkits/kits/base-homelab">
     Explore services and configuration options
   </Card>
-  <Card title="CUE Basics" icon="code" href="/stackkits/cue-basics">
+  <Card title="CUE basics" icon="code" href="/stackkits/customization/cue-basics">
     Learn the configuration language
   </Card>
-  <Card title="Quick Start" icon="rocket" href="/quickstart">
+  <Card title="Quick start" icon="rocket" href="/stackkits/quickstart">
     Deploy your first StackKit
   </Card>
 </Columns>
