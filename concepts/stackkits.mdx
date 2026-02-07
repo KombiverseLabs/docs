@@ -62,8 +62,8 @@ graph TB
         HA["ha-homelab<br/>━━━━━━━━━━━<br/>8-12 services<br/>Multi-node<br/>High availability"]
     end
 
-    subgraph Power["For Power Users"]
-        Modern["modern-homelab<br/>━━━━━━━━━━━<br/>15+ services<br/>Kubernetes<br/>Full GitOps"]
+    subgraph Power["For Advanced Users"]
+        Modern["modern-homelab<br/>━━━━━━━━━━━<br/>10+ services<br/>Multi-node Docker<br/>Full Observability"]
     end
 
     style Beginner fill:#1e293b,stroke:#4ade80,color:#f8fafc
@@ -89,12 +89,12 @@ graph TB
     - Database clustering
   </Card>
   <Card title="modern-homelab" icon="rocket" href="/stackkits/kits/modern-homelab">
-    **For power users**
+    **For advanced users**
     
-    - 15+ services
-    - Kubernetes (k3s)
-    - Full GitOps workflow
-    - Enterprise patterns
+    - 10+ services
+    - Multi-node Docker
+    - Full observability stack
+    - VPN overlay network
   </Card>
 </CardGroup>
 
@@ -116,7 +116,6 @@ graph TB
     subgraph Layer2["Layer 2: Platforms"]
         direction LR
         Docker["docker/<br/>Docker + Traefik"]
-        K8s["kubernetes/<br/>K3s + Ingress"]
     end
 
     subgraph Layer1["Layer 1: Core"]
@@ -129,10 +128,9 @@ graph TB
 
     Base --> Docker
     HA --> Docker
-    Modern --> K8s
+    Modern --> Docker
     
     Docker --> Layer1
-    K8s --> Layer1
 
     style Layer3 fill:#1e293b,stroke:#f472b6,color:#f8fafc
     style Layer2 fill:#1e293b,stroke:#38bdf8,color:#f8fafc
@@ -142,7 +140,7 @@ graph TB
 | Layer | Purpose | Examples |
 |-------|---------|----------|
 | **Core** (Base) | Shared foundation for ALL deployments | Security hardening, SSH config, firewall |
-| **Platforms** | Container orchestration | Docker + Traefik, Kubernetes + Ingress |
+| **Platforms** | Container orchestration | Docker + Traefik |
 | **StackKits** | Use-case specific configurations | base-homelab, ha-homelab, modern-homelab |
 
 ### CUE Schema Definition
@@ -229,14 +227,14 @@ graph TB
     subgraph BaseHomelab["base-homelab StackKit"]
         subgraph Services["Included Services"]
             Traefik["🔀 Traefik<br/><i>Reverse Proxy</i>"]
-            Authelia["🔐 Authelia<br/><i>Authentication</i>"]
+            Authelia["🔐 TinyAuth/PocketID<br/><i>Authentication</i>"]
             Homepage["📊 Homepage<br/><i>Dashboard</i>"]
             Portainer["🐳 Portainer<br/><i>Docker UI</i>"]
         end
 
         subgraph Preconfigured["Pre-Configured"]
             Routes["• Traefik routes all services"]
-            Auth["• Authelia protects admin pages"]
+            Auth["• TinyAuth/PocketID protects admin pages"]
             Discovery["• Homepage auto-discovers"]
             SSL["• Let's Encrypt SSL"]
         end
@@ -271,7 +269,7 @@ nodes:
     connection:
       host: 192.168.1.100
 
-# That's it! Traefik, Authelia, Homepage are auto-configured
+# That's it! Traefik, TinyAuth/PocketID, Homepage are auto-configured
 ```
 
 ### Adding Optional Services
@@ -304,7 +302,7 @@ services:
 | **Target** | Beginners | Advanced | Power users |
 | **Nodes** | 1 | 2-3 | 3+ |
 | **Services** | 4-6 | 8-12 | 15+ |
-| **Orchestration** | Docker | Docker Swarm | Kubernetes |
+| **Orchestration** | Docker | Docker Swarm | Docker + Coolify |
 | **High Availability** | ❌ | ✅ | ✅ |
 | **Database Clustering** | ❌ | Optional | ✅ |
 | **GitOps** | ❌ | Optional | ✅ |

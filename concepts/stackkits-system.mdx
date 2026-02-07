@@ -40,12 +40,12 @@ Think of StackKits as "infrastructure recipes" - battle-tested configurations fo
   </Card>
   
   <Card title="ha-homelab" icon="shield-check">
-    **Kubernetes high availability**
+    **Docker Swarm high availability**
     
     - 3+ nodes
-    - k3s cluster
-    - HA control plane
-    - Enterprise-grade
+    - Docker Swarm cluster
+    - HA with Keepalived
+    - Production-grade
   </Card>
 </CardGroup>
 
@@ -59,12 +59,12 @@ StackKits use a strict 3-layer architecture for maximum reusability:
 │  Use-case specific configurations with services             │
 │  • base-homelab: Single-node Docker + Dokploy               │
 │  • modern-homelab: Multi-node Docker + Coolify              │
-│  • ha-homelab: Kubernetes (k3s) + HA                        │
+│  • ha-homelab: Docker Swarm + HA                            │
 ├─────────────────────────────────────────────────────────────┤
 │  LAYER 2: PLATFORMS (platforms/)                            │
 │  Container orchestration layer                              │
 │  • docker/: Docker + Traefik                                │
-│  • kubernetes/: K3s + Ingress                               │
+│  • docker-swarm/: Docker Swarm + Traefik                    │
 ├─────────────────────────────────────────────────────────────┤
 │  LAYER 1: CORE (base/)                                      │
 │  Shared foundation applied to ALL deployments               │
@@ -127,15 +127,15 @@ Container orchestration layer:
     ```
   </Tab>
 
-  <Tab title="Kubernetes platform">
-    ```cue platforms/kubernetes/platform.cue
-    package kubernetes
+  <Tab title="Docker Swarm platform">
+    ```cue platforms/docker-swarm/platform.cue
+    package docker_swarm
     
-    #K8sPlatform: {
-        runtime: "k3s"
-        version: string | *"v1.28"
+    #SwarmPlatform: {
+        runtime: "docker-swarm"
+        version: string | *"24.0"
         
-        control_plane: {
+        managers: {
             nodes: >=1
             ha: bool
         }
@@ -151,8 +151,8 @@ Use-case specific configurations:
 ```cue base-homelab/stackfile.cue
 package base_homelab
 
-import "github.com/kombihq/stackkits/base"
-import "github.com/kombihq/stackkits/platforms/docker"
+import "kombify.dev/base"
+import "kombify.dev/platforms/docker"
 
 #BaseHomelabKit: base.#BaseStackKit & docker.#DockerPlatform & {
     metadata: {
@@ -392,7 +392,7 @@ You can create your own StackKits for specific use cases:
     ```cue stackfile.cue
     package my_custom_kit
     
-    import "github.com/kombihq/stackkits/base"
+    import "kombify.dev/base"
     
     #MyCustomKit: base.#BaseStackKit & {
         // Your schema

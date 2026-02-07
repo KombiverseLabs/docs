@@ -23,10 +23,10 @@ graph TB
     
     subgraph Tools["kombify Tools"]
         direction LR
-        SK["StackKits<br/>📦 Blueprints"]
-        Sim["kombifySim<br/>🧪 Testing"]
-        Stack["kombifyStack<br/>🚀 Deployment"]
-        Platform["kombify Cloud<br/>☁️ Management"]
+        SK["StackKits<br/>Blueprints"]
+        Sim["kombify Sim<br/>Testing"]
+        Stack["kombify Stack<br/>Deployment"]
+        Platform["kombify Cloud<br/>Management"]
         
         SK --> Sim --> Stack --> Platform
     end
@@ -67,7 +67,7 @@ graph TB
     → *"Deploy it!"*
   </Card>
   
-  <Card title="kombify Platform" icon="globe" href="/Cloud/overview">
+  <Card title="kombify Platform" icon="globe" href="/cloud/overview">
     **Managed Platform**
     
     SaaS platform with SSO, team management, and multi-homelab support. Let us handle the complexity.
@@ -121,9 +121,9 @@ These tools are open-source and can run entirely on your infrastructure:
 ```mermaid
 graph LR
     subgraph OpenCore["Open Core (Self-Hosted)"]
-        SK["StackKits<br/>Apache 2.0 + GPLv3"]
-        Sim["kombifySim<br/>Apache 2.0 + GPLv3"]
-        Stack["kombifyStack<br/>Apache 2.0 + GPLv3"]
+        SK["StackKits<br/>Apache 2.0"]
+        Sim["kombify Sim<br/>Apache 2.0"]
+        Stack["kombify Stack<br/>Apache 2.0"]
     end
     
     SK -->|Blueprints| Stack
@@ -331,7 +331,7 @@ graph LR
     Jump straight into deployment if you already know what you want.
   </Card>
   
-  <Card title="Start with Cloud" icon="globe" href="/Cloud/overview">
+  <Card title="Start with Cloud" icon="globe" href="/cloud/overview">
     **Managed experience**
     
     Let us handle the setup—focus on your applications.

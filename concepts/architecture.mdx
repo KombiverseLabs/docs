@@ -181,12 +181,12 @@ graph TB
     subgraph Layer3["Layer 3: StackKits"]
         Base["base-homelab<br/><i>Single-node Docker</i>"]
         HA["ha-homelab<br/><i>High availability</i>"]
-        Modern["modern-homelab<br/><i>Multi-node Kubernetes</i>"]
+        Modern["modern-homelab<br/><i>Multi-node Docker + Coolify</i>"]
     end
 
     subgraph Layer2["Layer 2: Platforms"]
         Docker["docker/<br/><i>Docker + Traefik</i>"]
-        K8s["kubernetes/<br/><i>K3s + Ingress</i>"]
+        Coolify["coolify/<br/><i>Docker + Headscale VPN</i>"]
     end
 
     subgraph Layer1["Layer 1: Core"]

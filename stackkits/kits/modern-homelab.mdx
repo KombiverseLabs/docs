@@ -1,231 +1,254 @@
 ---
 title: modern-homelab StackKit
-description: Cloud-native Kubernetes infrastructure for advanced homelabs
+description: Multi-node hybrid Docker infrastructure for advanced homelabs with public access and VPN overlay
 sidebarTitle: modern-homelab
 icon: microchip
 ---
 
 
-The **modern-homelab** StackKit brings cloud-native Kubernetes infrastructure to your homelab. Designed for power users who want GitOps, auto-scaling, and full observability.
+The **modern-homelab** StackKit brings multi-node hybrid infrastructure to your homelab. Designed for advanced users who need public-facing services, cloud+local server setups, and full observability across nodes.
+
+<Warning>
+  **v1.1 Planned** -- This StackKit is designed and specified but not yet functional. Use [base-homelab](/stackkits/kits/base-homelab) for v1.0 deployments.
+</Warning>
 
 ## Overview
 
 ```mermaid
 graph TB
-    subgraph Cluster["K3s Cluster"]
-        subgraph CP["Control Plane"]
-            API["API Server"]
-            ETCD["etcd"]
-            Sched["Scheduler"]
-        end
-        
-        subgraph Workers["Worker Nodes"]
-            W1["Worker 1"]
-            W2["Worker 2"]
-            W3["Worker 3"]
-        end
-        
-        subgraph Platform["Platform Services"]
-            Flux["FluxCD<br/>GitOps"]
-            Traefik["Traefik<br/>Ingress"]
-            Cert["cert-manager<br/>TLS"]
-        end
-        
-        subgraph Observability["Observability Stack"]
-            Prom["Prometheus"]
-            Graf["Grafana"]
-            Loki["Loki"]
-        end
+    subgraph Internet["Public Internet"]
+        Users["Users / Clients"]
     end
-    
-    Git["Git Repository"]
-    User["User"]
-    
-    Git -->|Reconcile| Flux
-    Flux --> Workers
-    User -->|kubectl| API
-    API --> Workers
-    Workers --> Platform
-    Workers --> Observability
-    
-    style Cluster fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style CP fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-    style Workers fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style Platform fill:#1e293b,stroke:#818cf8,color:#f8fafc
-    style Observability fill:#1e293b,stroke:#f472b6,color:#f8fafc
+
+    subgraph Cloud["Cloud Node (VPS)"]
+        Traefik["Traefik<br/>Reverse Proxy + TLS"]
+        Coolify["Coolify<br/>PaaS / Multi-Node Manager"]
+        Headscale["Headscale<br/>VPN Control Server"]
+        MonCloud["Prometheus + Grafana"]
+    end
+
+    subgraph VPN["VPN Overlay (Headscale/Tailscale)"]
+        Tunnel["Encrypted Tunnel"]
+    end
+
+    subgraph Local["Local Node(s) (On-Premises)"]
+        Apps["Applications<br/>Nextcloud, Immich, ..."]
+        Storage["Local Storage<br/>NAS / RAID"]
+        Loki["Loki + Promtail<br/>Log Collection"]
+    end
+
+    Users -->|HTTPS| Traefik
+    Traefik --> Coolify
+    Traefik --> MonCloud
+    Cloud <-->|Headscale| Tunnel
+    Tunnel <-->|Encrypted| Local
+    Coolify -->|Deploys to| Apps
+
+    style Internet fill:#1e293b,stroke:#ef4444,color:#f8fafc
+    style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style VPN fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Local fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-## Key Features
+## Key features
 
 <CardGroup cols={3}>
-  <Card title="K3s Kubernetes" icon="dharmachakra">
-    Lightweight, production-grade Kubernetes
+  <Card title="Multi-Node Docker" icon="server">
+    Deploy across cloud VPS and local servers
   </Card>
-  <Card title="GitOps with Flux" icon="code-branch">
-    Declarative infrastructure from Git
+  <Card title="Coolify PaaS" icon="rocket">
+    Professional deployment platform for multi-node setups
   </Card>
-  <Card title="Auto-Scaling" icon="arrows-up-down">
-    Scale workloads based on demand
+  <Card title="VPN Overlay" icon="lock">
+    Headscale/Tailscale for secure inter-node communication
   </Card>
   <Card title="Full Observability" icon="chart-line">
-    Prometheus, Grafana, Loki stack
+    Prometheus, Grafana, Loki (PLG) monitoring stack
   </Card>
-  <Card title="Service Mesh Ready" icon="network-wired">
-    Optional Linkerd integration
+  <Card title="Automatic TLS" icon="shield">
+    Let's Encrypt certificates via Traefik
   </Card>
-  <Card title="Persistent Storage" icon="hard-drive">
-    Longhorn distributed storage
+  <Card title="Public Access" icon="globe">
+    Services accessible from the internet by default
   </Card>
 </CardGroup>
 
 ## Requirements
 
-| Resource | Per Node | Minimum Cluster |
-|----------|----------|-----------------|
-| **Nodes** | 1 control + 2 workers | 3 total |
-| **CPU** | 4 cores | 12 cores |
-| **RAM** | 8 GB | 24 GB |
-| **Storage** | 50 GB SSD | 150 GB |
-| **Network** | 1 Gbps | Same subnet |
+| Resource | Cloud Node (VPS) | Local Node | Total Minimum |
+|----------|------------------|------------|---------------|
+| **Nodes** | 1 VPS | 1+ local | 2+ |
+| **CPU** | 2 cores | 4 cores | 6 cores |
+| **RAM** | 4 GB | 8 GB | 12 GB |
+| **Storage** | 50 GB SSD | 100 GB | 150 GB |
+| **Network** | Public IPv4, 1 Gbps | LAN access | -- |
+
+**Additional prerequisites:**
+- Own domain with DNS control (e.g., Cloudflare, Hetzner DNS)
+- DNS provider API access for automated TLS provisioning
+- SSH access to all nodes
 
 <Warning>
-  modern-homelab has higher resource requirements than other StackKits. Ensure your hardware meets the minimums.
+  modern-homelab has higher complexity and resource requirements than base-homelab. If you only need a single local server, use [base-homelab](/stackkits/kits/base-homelab) instead.
 </Warning>
 
-## Architecture Deep Dive
+## Architecture deep dive
 
-### GitOps Workflow
+### Hybrid topology
+
+The modern-homelab connects cloud and local infrastructure using a VPN overlay:
 
 ```mermaid
-sequenceDiagram
-    participant Dev as Developer
-    participant Git as Git Repository
-    participant Flux as FluxCD
-    participant K8s as Kubernetes
-    
-    Dev->>Git: Push changes
-    Git->>Flux: Webhook notification
-    Flux->>Git: Pull manifests
-    Flux->>K8s: Apply changes
-    K8s->>K8s: Reconcile state
-    Flux->>Git: Update status
-    
-    Note over Flux,K8s: Continuous reconciliation
-    loop Every 1 minute
-        Flux->>Git: Check for drift
-        Flux->>K8s: Correct any drift
+graph LR
+    subgraph Cloud["Cloud VPS (Entry Point)"]
+        T["Traefik"]
+        C["Coolify"]
+        HS["Headscale"]
     end
+
+    subgraph VPN["Headscale VPN Mesh"]
+        TS1["Tailscale Agent"]
+        TS2["Tailscale Agent"]
+    end
+
+    subgraph Local1["Local Server 1"]
+        App1["Nextcloud"]
+        App2["Immich"]
+    end
+
+    subgraph Local2["Local Server 2 (Optional)"]
+        App3["Media Stack"]
+        NAS["Storage / NAS"]
+    end
+
+    T -->|Public Traffic| C
+    HS --> TS1
+    HS --> TS2
+    TS1 --> Local1
+    TS2 --> Local2
+    C -->|Deploy via VPN| Local1
+    C -->|Deploy via VPN| Local2
+
+    style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style VPN fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Local1 fill:#1e293b,stroke:#4ade80,color:#f8fafc
+    style Local2 fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-### Storage Architecture
+**Traffic flow:**
+1. Public requests hit Traefik on the cloud VPS
+2. Traefik routes to Coolify-managed applications
+3. Applications on local nodes are reached via the Headscale VPN tunnel
+4. Local nodes never expose ports to the public internet
+
+### Observability stack
 
 ```mermaid
 graph TB
-    subgraph Apps["Applications"]
-        App1["App 1"]
-        App2["App 2"]
-        App3["App 3"]
+    subgraph Collection["Data Collection"]
+        NE["Node Exporter<br/>(per node)"]
+        PT["Promtail<br/>(per node)"]
+        CT["cAdvisor<br/>(per node)"]
     end
-    
-    subgraph Storage["Longhorn Storage"]
-        PVC1["PVC"]
-        PVC2["PVC"]
-        PVC3["PVC"]
-        
-        subgraph Replicas["Data Replication"]
-            R1["Replica<br/>Node 1"]
-            R2["Replica<br/>Node 2"]
-            R3["Replica<br/>Node 3"]
-        end
+
+    subgraph Storage["Metric Storage"]
+        Prom["Prometheus<br/>15d retention"]
+        Loki["Loki<br/>7d retention"]
     end
-    
-    App1 --> PVC1
-    App2 --> PVC2
-    App3 --> PVC3
-    
-    PVC1 --> Replicas
-    PVC2 --> Replicas
-    PVC3 --> Replicas
-    
-    style Apps fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Storage fill:#1e293b,stroke:#4ade80,color:#f8fafc
-    style Replicas fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+
+    subgraph Viz["Visualization"]
+        Graf["Grafana<br/>Dashboards + Alerts"]
+    end
+
+    NE --> Prom
+    CT --> Prom
+    PT --> Loki
+    Prom --> Graf
+    Loki --> Graf
+
+    style Collection fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Storage fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+    style Viz fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-## Quick Start
+| Component | Purpose | Default Config |
+|-----------|---------|----------------|
+| Prometheus | Metrics collection | 15d retention, 15s scrape interval |
+| Grafana | Visualization | Pre-built dashboards |
+| Loki | Log aggregation | 7d retention |
+| Promtail | Log shipping | Per-node agent |
+| Node Exporter | Hardware metrics | Per-node agent |
+| cAdvisor | Container metrics | Per-node agent |
+| Alertmanager | Alert routing | Discord/Email |
+
+## Quick start
 
 <Steps>
-  <Step title="Define your cluster">
+  <Step title="Define your hybrid setup">
     ```yaml kombination.yaml
     stackkit: modern-homelab
-    
-    domain: k8s.homelab.local
+
+    domain: homelab.example.com
     email: you@example.com
-    
-    cluster:
-      name: homelab
-      version: "1.29"  # K3s version
-      
+
     nodes:
-      - name: control-1
-        ip: 192.168.1.10
-        role: control-plane
-        
-      - name: worker-1
-        ip: 192.168.1.11
-        role: worker
-        
-      - name: worker-2
-        ip: 192.168.1.12
-        role: worker
+      - name: cloud-entry
+        type: cloud
+        provider:
+          type: hetzner
+          region: fsn1
+          size: cx21
+          image: debian-12
+
+      - name: local-server
+        type: local
+        network:
+          localIp: 192.168.1.100
+          subnet: 192.168.1.0/24
     ```
   </Step>
-  
-  <Step title="Configure GitOps">
+
+  <Step title="Configure VPN overlay">
     ```yaml
-    gitops:
+    vpn:
       enabled: true
-      provider: flux
-      repository:
-        url: git@github.com:you/homelab-config.git
-        branch: main
-        path: clusters/homelab
+      provider: headscale
+      magicDns: true
     ```
   </Step>
-  
-  <Step title="Enable platform services">
+
+  <Step title="Enable services">
     ```yaml
     services:
-      # Ingress
+      # Reverse proxy (cloud node)
       traefik:
         enabled: true
-        replicas: 2
-        
-      # TLS
-      cert-manager:
+        acme: true
+        acmeEmail: you@example.com
+
+      # PaaS platform (cloud node)
+      coolify:
         enabled: true
-        issuer: letsencrypt-prod
-        
-      # Storage
-      longhorn:
+
+      # VPN control server (cloud node)
+      headscale:
         enabled: true
-        replicas: 2
-        
-      # Observability
+
+      # Monitoring
       prometheus:
         enabled: true
         retention: 15d
-        
+
       grafana:
         enabled: true
-        
+
       loki:
         enabled: true
         retention: 7d
     ```
   </Step>
-  
-  <Step title="Deploy cluster">
+
+  <Step title="Deploy infrastructure">
     ```bash
     kombify validate
     kombify generate
@@ -234,143 +257,91 @@ graph TB
   </Step>
 </Steps>
 
-## Configuration Reference
+## Configuration reference
 
-### Cluster Options
-
-```yaml
-cluster:
-  name: homelab
-  version: "1.29"
-  
-  # High availability control plane
-  ha:
-    enabled: true
-    datastore: etcd  # or "embedded" for single control-plane
-    
-  # Network plugin
-  cni: flannel  # flannel, calico, cilium
-  
-  # Feature gates
-  features:
-    - GracefulNodeShutdown
-    - PodDisruptionConditions
-```
-
-### Node Configuration
-
-```yaml
-nodes:
-  - name: control-1
-    ip: 192.168.1.10
-    role: control-plane
-    taints:
-      - "node-role.kubernetes.io/control-plane:NoSchedule"
-    
-  - name: worker-1
-    ip: 192.168.1.11
-    role: worker
-    labels:
-      node-type: compute
-      
-  - name: worker-2
-    ip: 192.168.1.12
-    role: worker
-    labels:
-      node-type: storage
-      longhorn-node: "true"
-```
-
-### GitOps Configuration
+### Node configuration
 
 <Tabs>
-  <Tab title="FluxCD (Default)">
+  <Tab title="Cloud Node">
     ```yaml
-    gitops:
-      enabled: true
-      provider: flux
-      repository:
-        url: git@github.com:you/homelab-config.git
-        branch: main
-        path: clusters/homelab
-      interval: 1m
-      prune: true
+    nodes:
+      - name: cloud-entry
+        type: cloud
+        hostname: cloud-entry
+
+        provider:
+          type: hetzner        # hetzner, digitalocean, vultr, linode
+          region: fsn1
+          size: cx21           # 2 vCPU, 4 GB RAM
+          image: debian-12
+
+        docker:
+          version: "24.0"
+          dataRoot: /var/lib/docker
+
+        ssh:
+          user: root
+          port: 22
     ```
   </Tab>
-  <Tab title="ArgoCD">
+  <Tab title="Local Node">
     ```yaml
-    gitops:
-      enabled: true
-      provider: argocd
-      repository:
-        url: https://github.com/you/homelab-config.git
-        branch: main
-        path: clusters/homelab
-      sync:
-        automated: true
-        prune: true
-        selfHeal: true
+    nodes:
+      - name: local-server
+        type: local
+        hostname: local-server
+
+        provider:
+          type: bare-metal
+
+        network:
+          localIp: 192.168.1.100
+          subnet: 192.168.1.0/24
+
+        docker:
+          version: "24.0"
+          dataRoot: /var/lib/docker
+
+        labels:
+          storage: "true"
+          role: application
     ```
   </Tab>
 </Tabs>
 
-## Platform Components
+### VPN configuration
 
-### Ingress & Networking
-
-```mermaid
-graph LR
-    Internet["Internet"]
-    
-    subgraph Edge["Edge"]
-        LB["MetalLB<br/>Load Balancer"]
-    end
-    
-    subgraph Ingress["Ingress Layer"]
-        Traefik["Traefik<br/>Ingress Controller"]
-        Cert["cert-manager<br/>TLS Certificates"]
-    end
-    
-    subgraph Apps["Applications"]
-        App1["grafana.homelab.local"]
-        App2["nextcloud.homelab.local"]
-        App3["home.homelab.local"]
-    end
-    
-    Internet --> LB
-    LB --> Traefik
-    Traefik --> Cert
-    Traefik --> Apps
-    
-    style Edge fill:#1e293b,stroke:#ef4444,color:#f8fafc
-    style Ingress fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Apps fill:#1e293b,stroke:#4ade80,color:#f8fafc
+```yaml
+vpn:
+  enabled: true
+  provider: headscale
+  derpEnabled: true
+  derpRegions:
+    - default
+  magicDns: true
 ```
 
-### Observability Stack
+The VPN overlay creates an encrypted mesh between all nodes. Headscale is the self-hosted Tailscale control server -- no third-party dependency required.
 
-| Component | Purpose | Default Config |
-|-----------|---------|----------------|
-| Prometheus | Metrics collection | 15d retention |
-| Grafana | Visualization | Pre-built dashboards |
-| Loki | Log aggregation | 7d retention |
-| Promtail | Log shipping | DaemonSet |
-| Alertmanager | Alert routing | Slack/Discord/Email |
+### Monitoring configuration
 
 ```yaml
 observability:
   prometheus:
     retention: 15d
     storage: 50Gi
-    scrapeInterval: 30s
-    
+    scrapeInterval: 15s
+
   grafana:
     dashboards:
-      - kubernetes-cluster
-      - node-exporter
-      - traefik
-      - longhorn
-      
+      - node-health
+      - docker-containers
+      - traefik-traffic
+      - coolify-deployments
+
+  loki:
+    retention: 7d
+
   alertmanager:
     receivers:
       - name: discord
@@ -379,162 +350,143 @@ observability:
         to: alerts@example.com
 ```
 
-## Deploying Applications
+## Platform components
 
-With GitOps, you deploy applications by adding manifests to your Git repository:
+### Coolify -- Multi-node PaaS
 
-```yaml
-# clusters/homelab/apps/homepage.yaml
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: homepage
----
-apiVersion: helm.toolkit.fluxcd.io/v2beta1
-kind: HelmRelease
-metadata:
-  name: homepage
-  namespace: homepage
-spec:
-  interval: 5m
-  chart:
-    spec:
-      chart: homepage
-      version: "1.x"
-      sourceRef:
-        kind: HelmRepository
-        name: homepage
-        namespace: flux-system
-  values:
-    ingress:
-      enabled: true
-      hosts:
-        - host: home.homelab.local
-          paths:
-            - path: /
-```
+Coolify manages deployments across your nodes. Unlike Dokploy (used in base-homelab for single nodes), Coolify provides:
 
-Commit and push—Flux handles the rest:
-
-```bash
-git add .
-git commit -m "Add homepage application"
-git push
-# Flux automatically deploys within 1 minute
-```
-
-## Scaling
-
-### Horizontal Pod Autoscaling
+- Multi-node deployment via SSH
+- Git-based deployments (push to deploy)
+- Built-in database management
+- Application monitoring and logs
+- Resource limits per container
 
 ```yaml
-services:
-  myapp:
-    autoscaling:
-      enabled: true
-      minReplicas: 2
-      maxReplicas: 10
-      metrics:
-        - type: cpu
-          target: 80
-        - type: memory
-          target: 80
+coolify:
+  autoUpdate: false
+  pushEnabled: true
+  instanceSettings:
+    isRegistrationEnabled: false
+    isAutoUpdateEnabled: false
+  resources:
+    cpuLimit: "2.0"
+    memoryLimit: "2048m"
 ```
 
-### Adding Worker Nodes
+### Service placement
+
+Services are placed on specific nodes based on their role:
+
+| Service | Placement | Reason |
+|---------|-----------|--------|
+| Traefik | Cloud node | Public entry point, TLS termination |
+| Coolify | Cloud node | Needs SSH access to all nodes |
+| Headscale | Cloud node | VPN coordination server |
+| Prometheus + Grafana | Cloud node | Accessible remotely |
+| Applications | Local node(s) | Data stays on-premises |
+| Storage/NAS | Local node(s) | Physical disk access |
+| Promtail + Node Exporter | All nodes | Per-node monitoring agents |
+
+## Adding more nodes
 
 ```yaml
 # Add to kombination.yaml
 nodes:
   # ... existing nodes
-  
-  - name: worker-3
-    ip: 192.168.1.13
-    role: worker
+
+  - name: local-media
+    type: local
+    network:
+      localIp: 192.168.1.101
+      subnet: 192.168.1.0/24
     labels:
-      node-type: compute
+      role: media-server
 ```
 
 ```bash
-kombify deploy --node worker-3
+kombify deploy --node local-media
 ```
+
+The new node is automatically joined to the Headscale VPN mesh and registered in Coolify.
 
 ## Security
 
-### Network Policies
+### Network isolation
+
+- Local nodes are **never** directly exposed to the internet
+- All inter-node traffic is encrypted via Headscale VPN
+- Traefik handles TLS termination for public services
+- Coolify enforces resource limits per container
+
+### Authentication
 
 ```yaml
-security:
-  networkPolicies:
-    enabled: true
-    defaultDeny: true  # Deny all by default
-    
-  # Pod Security Standards
-  podSecurity:
-    enforce: baseline
-    audit: restricted
-    warn: restricted
+auth:
+  provider: pocketid      # PocketID for SSO
+  twoFactor: true
+  allowedDomains:
+    - example.com
 ```
 
-### Secrets Management
+### Firewall rules
 
-```yaml
-security:
-  secrets:
-    provider: sealed-secrets  # or vault, external-secrets
-    
-  # If using Sealed Secrets
-  sealedSecrets:
-    enabled: true
-```
+The StackKit configures firewall rules automatically:
 
-## Monitoring Dashboard
+| Port | Cloud Node | Local Node | Purpose |
+|------|-----------|------------|---------|
+| 22 | Open | LAN only | SSH access |
+| 80 | Open | Closed | HTTP redirect |
+| 443 | Open | Closed | HTTPS traffic |
+| 41641 | Open | Open | Headscale/WireGuard |
+| All others | Closed | Closed | -- |
 
-Pre-configured Grafana dashboards:
+## Comparison with other StackKits
 
-```mermaid
-graph TB
-    subgraph Dashboards["Grafana Dashboards"]
-        D1["Kubernetes Cluster<br/>Overall health"]
-        D2["Node Exporter<br/>Hardware metrics"]
-        D3["Traefik<br/>Ingress traffic"]
-        D4["Longhorn<br/>Storage health"]
-        D5["Flux<br/>GitOps status"]
-    end
-    
-    Prom["Prometheus"] --> Dashboards
-    Loki["Loki"] --> Dashboards
-    
-    style Dashboards fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-```
+| Feature | base-homelab | ha-homelab | modern-homelab |
+|---------|-------------|------------|----------------|
+| **Nodes** | 1 | 2+ (local) | 2+ (cloud + local) |
+| **Platform** | Docker + Dokploy | Docker Swarm | Docker + Coolify |
+| **Network** | Local only | Local LAN | VPN overlay (Headscale) |
+| **Public Access** | Optional (Cloudflare Tunnel) | Optional | Default |
+| **Monitoring** | Basic (Uptime Kuma) | Prometheus + Grafana | Full PLG stack |
+| **Domain Required** | No | No | Yes |
+| **Complexity** | Low | Medium | High |
+| **Status** | v1.0 | v1.0 | v1.1 planned |
 
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="Pods stuck in Pending">
-    1. Check node resources: `kubectl describe nodes`
-    2. Verify PVC binding: `kubectl get pvc -A`
-    3. Check for taints: `kubectl get nodes -o jsonpath='{.items[*].spec.taints}'`
+  <Accordion title="VPN connection issues">
+    1. Check Headscale status: `headscale nodes list`
+    2. Verify Tailscale agent on local node: `tailscale status`
+    3. Test connectivity: `tailscale ping <cloud-node>`
+    4. Check firewall: ensure UDP port 41641 is open on both sides
   </Accordion>
-  
-  <Accordion title="GitOps not syncing">
-    1. Check Flux logs: `kubectl logs -n flux-system deploy/source-controller`
-    2. Verify Git credentials: `kubectl get secrets -n flux-system`
-    3. Check repository status: `flux get sources git`
+
+  <Accordion title="Coolify cannot reach local node">
+    1. Verify VPN tunnel is established
+    2. Check SSH access via VPN IP: `ssh root@<tailscale-ip>`
+    3. Ensure Docker is running on the target node
+    4. Check Coolify server settings for the correct VPN IP
   </Accordion>
-  
-  <Accordion title="Storage issues">
-    1. Check Longhorn UI: `kubectl port-forward -n longhorn-system svc/longhorn-frontend 8080:80`
-    2. Verify disk space on nodes
-    3. Check replica health: `kubectl get volumes.longhorn.io -A`
+
+  <Accordion title="TLS certificate errors">
+    1. Verify DNS records point to cloud node public IP
+    2. Check Traefik ACME logs: `docker logs traefik`
+    3. Ensure port 80 and 443 are open on the cloud node
+    4. Verify DNS provider API credentials in Traefik config
+  </Accordion>
+
+  <Accordion title="Monitoring gaps">
+    1. Verify Promtail and Node Exporter are running on all nodes
+    2. Check Prometheus targets: navigate to `prometheus.yourdomain.com/targets`
+    3. Ensure VPN tunnel is stable (metrics travel over VPN)
+    4. Check Grafana data source configuration
   </Accordion>
 </AccordionGroup>
 
-## Migration from ha-homelab
-
-<Warning>
-  Migration from Docker to Kubernetes requires data migration planning. Backup everything first!
-</Warning>
+## Migration from base-homelab
 
 <Steps>
   <Step title="Backup all data">
@@ -542,49 +494,55 @@ graph TB
     kombify backup --all --output ./backup
     ```
   </Step>
-  
-  <Step title="Update kombination.yaml">
+
+  <Step title="Provision cloud node">
+    Add a cloud node to your `kombination.yaml` and provision it:
     ```yaml
-    stackkit: modern-homelab  # Changed!
-    
-    cluster:
-      name: homelab
-      
+    stackkit: modern-homelab  # Changed from base-homelab
+
     nodes:
-      - name: control-1
-        ip: 192.168.1.10  # Can reuse existing IPs
-        role: control-plane
-    # ...
+      - name: cloud-entry
+        type: cloud
+        provider:
+          type: hetzner
+          region: fsn1
+          size: cx21
+          image: debian-12
+
+      - name: local-server   # Your existing server
+        type: local
+        network:
+          localIp: 192.168.1.100
     ```
   </Step>
-  
-  <Step title="Deploy new cluster">
+
+  <Step title="Deploy hybrid infrastructure">
     ```bash
     kombify generate
     kombify deploy
     ```
   </Step>
-  
-  <Step title="Restore data">
+
+  <Step title="Restore data on local node">
     ```bash
-    kombify restore --from ./backup
+    kombify restore --from ./backup --node local-server
     ```
   </Step>
 </Steps>
 
-## Next Steps
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="GitOps Guide" icon="code-branch" href="/guides/gitops">
-    Deep dive into GitOps workflows
+  <Card title="VPN Setup Guide" icon="lock" href="/guides/networking">
+    Configure Headscale VPN for your homelab
   </Card>
   <Card title="Monitoring Setup" icon="chart-line" href="/guides/monitoring">
-    Configure comprehensive monitoring
+    Configure the PLG observability stack
   </Card>
-  <Card title="Backup Strategy" icon="cloud-arrow-up" href="/guides/backups">
-    Protect your Kubernetes data
+  <Card title="Coolify Guide" icon="rocket" href="/guides/coolify">
+    Deploy applications with Coolify
   </Card>
   <Card title="Security Hardening" icon="shield" href="/guides/security">
-    Secure your cluster
+    Secure your hybrid infrastructure
   </Card>
 </CardGroup>

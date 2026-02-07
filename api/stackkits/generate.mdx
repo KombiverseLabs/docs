@@ -4,7 +4,7 @@ description: Generate infrastructure code from StackKit configurations
 ---
 
 
-Generates deployment artifacts (Docker Compose, Kubernetes manifests, etc.) from a validated StackKit configuration.
+Generates deployment artifacts (Docker Compose files, OpenTofu modules, etc.) from a validated StackKit configuration.
 
 ## Endpoint
 
@@ -48,8 +48,7 @@ POST /api/v1/stackkits/generate
 | Target | Description |
 |--------|-------------|
 | `docker-compose` | Docker Compose v3.8 YAML |
-| `kubernetes` | Kubernetes manifests (Deployment, Service, ConfigMap) |
-| `opentofu` | OpenTofu/Terraform HCL modules |
+| `opentofu` | OpenTofu HCL modules |
 | `ansible` | Ansible playbooks and roles |
 | `shell` | Shell scripts for manual deployment |
 
@@ -115,16 +114,6 @@ curl -X POST http://localhost:8080/api/v1/stackkits/generate \
 | `compose_version` | string | "3.8" | Compose file version |
 | `use_profiles` | bool | false | Use Docker Compose profiles |
 
-### Kubernetes options
-
-| Option | Type | Default | Description |
-|--------|------|---------|-------------|
-| `namespace` | string | "default" | Target namespace |
-| `include_namespace` | bool | false | Generate Namespace manifest |
-| `include_ingress` | bool | true | Generate Ingress resources |
-| `ingress_class` | string | "nginx" | Ingress controller class |
-| `storage_class` | string | "default" | StorageClass for PVCs |
-
 ### OpenTofu options
 
 | Option | Type | Default | Description |
@@ -149,7 +138,7 @@ curl -X POST http://localhost:8080/api/v1/stackkits/generate \
   "error": {
     "code": "UNSUPPORTED_TARGET",
     "message": "Output target 'pulumi' is not supported",
-    "supported": ["docker-compose", "kubernetes", "opentofu", "ansible", "shell"]
+    "supported": ["docker-compose", "opentofu", "ansible", "shell"]
   }
 }
 ```
@@ -192,7 +181,7 @@ echo "✅ Generated $(echo $RESPONSE | jq '.files | length') files"
 
 ```bash
 #!/bin/bash
-TARGETS=("docker-compose" "kubernetes")
+TARGETS=("docker-compose" "opentofu")
 CONFIG_FILE="kombination.yaml"
 
 for target in "${TARGETS[@]}"; do

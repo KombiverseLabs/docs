@@ -81,7 +81,6 @@
               "icon": "server",
               "pages": [
                 "guides/self-hosting/docker-compose",
-                "guides/self-hosting/kubernetes",
                 "guides/self-hosting/configuration",
                 "guides/self-hosting/security"
               ]
@@ -147,7 +146,6 @@
           "icon": "download",
           "pages": [
             "stack/install/docker",
-            "stack/install/kubernetes",
             "stack/install/bare-metal"
           ]
         },

@@ -12,7 +12,7 @@ The Unifier is a multi-stage processing pipeline that:
 1. **Parses** your YAML configuration
 2. **Validates** against CUE schemas
 3. **Resolves** dependencies and defaults
-4. **Generates** OpenTofu/Terraform code
+4. **Generates** OpenTofu code
 5. **Orchestrates** deployment
 
 Think of it as a compiler for infrastructure — you write high-level intent, it produces low-level implementation.
@@ -250,7 +250,7 @@ services:
 
 ## Stage 4: Generator
 
-Generates OpenTofu/Terraform code.
+Generates OpenTofu code.
 
 ### Docker Compose generation
 
@@ -567,7 +567,7 @@ Output:
   <Card title="Spec-driven infrastructure" icon="file-code" href="/concepts/spec-driven">
     Learn the core concept
   </Card>
-  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits-explained">
+  <Card title="StackKits explained" icon="boxes-stacked" href="/concepts/stackkits">
     Understand validation schemas
   </Card>
   <Card title="Architecture" icon="sitemap" href="/concepts/architecture">

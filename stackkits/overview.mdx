@@ -103,11 +103,11 @@ A StackKit is essentially a **smart template system** that:
   <Card title="modern-homelab" icon="microchip" href="/stackkits/kits/modern-homelab">
     **For scale**
     
-    Cloud-native Kubernetes infrastructure for advanced users.
+    Multi-node Docker infrastructure for advanced users.
     
-    - Kubernetes
-    - GitOps ready
-    - 15+ services
+    - Docker + Coolify
+    - VPN overlay
+    - 10+ services
   </Card>
 </CardGroup>
 
@@ -277,16 +277,15 @@ Ready to deploy!
     Requires at least 2 nodes (16GB+ RAM total) for failover.
   </Accordion>
   
-  <Accordion title="I want cloud-native infrastructure" icon="cloud">
+  <Accordion title="I want multi-node infrastructure" icon="cloud">
     **Use: modern-homelab**
     
     For advanced users wanting:
-    - Kubernetes orchestration
-    - GitOps workflows
-    - Auto-scaling
-    - Full observability
+    - Docker + Coolify PaaS
+    - VPN overlay (Headscale)
+    - Full observability (Prometheus, Grafana, Loki)
     
-    Requires more resources (32GB+ RAM) but offers maximum flexibility.
+    Requires more resources (24GB+ RAM) but offers maximum flexibility.
   </Accordion>
 </AccordionGroup>
 
@@ -295,12 +294,12 @@ Ready to deploy!
 | Feature | base-homelab | ha-homelab | modern-homelab |
 |---------|-------------|------------|----------------|
 | **Nodes** | 1 | 2-5 | 3+ |
-| **Orchestration** | Docker Compose | Docker Swarm | Kubernetes |
+| **Orchestration** | Docker Compose | Docker Swarm | Docker + Coolify |
 | **Complexity** | Low | Medium | High |
-| **Min Resources** | 4GB RAM | 16GB RAM | 32GB+ RAM |
+| **Min Resources** | 4GB RAM | 16GB RAM | 24GB+ RAM |
 | **Use Case** | Learning, single apps | Home servers | Production-grade |
 | **Failover** | ❌ | ✅ | ✅ |
-| **Auto-scaling** | ❌ | ❌ | ✅ |
+| **Auto-scaling** | ❌ | ❌ | ❌ |
 
 ## Next Steps
 

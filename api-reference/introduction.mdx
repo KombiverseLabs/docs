@@ -23,7 +23,7 @@ All API requests require authentication via Bearer token:
 
 ```bash
 curl -H "Authorization: Bearer YOUR_TOKEN" \
-  https://api.kombify Cloud.io/v1/stacks
+  https://api.kombify.io/v1/stacks
 ```
 
 ### Getting a token
@@ -118,7 +118,7 @@ X-RateLimit-Reset: 1640000000
 List endpoints support pagination:
 
 ```bash
-curl "https://api.kombify Cloud.io/v1/stacks?page=1&perPage=20" \
+curl "https://api.kombify.io/v1/stacks?page=1&perPage=20" \
   -H "Authorization: Bearer YOUR_TOKEN"
 ```
 
@@ -143,10 +143,10 @@ Filter results with query parameters:
 
 ```bash
 # Filter by status
-curl "https://api.kombify Cloud.io/v1/stacks?status=running"
+curl "https://api.kombify.io/v1/stacks?status=running"
 
 # Filter by multiple fields
-curl "https://api.kombify Cloud.io/v1/stacks?status=running&stackkit=base-homelab"
+curl "https://api.kombify.io/v1/stacks?status=running&stackkit=base-homelab"
 ```
 
 ## Sorting
@@ -155,10 +155,10 @@ Sort results with the `sort` parameter:
 
 ```bash
 # Sort by created date (descending)
-curl "https://api.kombify Cloud.io/v1/stacks?sort=-created"
+curl "https://api.kombify.io/v1/stacks?sort=-created"
 
 # Sort by name (ascending)
-curl "https://api.kombify Cloud.io/v1/stacks?sort=name"
+curl "https://api.kombify.io/v1/stacks?sort=name"
 ```
 
 ## Webhooks
@@ -166,7 +166,7 @@ curl "https://api.kombify Cloud.io/v1/stacks?sort=name"
 Subscribe to events via webhooks:
 
 ```bash
-curl -X POST https://api.kombify Cloud.io/v1/webhooks \
+curl -X POST https://api.kombify.io/v1/webhooks \
   -H "Authorization: Bearer YOUR_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -210,7 +210,7 @@ import { KombifyClient } from '@kombify/sdk';
 
 const client = new KombifyClient({
   token: process.env.KOMBIFY_TOKEN,
-  baseUrl: 'https://api.kombify Cloud.io/v1'
+  baseUrl: 'https://api.kombify.io/v1'
 });
 
 // List stacks
