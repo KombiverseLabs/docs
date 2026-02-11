@@ -1,0 +1,62 @@
+---
+title: "Choosing a StackKit"
+description: "Guide to selecting the right infrastructure blueprint for your needs"
+sidebarTitle: "Choosing a kit"
+---
+
+StackKits are pre-built infrastructure blueprints that define what services to run, how to configure them, and how they work together.
+
+## Available StackKits
+
+<CardGroup cols={3}>
+  <Card title="Base Kit" icon="house" href="/stackkits/kits/base-homelab">
+    **Best for getting started**
+    
+    Single server, 4-6 essential services. Perfect for your first homelab.
+  </Card>
+  <Card title="Modern Homelab Kit" icon="rocket" href="/stackkits/kits/modern-homelab">
+    **Best for power users**
+    
+    Advanced services like local AI, development tools, and cutting-edge apps.
+  </Card>
+  <Card title="High Availability Kit" icon="shield" href="/stackkits/kits/ha-homelab">
+    **Best for reliability**
+    
+    3+ servers with Docker Swarm, automatic failover, and redundant storage.
+  </Card>
+</CardGroup>
+
+## How to choose
+
+| Question | Base | Modern | HA |
+|----------|------|--------|-----|
+| How many servers do you have? | 1 | 1-2 | 3+ |
+| Do you need high availability? | No | No | Yes |
+| Want AI/ML services? | No | Yes | Optional |
+| Experience level? | Beginner | Intermediate | Advanced |
+| Typical use case | Photos, files, media | Dev env, AI, advanced apps | Production services |
+
+## Add-ons
+
+Every StackKit can be extended with **add-ons** — modular service packages you can mix and match:
+
+- **Media** — Plex, Jellyfin, Sonarr, Radarr
+- **Monitoring** — Prometheus, Grafana, Uptime Kuma
+- **Backup** — Restic, Borgmatic, automated snapshots
+- **AI** — Ollama, Open WebUI, Stable Diffusion
+- **Security** — CrowdSec, Fail2ban, Vaultwarden
+
+<Tip>
+  Start with a base kit and add what you need. You can always add more add-ons later without rebuilding your stack.
+</Tip>
+
+## What's next?
+
+<CardGroup cols={2}>
+  <Card title="Customize your kit" icon="pen" href="/guides/stackkits/customizing">
+    Learn how to modify StackKit settings and add-ons.
+  </Card>
+  <Card title="Browse kit details" icon="list" href="/stackkits/overview">
+    See full specifications for each StackKit.
+  </Card>
+</CardGroup>

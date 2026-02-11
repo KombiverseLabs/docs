@@ -1,15 +1,15 @@
 ---
-title: modern-homelab StackKit
+title: Modern Homelab Kit
 description: Multi-node hybrid Docker infrastructure for advanced homelabs with public access and VPN overlay
-sidebarTitle: modern-homelab
+sidebarTitle: Modern Homelab Kit
 icon: microchip
 ---
 
 
-The **modern-homelab** StackKit brings multi-node hybrid infrastructure to your homelab. Designed for advanced users who need public-facing services, cloud+local server setups, and full observability across nodes.
+The **Modern Homelab Kit** brings multi-node hybrid infrastructure to your homelab. Designed for advanced users who need public-facing services, cloud+local server setups, and full observability across nodes.
 
 <Warning>
-  **v1.1 Planned** -- This StackKit is designed and specified but not yet functional. Use [base-homelab](/stackkits/kits/base-homelab) for v1.0 deployments.
+  **v1.1 Planned** -- This StackKit is designed and specified but not yet functional. Use the [Base Kit](/stackkits/kits/base-homelab) for v1.0 deployments.
 </Warning>
 
 ## Overview
@@ -89,14 +89,14 @@ graph TB
 - SSH access to all nodes
 
 <Warning>
-  modern-homelab has higher complexity and resource requirements than base-homelab. If you only need a single local server, use [base-homelab](/stackkits/kits/base-homelab) instead.
+  The Modern Homelab Kit has higher complexity and resource requirements than the Base Kit. If you only need a single local server, use the [Base Kit](/stackkits/kits/base-homelab) instead.
 </Warning>
 
 ## Architecture deep dive
 
 ### Hybrid topology
 
-The modern-homelab connects cloud and local infrastructure using a VPN overlay:
+The Modern Homelab Kit connects cloud and local infrastructure using a VPN overlay:
 
 ```mermaid
 graph LR
@@ -354,7 +354,7 @@ observability:
 
 ### Coolify -- Multi-node PaaS
 
-Coolify manages deployments across your nodes. Unlike Dokploy (used in base-homelab for single nodes), Coolify provides:
+Coolify manages deployments across your nodes. Unlike Dokploy (used in the Base Kit for single nodes), Coolify provides:
 
 - Multi-node deployment via SSH
 - Git-based deployments (push to deploy)
@@ -443,7 +443,7 @@ The StackKit configures firewall rules automatically:
 
 ## Comparison with other StackKits
 
-| Feature | base-homelab | ha-homelab | modern-homelab |
+| Feature | Base Kit | High Availability Kit | Modern Homelab Kit |
 |---------|-------------|------------|----------------|
 | **Nodes** | 1 | 2+ (local) | 2+ (cloud + local) |
 | **Platform** | Docker + Dokploy | Docker Swarm | Docker + Coolify |
@@ -486,7 +486,7 @@ The StackKit configures firewall rules automatically:
   </Accordion>
 </AccordionGroup>
 
-## Migration from base-homelab
+## Migration from the Base Kit
 
 <Steps>
   <Step title="Backup all data">
@@ -498,7 +498,7 @@ The StackKit configures firewall rules automatically:
   <Step title="Provision cloud node">
     Add a cloud node to your `kombination.yaml` and provision it:
     ```yaml
-    stackkit: modern-homelab  # Changed from base-homelab
+    stackkit: modern-homelab  # Changed from Base Kit
 
     nodes:
       - name: cloud-entry

@@ -1,15 +1,15 @@
 ---
-title: base-homelab StackKit
+title: Base Kit
 description: The professional single-server homelab blueprint
-sidebarTitle: base-homelab
+sidebarTitle: Base Kit
 icon: house
 ---
 
 
-The **base-homelab** StackKit is designed for **professional single-server deployments**. It provides a carefully curated set of services that work well together out of the box, optimized for reliability and simplicity on a standalone node. This solution is built for both efficiency and complexity management on a single host, making it suitable for any skill level requiring a standalone architecture.
+The **Base Kit** is designed for **professional single-server deployments**. It provides a carefully curated set of services that work well together out of the box, optimized for reliability and simplicity on a standalone node. This solution is built for both efficiency and complexity management on a single host, making it suitable for any skill level requiring a standalone architecture.
 
 <Note>
-  base-homelab follows an IaC-first approach using OpenTofu for infrastructure provisioning and Docker Compose for service deployment.
+  The Base Kit follows an IaC-first approach using OpenTofu for infrastructure provisioning and Docker Compose for service deployment.
 </Note>
 
 ## Overview
@@ -319,7 +319,7 @@ services:
 
 ## Deployment modes
 
-base-homelab supports two deployment modes:
+The Base Kit supports two deployment modes:
 
 | Mode | Engine | When to use |
 |------|--------|-------------|
@@ -364,7 +364,7 @@ After `stackkit generate`:
 
 ## Constraints
 
-The base-homelab StackKit enforces these rules:
+The Base Kit enforces these rules:
 
 | Constraint | Value | Reason |
 |------------|-------|--------|
@@ -374,8 +374,8 @@ The base-homelab StackKit enforces these rules:
 
 <Warning>
   If you need more than 1 node, consider:
-  - [modern-homelab](/stackkits/kits/modern-homelab) — Multi-node with Headscale VPN
-  - [ha-homelab](/stackkits/kits/ha-homelab) — High-availability Docker Swarm cluster
+  - [Modern Homelab Kit](/stackkits/kits/modern-homelab) — Multi-node with Headscale VPN
+  - [High Availability Kit](/stackkits/kits/ha-homelab) — High-availability Docker Swarm cluster
 </Warning>
 
 ## Troubleshooting

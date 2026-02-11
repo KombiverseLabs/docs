@@ -48,9 +48,9 @@ graph TB
 
     subgraph StackKits["StackKits"]
         CUE["CUE Schemas"]
-        Base["base-homelab"]
-        HA["ha-homelab"]
-        Modern["modern-homelab"]
+        Base["Base Kit"]
+        HA["High Availability Kit"]
+        Modern["Modern Homelab Kit"]
     end
 
     subgraph Infra["Your Infrastructure"]
@@ -179,9 +179,9 @@ Pre-validated infrastructure blueprints.
 ```mermaid
 graph TB
     subgraph Layer3["Layer 3: StackKits"]
-        Base["base-homelab<br/><i>Single-node Docker</i>"]
-        HA["ha-homelab<br/><i>High availability</i>"]
-        Modern["modern-homelab<br/><i>Multi-node Docker + Coolify</i>"]
+        Base["Base Kit<br/><i>Single-node Docker</i>"]
+        HA["High Availability Kit<br/><i>High availability</i>"]
+        Modern["Modern Homelab Kit<br/><i>Multi-node Docker + Coolify</i>"]
     end
 
     subgraph Layer2["Layer 2: Platforms"]
