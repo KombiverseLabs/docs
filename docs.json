@@ -48,272 +48,279 @@
   ],
   "navigation": {
     "tabs": [
-    {
-      "tab": "Documentation",
-      "icon": "book-open",
-      "pages": [
-        {
-          "group": "Getting Started",
-          "icon": "play",
-          "pages": [
-            "introduction",
-            "quickstart",
-            "quickstart-selfhosted"
-          ]
-        },
-        {
-          "group": "Core Concepts",
-          "icon": "lightbulb",
-          "pages": [
-            "concepts/architecture",
-            "concepts/spec-driven",
-            "concepts/stackkits",
-            "concepts/simulation-first"
-          ]
-        },
-        {
-          "group": "Guides",
-          "icon": "book",
-          "pages": [
-            "guides/choosing-deployment",
-            {
-              "group": "Self-Hosting",
-              "icon": "server",
-              "pages": [
-                "guides/self-hosting/docker-compose",
-                "guides/self-hosting/configuration",
-                "guides/self-hosting/security"
-              ]
-            },
-            {
-              "group": "Authentication",
-              "icon": "key",
-              "pages": [
-                "guides/auth/overview",
-                "guides/auth/api-keys",
-                "guides/auth/sso-integration",
-                "guides/auth/zitadel-setup"
-              ]
-            },
-            "guides/deployment/production-checklist"
-          ]
-        },
-        {
-          "group": "Resources",
-          "icon": "folder-open",
-          "pages": [
-            "ecosystem",
-            "development",
-            "changelog",
-            "contributing",
-            "glossary",
-            "faq"
-          ]
-        },
-        {
-          "group": "Help & Support",
-          "icon": "circle-question",
-          "pages": [
-            "guides/troubleshooting-wizard",
-            "community"
-          ]
-        },
-        {
-          "group": "Comparisons",
-          "icon": "scale-balanced",
-          "pages": [
-            "comparisons/vs-portainer",
-            "comparisons/vs-proxmox"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "Stack",
-      "icon": "server",
-      "pages": [
-        {
-          "group": "Overview",
-          "icon": "circle-info",
-          "pages": [
-            "stack/overview",
-            "stack/quickstart",
-            "stack/architecture"
-          ]
-        },
-        {
-          "group": "Installation",
-          "icon": "download",
-          "pages": [
-            "stack/install/docker",
-            "stack/install/bare-metal"
-          ]
-        },
-        {
-          "group": "Configuration",
-          "icon": "gear",
-          "pages": [
-            "stack/configuration",
-            "stack/agents",
-            "stack/unifier"
-          ]
-        },
-        {
-          "group": "Operations",
-          "icon": "wrench",
-          "pages": [
-            "stack/operations/deployment",
-            "stack/operations/monitoring",
-            "stack/troubleshooting"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "Sim",
-      "icon": "flask",
-      "pages": [
-        {
-          "group": "Overview",
-          "icon": "circle-info",
-          "pages": [
-            "sim/overview",
-            "sim/quickstart"
-          ]
-        },
-        {
-          "group": "Installation",
-          "icon": "download",
-          "pages": [
-            "sim/install/docker",
-            "sim/install/docker-compose"
-          ]
-        },
-        {
-          "group": "Usage",
-          "icon": "play",
-          "pages": [
-            "sim/configuration",
-            "sim/templates",
-            "sim/ssh-access"
-          ]
-        },
-        {
-          "group": "Operations",
-          "icon": "wrench",
-          "pages": [
-            "sim/troubleshooting"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "StackKits",
-      "icon": "boxes-stacked",
-      "pages": [
-        {
-          "group": "Overview",
-          "icon": "circle-info",
-          "pages": [
-            "stackkits/overview",
-            "stackkits/quickstart"
-          ]
-        },
-        {
-          "group": "Available Kits",
-          "icon": "box",
-          "pages": [
-            "stackkits/kits/base-homelab",
-            "stackkits/kits/ha-homelab",
-            "stackkits/kits/modern-homelab"
-          ]
-        },
-        {
-          "group": "Customization",
-          "icon": "pen",
-          "pages": [
-            "stackkits/customization/cue-basics",
-            "stackkits/customization/creating-custom",
-            "stackkits/customization/contributing"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "Cloud",
-      "icon": "cloud",
-      "pages": [
-        {
-          "group": "Overview",
-          "icon": "circle-info",
-          "pages": [
-            "cloud/overview",
-            "cloud/getting-started"
-          ]
-        },
-        {
-          "group": "Features",
-          "icon": "star",
-          "pages": [
-            "cloud/dashboard",
-            "cloud/tool-launcher",
-            "cloud/team-management"
-          ]
-        },
-        {
-          "group": "Billing",
-          "icon": "credit-card",
-          "pages": [
-            "cloud/pricing",
-            "cloud/subscriptions",
-            "cloud/enterprise"
-          ]
-        }
-      ]
-    },
-    {
-      "tab": "API",
-      "icon": "code",
-      "pages": [
-        {
-          "group": "Getting Started",
-          "icon": "play",
-          "pages": [
-            "api/introduction",
-            "api/authentication"
-          ]
-        },
-        {
-          "group": "Stack API",
-          "icon": "server",
-          "pages": [
-            "api/stack/overview",
-            "api/stack/stacks",
-            "api/stack/nodes",
-            "api/stack/jobs"
-          ]
-        },
-        {
-          "group": "Sim API",
-          "icon": "flask",
-          "pages": [
-            "api/sim/overview",
-            "api/sim/simulations",
-            "api/sim/nodes",
-            "api/sim/templates"
-          ]
-        },
-        {
-          "group": "StackKits API",
-          "icon": "boxes-stacked",
-          "pages": [
-            "api/stackkits/overview",
-            "api/stackkits/validate",
-            "api/stackkits/generate"
-          ]
-        }
-      ]
-    }
+      {
+        "tab": "Overview",
+        "icon": "house",
+        "pages": [
+          {
+            "group": "Welcome",
+            "icon": "hand-wave",
+            "pages": [
+              "introduction",
+              "ecosystem",
+              "platform-urls",
+              "changelog"
+            ]
+          },
+          {
+            "group": "Why kombify?",
+            "icon": "lightbulb",
+            "pages": [
+              "overview/why-kombify",
+              "overview/use-cases",
+              "overview/how-it-works"
+            ]
+          },
+          {
+            "group": "Comparisons",
+            "icon": "scale-balanced",
+            "pages": [
+              "comparisons/vs-portainer",
+              "comparisons/vs-proxmox"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Guides",
+        "icon": "book",
+        "pages": [
+          {
+            "group": "Getting Started",
+            "icon": "play",
+            "pages": [
+              "quickstart",
+              "quickstart-selfhosted",
+              "guides/choosing-deployment"
+            ]
+          },
+          {
+            "group": "Using kombify Cloud",
+            "icon": "cloud",
+            "pages": [
+              "guides/cloud/getting-started",
+              "guides/cloud/dashboard",
+              "guides/cloud/tool-launcher",
+              "guides/cloud/team-management"
+            ]
+          },
+          {
+            "group": "Using kombify Stack",
+            "icon": "server",
+            "pages": [
+              "guides/stack/first-stack",
+              "guides/stack/configuration-wizard",
+              "guides/stack/managing-nodes"
+            ]
+          },
+          {
+            "group": "Using kombify Sim",
+            "icon": "flask",
+            "pages": [
+              "guides/sim/first-simulation",
+              "guides/sim/templates",
+              "guides/sim/ssh-access"
+            ]
+          },
+          {
+            "group": "Using StackKits",
+            "icon": "boxes-stacked",
+            "pages": [
+              "guides/stackkits/choosing-a-kit",
+              "guides/stackkits/architectures",
+              "guides/stackkits/customizing"
+            ]
+          },
+          {
+            "group": "Self-Hosting",
+            "icon": "server",
+            "pages": [
+              "guides/self-hosting/overview",
+              "guides/self-hosting/docker-compose",
+              "guides/self-hosting/kubernetes",
+              "guides/self-hosting/security"
+            ]
+          },
+          {
+            "group": "Integrations",
+            "icon": "plug",
+            "pages": [
+              "integrations/zitadel",
+              "integrations/proxmox",
+              "integrations/coolify"
+            ]
+          },
+          {
+            "group": "AI-Assisted Setup",
+            "icon": "robot",
+            "pages": [
+              "ai-tools/cursor",
+              "ai-tools/claude-code",
+              "ai-tools/windsurf"
+            ]
+          },
+          {
+            "group": "Help",
+            "icon": "circle-question",
+            "pages": [
+              "guides/troubleshooting-wizard",
+              "faq",
+              "glossary",
+              "community"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Stack",
+        "icon": "server",
+        "pages": [
+          {
+            "group": "Overview",
+            "icon": "circle-info",
+            "pages": [
+              "stack/overview",
+              "stack/quickstart"
+            ]
+          },
+          {
+            "group": "Installation",
+            "icon": "download",
+            "pages": [
+              "stack/install/docker",
+              "stack/install/bare-metal",
+              "stack/install/kubernetes"
+            ]
+          },
+          {
+            "group": "Concepts",
+            "icon": "lightbulb",
+            "pages": [
+              "concepts/hybrid-infrastructure",
+              "concepts/spec-driven",
+              "concepts/stackkits",
+              "concepts/simulation-first"
+            ]
+          },
+          {
+            "group": "Operations",
+            "icon": "wrench",
+            "pages": [
+              "stack/operations/deployment",
+              "stack/operations/monitoring",
+              "stack/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Sim",
+        "icon": "flask",
+        "pages": [
+          {
+            "group": "Overview",
+            "icon": "circle-info",
+            "pages": [
+              "sim/overview",
+              "sim/quickstart"
+            ]
+          },
+          {
+            "group": "Installation",
+            "icon": "download",
+            "pages": [
+              "sim/install/docker",
+              "sim/install/docker-compose"
+            ]
+          },
+          {
+            "group": "Usage",
+            "icon": "play",
+            "pages": [
+              "sim/templates",
+              "sim/ssh-access"
+            ]
+          },
+          {
+            "group": "Advanced",
+            "icon": "gear",
+            "pages": [
+              "sim/network-discovery"
+            ]
+          },
+          {
+            "group": "Operations",
+            "icon": "wrench",
+            "pages": [
+              "sim/troubleshooting"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "StackKits",
+        "icon": "boxes-stacked",
+        "pages": [
+          {
+            "group": "Overview",
+            "icon": "circle-info",
+            "pages": [
+              "stackkits/overview",
+              "stackkits/quickstart"
+            ]
+          },
+          {
+            "group": "Available Kits",
+            "icon": "box",
+            "pages": [
+              "stackkits/kits/base-homelab",
+              "stackkits/kits/ha-homelab",
+              "stackkits/kits/modern-homelab"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Cloud",
+        "icon": "cloud",
+        "pages": [
+          {
+            "group": "Overview",
+            "icon": "circle-info",
+            "pages": [
+              "cloud/overview",
+              "cloud/getting-started"
+            ]
+          },
+          {
+            "group": "Features",
+            "icon": "star",
+            "pages": [
+              "cloud/dashboard",
+              "cloud/tool-launcher",
+              "cloud/team-management"
+            ]
+          },
+          {
+            "group": "Authentication",
+            "icon": "key",
+            "pages": [
+              "guides/auth/overview",
+              "guides/auth/api-keys",
+              "guides/auth/sso-integration"
+            ]
+          },
+          {
+            "group": "Billing",
+            "icon": "credit-card",
+            "pages": [
+              "cloud/pricing",
+              "cloud/subscriptions",
+              "cloud/enterprise"
+            ]
+          }
+        ]
+      }
     ]
   },
   "footerSocials": {
@@ -326,5 +333,5 @@
     "suggestEdit": true,
     "raiseIssue": true
   },
-  "description": "explore the kombify tools"
+  "description": "The guided platform for modern self-hosted infrastructure"
 }

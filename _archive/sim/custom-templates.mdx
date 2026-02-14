@@ -1,0 +1,93 @@
+---
+title: "Custom simulation templates"
+description: "Create reusable simulation templates for your team"
+sidebarTitle: "Custom templates"
+---
+
+Custom templates let you define reusable simulation environments tailored to your infrastructure.
+
+## Template anatomy
+
+A simulation template is a YAML file that defines:
+
+```yaml
+# my-template.yaml
+name: "three-tier-app"
+description: "Web + API + Database simulation"
+version: "1.0"
+
+nodes:
+  - name: web
+    os: ubuntu-22.04
+    resources:
+      cpu: 1
+      memory: 1024
+    ports:
+      - 80:80
+      - 443:443
+
+  - name: api
+    os: ubuntu-22.04
+    resources:
+      cpu: 2
+      memory: 2048
+    ports:
+      - 8080:8080
+
+  - name: db
+    os: ubuntu-22.04
+    resources:
+      cpu: 2
+      memory: 4096
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+networks:
+  - name: frontend
+    nodes: [web, api]
+  - name: backend
+    nodes: [api, db]
+```
+
+## Template fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Unique identifier for the template |
+| `description` | No | Human-readable description |
+| `version` | No | Template version |
+| `nodes` | Yes | List of simulated nodes |
+| `nodes[].name` | Yes | Node identifier |
+| `nodes[].os` | Yes | Operating system image |
+| `nodes[].resources` | No | CPU and memory limits |
+| `nodes[].ports` | No | Port mappings (host:container) |
+| `nodes[].volumes` | No | Volume mounts |
+| `networks` | No | Custom network topology |
+
+## Using custom templates
+
+### Via the UI
+
+1. Go to **Simulations > Templates > Upload**
+2. Upload your template YAML
+3. Create a new simulation from the template
+
+### Via the API
+
+```bash
+curl -X POST https://simulate.kombify.io/api/v1/templates \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d @my-template.yaml
+```
+
+## Template best practices
+
+- **Name descriptively** — Use names like `three-tier-app` or `ha-cluster-test`, not `template1`
+- **Set resource limits** — Prevent simulations from consuming all host resources
+- **Define networks** — Isolate tiers like you would in production
+- **Version templates** — Track changes over time
+
+<Tip>
+  Templates can be shared across your organization in kombify Cloud. Self-hosted users can store templates in their Git repository.
+</Tip>

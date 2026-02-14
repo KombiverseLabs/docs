@@ -1,0 +1,77 @@
+---
+title: "Self-hosting configuration"
+description: "Complete environment variable reference for self-hosted kombify deployments"
+---
+
+All kombify tools are configured via environment variables. Set them in your `.env` file or pass them directly to Docker.
+
+## kombify Stack
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_PORT` | `5260` | API server port |
+| `KOMBISTACK_DATA_DIR` | `./data` | Data directory (contains SQLite DB) |
+| `KOMBISTACK_STATIC_DIR` | — | Path to built frontend assets |
+| `KOMBISTACK_ENGINE` | `container` | Node engine: `container`, `qemu`, `external` |
+| `KOMBISTACK_ENGINE_ENDPOINT` | — | Custom engine endpoint URL |
+| `KOMBISTACK_LOG_LEVEL` | `info` | Log level: `debug`, `info`, `warn`, `error` |
+
+### Authentication
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_AUTH_ENABLED` | `false` | Enable API authentication |
+| `KOMBISTACK_API_KEY` | — | API key for key-based auth |
+| `KOMBISTACK_BASIC_USER` | — | Basic auth username |
+| `KOMBISTACK_BASIC_PASS` | — | Basic auth password |
+
+### Rate limiting
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISTACK_RATELIMIT_ENABLED` | `false` | Enable rate limiting |
+| `KOMBISTACK_RATELIMIT_RPS` | `10` | Requests per second |
+| `KOMBISTACK_RATELIMIT_BURST` | `20` | Burst capacity |
+
+## kombify Sim
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `KOMBISIM_PORT` | `5270` | API server port |
+| `KOMBISIM_DATA_DIR` | `./data` | Data directory |
+| `KOMBISIM_DB_PATH` | `${DATA_DIR}/kombisim.db` | SQLite database path |
+| `KOMBISIM_STATIC_DIR` | — | Path to built frontend assets |
+| `KOMBISIM_ENGINE` | `docker` | Engine: `docker`, `incus`, `qemu`, `azure` |
+| `KOMBISIM_LOG_LEVEL` | `info` | Log level |
+| `KOMBISIM_AUTH_ENABLED` | `false` | Enable API authentication |
+| `KOMBISIM_AUDIT_ENABLED` | `false` | Enable audit logging |
+
+## Example `.env` file
+
+```env
+# Stack
+KOMBISTACK_PORT=5260
+KOMBISTACK_DATA_DIR=/opt/kombify/stack-data
+KOMBISTACK_AUTH_ENABLED=true
+KOMBISTACK_API_KEY=your-secret-key
+KOMBISTACK_LOG_LEVEL=info
+
+# Sim
+KOMBISIM_PORT=5270
+KOMBISIM_DATA_DIR=/opt/kombify/sim-data
+KOMBISIM_ENGINE=docker
+KOMBISIM_LOG_LEVEL=info
+```
+
+<Note>
+  When using Docker Compose, set variables in a `.env` file in the same directory as `docker-compose.yml`. Docker Compose loads it automatically.
+</Note>
+
+<CardGroup cols={2}>
+  <Card title="Docker Compose setup" icon="docker" href="/guides/self-hosting/docker-compose">
+    Get running with Docker Compose
+  </Card>
+  <Card title="Security hardening" icon="shield" href="/guides/self-hosting/security">
+    Secure your deployment
+  </Card>
+</CardGroup>

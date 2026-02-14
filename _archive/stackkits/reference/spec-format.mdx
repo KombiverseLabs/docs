@@ -1,0 +1,113 @@
+---
+title: "Spec format reference"
+description: "Complete reference for the kombination.yaml and stack-spec format"
+sidebarTitle: "Spec format"
+---
+
+The `kombination.yaml` is the declarative specification that defines your entire infrastructure. This page documents all fields and their valid values.
+
+## Top-level structure
+
+```yaml
+# kombination.yaml
+stackkit: base-homelab       # Required: which StackKit to use
+version: "1.0"               # Optional: spec version
+
+nodes:                       # Required: your servers
+  - name: main-server
+    type: local
+    connection:
+      host: 192.168.1.100
+      port: 22
+      user: root
+
+services:                    # Required: services to deploy
+  - traefik
+  - authelia
+  - immich
+
+addons: []                   # Optional: add-on modules
+
+overrides: {}                # Optional: service config overrides
+
+network:                     # Optional: network configuration
+  domain: home.lab
+  vpn:
+    enabled: false
+```
+
+## Node configuration
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Unique node identifier |
+| `type` | string | Yes | `local`, `cloud`, or `external` |
+| `connection.host` | string | Yes | IP address or hostname |
+| `connection.port` | integer | No | SSH port (default: 22) |
+| `connection.user` | string | No | SSH user (default: root) |
+| `resources.cpu` | integer | No | CPU cores to allocate |
+| `resources.memory` | integer | No | Memory in MB |
+| `resources.storage` | string | No | Storage capacity (e.g., "500GB") |
+| `labels` | map | No | Key-value labels for scheduling |
+
+## Service configuration
+
+Services can be specified as simple strings or detailed objects:
+
+```yaml
+# Simple form
+services:
+  - traefik
+  - immich
+
+# Detailed form
+services:
+  - name: traefik
+    node: main-server
+    config:
+      dashboard: true
+      log_level: info
+  - name: immich
+    node: main-server
+    config:
+      storage_path: /mnt/photos
+```
+
+## Network configuration
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `network.domain` | string | `home.lab` | Internal domain name |
+| `network.vpn.enabled` | boolean | `false` | Enable WireGuard VPN |
+| `network.vpn.subnet` | string | `10.10.0.0/24` | VPN subnet |
+| `network.dns.provider` | string | `internal` | DNS provider |
+| `network.tls.provider` | string | `letsencrypt` | TLS certificate provider |
+
+## Overrides
+
+Override default settings for any service:
+
+```yaml
+overrides:
+  traefik:
+    log_level: debug
+    dashboard: false
+  immich:
+    upload_limit: 10GB
+    machine_learning: true
+```
+
+## Validation
+
+The Unifier engine validates your spec against CUE schemas. Common validation errors:
+
+| Error | Cause | Fix |
+|-------|-------|-----|
+| `unknown service` | Service not in StackKit | Check available services for your kit |
+| `missing dependency` | Service requires another service | Add the required dependency |
+| `resource exceeded` | Node doesn't have enough resources | Increase resources or redistribute |
+| `invalid connection` | Can't reach node | Check IP, port, and credentials |
+
+<Note>
+  The full CUE schema for each StackKit is available in the [StackKits repository](https://github.com/kombify/stackkits).
+</Note>

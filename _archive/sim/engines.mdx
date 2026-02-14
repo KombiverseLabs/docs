@@ -1,0 +1,97 @@
+---
+title: "Simulation engines"
+description: "Deep dive into the simulation backends available in kombify Sim"
+sidebarTitle: "Engines"
+---
+
+kombify Sim supports multiple simulation engines, each with different capabilities and trade-offs.
+
+## Engine comparison
+
+| Engine | Isolation | Speed | GPU | Network | Best for |
+|--------|-----------|-------|-----|---------|----------|
+| **Docker** | Container | Fast | No | Bridge | Quick testing, CI/CD |
+| **Incus** | Container/VM | Fast | Yes | Full | Production-like testing |
+| **QEMU** | Full VM | Slow | Yes | Full | Hardware emulation |
+| **Azure** | Cloud VM | Medium | Yes | VNet | Cloud-based simulations |
+| **External** | Varies | Varies | Varies | Full | Custom backends |
+
+## Docker engine (default)
+
+The default engine. Creates lightweight containers that behave like servers.
+
+**Advantages:**
+- Fastest startup (seconds)
+- Lowest resource usage
+- Works on any Docker host
+- Best for rapid iteration
+
+**Limitations:**
+- Shared kernel (not full isolation)
+- No GPU passthrough
+- Limited network simulation
+
+**Configuration:**
+```yaml
+engine: docker
+```
+
+## Incus engine
+
+Uses Incus (successor to LXD) for container and VM-based simulations.
+
+**Advantages:**
+- Near-native performance
+- GPU passthrough support
+- Full network stack per node
+- Can run real VMs alongside containers
+
+**Limitations:**
+- Requires Incus installed on host
+- Linux only
+
+**Configuration:**
+```yaml
+engine: incus
+```
+
+## QEMU engine
+
+Full virtual machine emulation for maximum fidelity.
+
+**Advantages:**
+- Complete hardware emulation
+- Full OS isolation
+- Closest to production hardware
+- GPU passthrough via VFIO
+
+**Limitations:**
+- Slowest startup (minutes)
+- Highest resource usage
+- Requires KVM support
+
+**Configuration:**
+```yaml
+engine: qemu
+```
+
+## Choosing an engine
+
+<Steps>
+  <Step title="For quick testing">
+    Use **Docker**. It's the fastest and works everywhere.
+  </Step>
+  <Step title="For production validation">
+    Use **Incus** or **QEMU**. They provide closer-to-production fidelity.
+  </Step>
+  <Step title="For GPU workloads">
+    Use **Incus** (container mode with GPU passthrough) or **QEMU** (VFIO).
+  </Step>
+  <Step title="For CI/CD pipelines">
+    Use **Docker**. Lowest overhead, fastest feedback loop.
+  </Step>
+</Steps>
+
+<Note>
+  You can switch engines without changing your simulation spec. The engine is a runtime choice, not a configuration one.
+</Note>
