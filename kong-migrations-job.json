@@ -11,22 +11,22 @@
       "secrets": [
         {
           "name": "kong-pg-host",
-          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "identity": "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
           "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-host"
         },
         {
           "name": "kong-pg-user",
-          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "identity": "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
           "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-user"
         },
         {
           "name": "kong-pg-password",
-          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "identity": "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
           "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-password"
         },
         {
           "name": "kong-pg-database",
-          "identity": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
+          "identity": "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.ManagedIdentity/userAssignedIdentities/id-kong-kombify-prod",
           "keyVaultUrl": "https://kv-kombify-prod.vault.azure.net/secrets/kong-pg-database"
         }
       ]
@@ -54,7 +54,7 @@
         }
       ]
     },
-    "environmentId": "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod"
+    "environmentId": "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod"
   },
   "location": "West Europe"
 }

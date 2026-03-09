@@ -192,7 +192,7 @@ Multiple locations contain hardcoded Azure resource identifiers:
 az role assignment create \
   --role "Key Vault Secrets User" \
   --assignee $IDENTITY \
-  --scope "/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/..."
+  --scope "/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/..."
 ```
 
 **Files with hardcoded values:**

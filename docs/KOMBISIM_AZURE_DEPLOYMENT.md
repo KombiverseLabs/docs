@@ -189,10 +189,10 @@ For full simulation capabilities with real containers, consider:
 
 ```
 Container App:
-/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.App/containerapps/ca-kombify-sim-prod
+/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.App/containerapps/ca-kombify-sim-prod
 
 Container Environment:
-/subscriptions/5206295e-ad2e-4a42-960f-8632ef857314/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod
+/subscriptions/2d203945-8d20-44c6-82f4-7b9968bdc61e/resourceGroups/rg-kombify-prod/providers/Microsoft.App/managedEnvironments/cae-kombify-prod
 
 Managed Identity Principal ID:
 d8985c81-ce10-43ef-9732-cd1e28fcd8f9
