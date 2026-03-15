@@ -392,7 +392,7 @@ KombiSphere-Cloud/
 ## Related Documentation
 
 - [kombify Administration](../administration/ARCHITECTURE.md) - Admin Backend
-- [kombify API](../api-gateway/ARCHITECTURE.md) - API Gateway
+- [kombify Gateway](../api-gateway/ARCHITECTURE.md) - API Gateway
 - [Inter-Module Contracts](../../INTER_MODULE_CONTRACTS.md) - API Contracts
 
 ---

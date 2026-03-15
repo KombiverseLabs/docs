@@ -23,7 +23,7 @@ This page describes the **managed SaaS** infrastructure. For self-hosting, see [
          ▼                 ▼               ▼               ▼                 ▼
 ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐
 │  App Service    │ │ Container Apps  │ │ Container Apps  │ │ Container Apps  │
-│  kombify Portal │ │ kombify API GW  │ │ kombify Stack   │ │ kombify Sim     │
+│  kombify Portal │ │ kombify Gateway │ │ kombify Stack   │ │ kombify Sim     │
 │  (SvelteKit)    │ │ (Kong Gateway)  │ │ (Go + gRPC)     │ │ (Go + REST)     │
 │                 │ │                 │ │                 │ │                 │
 │ app.kombify.io  │ │ api.kombify.io  │ │stack.kombify.io │ │ sim.kombify.io  │
@@ -37,7 +37,7 @@ This page describes the **managed SaaS** infrastructure. For self-hosting, see [
     SvelteKit web application serving the user dashboard at `app.kombify.io`.
     Handles authentication, billing, and tool orchestration.
   </Card>
-  <Card title="kombify API Gateway" icon="code" href="/api/introduction">
+  <Card title="kombify Gateway" icon="code" href="/api/introduction">
     Kong-based API gateway providing unified access to all microservices 
     at `api.kombify.io`. Handles authentication, rate limiting, and routing.
   </Card>

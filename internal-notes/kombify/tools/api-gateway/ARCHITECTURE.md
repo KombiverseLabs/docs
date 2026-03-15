@@ -1,4 +1,4 @@
-# kombify API Gateway - Technical Architecture
+# kombify Gateway - Technical Architecture
 
 > **Version:** 3.9.x  
 > **Last Updated:** 2026-01-23  
@@ -11,7 +11,7 @@
 
 | Attribute | Value |
 |-----------|-------|
-| **Product Name** | kombify API |
+| **Product Name** | kombify Gateway |
 | **Role** | Central API Gateway |
 | **Primary Users** | All kombify services, External API consumers |
 | **Tech Stack** | Kong Gateway 3.9+, Lua, Docker |
@@ -20,7 +20,7 @@
 
 ## Overview
 
-**kombify API** ist der zentrale API Gateway des kombify-Ökosystems — verantwortlich für Request-Routing, Authentifizierung, Rate Limiting und API-Versionierung.
+**kombify Gateway** ist das zentrale Auth- und API-Gateway des kombify-Ökosystems — verantwortlich fuer Request-Routing, Authentifizierung, Rate Limiting und API-Versionierung.
 
 ### Core Capabilities
 

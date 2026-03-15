@@ -232,7 +232,7 @@
 
 ---
 
-### KombiSphere-API (kombify API) - Gateway
+### KombiSphere-API (kombify Gateway)
 
 #### Security & Authentication
 

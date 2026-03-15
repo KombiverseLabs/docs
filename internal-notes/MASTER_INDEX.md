@@ -28,7 +28,7 @@ kombify (Dachmarke)
 ├── kombify StackKits  → Declarative IaC Blueprints
 ├── kombify Sphere     → User Portal & SaaS Platform
 ├── kombify Administration → Admin Center & Tools Catalog
-└── kombify API        → Central API Gateway
+└── kombify Gateway    → Central API Gateway
 ```
 
 ### Repository Mapping
@@ -40,7 +40,7 @@ kombify (Dachmarke)
 | **kombify StackKits** | StackKits | MIT | CUE, OpenTofu, Go |
 | **kombify Sphere** | KombiSphere-Cloud | Proprietary | SvelteKit, Prisma, Stripe |
 | **kombify Administration** | KombiSphere-Admin | BSL-1.1 | Go, PocketBase, SvelteKit |
-| **kombify API** | KombiSphere-API | MIT | Kong Gateway |
+| **kombify Gateway** | KombiSphere-API | MIT | Kong Gateway |
 
 ---
 
@@ -82,7 +82,7 @@ kombify/
 │   │   ├── API_REFERENCE.md
 │   │   └── TOOLS_CATALOG.md
 │   │
-│   └── api-gateway/            # kombify API
+│   └── api-gateway/            # kombify Gateway
 │       ├── ARCHITECTURE.md
 │       ├── ROUTES.md
 │       └── AUTHENTICATION.md
@@ -187,7 +187,7 @@ Siehe **[MINTLIFY_STRUCTURE.md](MINTLIFY_STRUCTURE.md)** für die vollständige 
 - [kombify StackKits](kombify/tools/stackkits/ARCHITECTURE.md) ✅
 - [kombify Sphere](kombify/tools/sphere/ARCHITECTURE.md) ✅
 - [kombify Administration](kombify/tools/administration/ARCHITECTURE.md) ✅
-- [kombify API](kombify/tools/api-gateway/ARCHITECTURE.md) ✅
+- [kombify Gateway](kombify/tools/api-gateway/ARCHITECTURE.md) ✅
 
 ### Marketing & Einführung
 - [Product Philosophy](marketing/PHILOSOPHY.md) ✅

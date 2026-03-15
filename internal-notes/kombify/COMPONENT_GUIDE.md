@@ -13,7 +13,7 @@
 3. [StackKits](#3-stackkits)
 4. [KombiSphere-Cloud (kombifySphere Cloud)](#4-kombisphere-cloud)
 5. [KombiSphere-Admin (kombify Administration)](#5-kombisphere-admin)
-6. [KombiSphere-API (kombify API)](#6-kombisphere-api)
+6. [KombiSphere-API (kombify Gateway)](#6-kombisphere-api)
 7. [Component Interaction Matrix](#7-component-interaction-matrix)
 
 ---
@@ -433,7 +433,7 @@ github.com/steebchen/prisma-client-go  // Prisma client
 
 ### Overview
 
-**KombiSphere-API** (kombify API) is the **Central API Gateway** — Kong-based routing, authentication, and rate limiting for all services.
+**KombiSphere-API** (kombify Gateway) is the **Central API Gateway** — Kong-based routing, authentication, and rate limiting for all services.
 
 ### Key Capabilities
 

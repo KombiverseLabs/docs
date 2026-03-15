@@ -159,7 +159,7 @@ const ENDPOINTS = {
 
 ---
 
-### 5. kombify API Gateway (Kong)
+### 5. kombify Gateway (Kong)
 
 **Status:** 🔴 **Architecture Mismatch**
 

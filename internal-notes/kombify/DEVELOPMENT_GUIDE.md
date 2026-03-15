@@ -14,7 +14,7 @@
 |--------|---------|------------|----------|------|
 | **kombifySphere Cloud** | User portal, billing | SvelteKit, Prisma | PostgreSQL | 3000 |
 | **kombify Administration** | Platform backend, tools, flags, user admin | Go | PostgreSQL (shared from Cloud) | 8090 |
-| **kombify API** | Gateway, routing | Kong 3.9 | None | 8000/8443 |
+| **kombify Gateway** | Gateway, routing | Kong 3.9 | None | 8000/8443 |
 | **kombify Stack** | Orchestration (homelab) | Go + PocketBase | Embedded SQLite | 8080/50051 |
 | **kombify Sim** | Simulation | TBD | TBD | 8081 |
 | **kombify StackKits** | IaC templates | CUE (separate repo) | Git/Registry | n/a |

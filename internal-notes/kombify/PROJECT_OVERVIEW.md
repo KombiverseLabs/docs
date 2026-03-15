@@ -38,7 +38,7 @@ This documentation uses **product-facing names** while keeping **repository/tech
 | **kombify stackKits** | `StackKits` | Declarative IaC Blueprints |
 | **kombify Sphere** | `KombiSphere-Cloud` | User Portal & Billing |
 | **kombify Administration** | `KombiSphere-Admin` | Administration Center |
-| **kombify API** | `KombiSphere-API` | API Gateway |
+| **kombify Gateway** | `KombiSphere-API` | API Gateway |
 
 ### Repositories
 
@@ -49,7 +49,7 @@ This documentation uses **product-facing names** while keeping **repository/tech
 | **kombify StackKits** | **StackKits** | MIT | CUE, OpenTofu, Go |
 | **kombifySphere Cloud** | **KombiSphere-Cloud** | Proprietary | SvelteKit, Prisma, Stripe |
 | **kombify Administration** | **KombiSphere-Admin** | BSL-1.1 | Go, PocketBase, SvelteKit |
-| **kombify API** | **KombiSphere-API** | MIT | Kong, Docker |
+| **kombify Gateway** | **KombiSphere-API** | MIT | Kong, Docker |
 
 ### Architecture Tiers
 

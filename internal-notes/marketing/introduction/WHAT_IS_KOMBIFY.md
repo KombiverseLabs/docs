@@ -135,9 +135,9 @@
 
 ---
 
-### 🔌 kombify API
+### 🔌 kombify Gateway
 
-**Was es ist:** Das API-Gateway der Plattform.
+**Was es ist:** Das zentrale Auth- und API-Gateway der Plattform.
 
 **Was es macht:**
 - Authentifizierung (JWT via Zitadel)

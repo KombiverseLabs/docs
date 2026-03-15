@@ -64,7 +64,7 @@ kombify befähigt Entwickler und Homelab-Enthusiasten:
 | **StackKits** | kombify StackKits | StackKits | Declarative IaC Blueprints | MIT |
 | **Sphere** | kombify Sphere | KombiSphere-Cloud | User Portal & Billing | Proprietary |
 | **Administration** | kombify Administration | KombiSphere-Admin | Admin Center & Tools Catalog | BSL-1.1 |
-| **API** | kombify API | KombiSphere-API | Central API Gateway | MIT |
+| **API** | kombify Gateway | KombiSphere-API | Central API Gateway | MIT |
 
 ---
 
@@ -128,7 +128,7 @@ kombify befähigt Entwickler und Homelab-Enthusiasten:
 |---------|--------|---------|
 | **kombify Sphere** | app.kombisphere.io | User portal |
 | **kombify Administration** | admin.kombisphere.io | Admin portal |
-| **kombify API** | api.kombisphere.io | API gateway |
+| **kombify Gateway** | api.kombisphere.io | API gateway |
 | **Authentication** | auth.kombisphere.io | Zitadel SSO |
 | **Documentation** | docs.kombisphere.io | Mintlify docs |
 

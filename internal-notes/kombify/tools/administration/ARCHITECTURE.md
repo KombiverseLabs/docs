@@ -374,7 +374,7 @@ Diese Endpoints sind nur für interne Service-to-Service-Kommunikation.
 ## Related Documentation
 
 - [kombify Sphere](../sphere/ARCHITECTURE.md) - User Portal
-- [kombify API](../api-gateway/ARCHITECTURE.md) - API Gateway
+- [kombify Gateway](../api-gateway/ARCHITECTURE.md) - API Gateway
 - [Inter-Module Contracts](../../INTER_MODULE_CONTRACTS.md) - API Contracts
 
 ---
