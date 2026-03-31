@@ -134,7 +134,7 @@
         ]
       },
       {
-        "tab": "Stack",
+        "tab": "TechStack",
         "icon": "server",
         "pages": [
           {
@@ -155,18 +155,31 @@
             ]
           },
           {
-            "group": "Operations",
-            "icon": "wrench",
+            "group": "How-To",
+            "icon": "book-open",
             "pages": [
-              "stack/operations/deployment",
-              "stack/operations/monitoring",
-              "stack/troubleshooting"
+              "stack/how-to/deploying"
+            ]
+          },
+          {
+            "group": "Explanations",
+            "icon": "lightbulb",
+            "pages": [
+              "stack/explanations/architecture"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-bookmark",
+            "pages": [
+              "stack/reference/monitoring",
+              "stack/reference/troubleshooting"
             ]
           }
         ]
       },
       {
-        "tab": "Sim",
+        "tab": "Simulate",
         "icon": "flask",
         "pages": [
           {
@@ -186,18 +199,25 @@
             ]
           },
           {
-            "group": "Usage",
-            "icon": "play",
+            "group": "How-To",
+            "icon": "book-open",
             "pages": [
-              "sim/templates",
-              "sim/ssh-access"
+              "sim/how-to/templates",
+              "sim/how-to/ssh-access"
             ]
           },
           {
-            "group": "Operations",
-            "icon": "wrench",
+            "group": "Explanations",
+            "icon": "lightbulb",
             "pages": [
-              "sim/troubleshooting"
+              "sim/explanations/simulation-engines"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-bookmark",
+            "pages": [
+              "sim/reference/troubleshooting"
             ]
           }
         ]
@@ -229,6 +249,20 @@
             "pages": [
               "guides/stackkits/choosing-a-kit"
             ]
+          },
+          {
+            "group": "Explanations",
+            "icon": "lightbulb",
+            "pages": [
+              "stackkits/explanations/cue-architecture"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-bookmark",
+            "pages": [
+              "stackkits/reference/spec-format"
+            ]
           }
         ]
       },
@@ -245,8 +279,8 @@
             ]
           },
           {
-            "group": "Features",
-            "icon": "star",
+            "group": "How-To",
+            "icon": "book-open",
             "pages": [
               "cloud/dashboard",
               "cloud/tool-launcher",
@@ -254,12 +288,55 @@
             ]
           },
           {
-            "group": "Billing",
-            "icon": "credit-card",
+            "group": "Reference",
+            "icon": "book-bookmark",
             "pages": [
               "cloud/pricing",
               "cloud/subscriptions",
               "cloud/enterprise"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "AI",
+        "icon": "brain",
+        "pages": [
+          {
+            "group": "Overview",
+            "icon": "circle-info",
+            "pages": [
+              "ai/overview",
+              "ai/quickstart"
+            ]
+          },
+          {
+            "group": "How-To",
+            "icon": "book-open",
+            "pages": [
+              "ai/how-to/chat",
+              "ai/how-to/companions",
+              "ai/how-to/guard",
+              "ai/how-to/byok",
+              "ai/how-to/voice"
+            ]
+          },
+          {
+            "group": "Explanations",
+            "icon": "lightbulb",
+            "pages": [
+              "ai/explanations/architecture",
+              "ai/explanations/trust-model",
+              "ai/explanations/memory-system"
+            ]
+          },
+          {
+            "group": "Reference",
+            "icon": "book-bookmark",
+            "pages": [
+              "ai/reference/models",
+              "ai/reference/configuration",
+              "ai/reference/api"
             ]
           }
         ]
@@ -291,7 +368,7 @@
         "icon": "code",
         "pages": [
           {
-            "group": "kombify Stack",
+            "group": "kombify TechStack",
             "icon": "server",
             "pages": [
               "api/kombistack/overview",
@@ -301,7 +378,7 @@
             ]
           },
           {
-            "group": "kombify Sim",
+            "group": "kombify Simulate",
             "icon": "flask",
             "pages": [
               "api/kombisim/overview",

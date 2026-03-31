@@ -1,23 +1,23 @@
 ---
-title: kombify Sim
+title: kombify Simulate
 description: Test your homelab safely before deploying
 sidebarTitle: Overview
 icon: flask-vial
 ---
 
-**kombify Sim** lets you test your homelab configuration in a safe sandbox. Make mistakes, break things, learn — without risking your real servers.
+**kombify Simulate** lets you test your homelab configuration in a safe sandbox. Make mistakes, break things, learn — without risking your real servers.
 
 ## The simple version
 
-<Card title="What is Sim?" icon="lightbulb">
-  Sim creates virtual servers on your computer using Docker. These virtual servers look and act like real servers — you can SSH into them, install software, and test your entire homelab setup. When something breaks, just delete it and start over in seconds.
+<Card title="What is Simulate?" icon="lightbulb">
+  kombify Simulate creates virtual servers on your computer using Docker. These virtual servers look and act like real servers — you can SSH into them, install software, and test your entire homelab setup. When something breaks, just delete it and start over in seconds.
 </Card>
 
-## Why use Sim?
+## Why use Simulate?
 
 ```mermaid
 flowchart LR
-    subgraph Without["Without Sim ❌"]
+    subgraph Without["Without Simulate ❌"]
         direction TB
         W1["💡 Have an idea"]
         W2["🖥️ Deploy to server"]
@@ -28,7 +28,7 @@ flowchart LR
         W1 --> W2 --> W3 --> W4 --> W5
     end
     
-    subgraph With["With Sim ✅"]
+    subgraph With["With Simulate ✅"]
         direction TB
         S1["💡 Have an idea"]
         S2["🧪 Test in Sim"]
@@ -43,7 +43,7 @@ flowchart LR
 ```
 
 <Accordion title="🔧 Technical details" icon="code">
-  Sim uses Docker containers with full init systems (systemd/OpenRC) to simulate real Linux servers. Each simulated node:
+  kombify Simulate uses Docker containers with full init systems (systemd/OpenRC) to simulate real Linux servers. Each simulated node:
   - Runs a complete Linux distribution (Ubuntu, Debian, Rocky, Alpine)
   - Has its own SSH server accessible on unique ports (2222-2322)
   - Can be networked together in custom topologies
@@ -80,7 +80,7 @@ flowchart TB
         API["🔌 API"]
     end
     
-    subgraph Sim["🧪 Sim Engine"]
+    subgraph Sim["🧪 Simulate Engine"]
         Controller["Controller"]
         NodeMgr["Node Manager"]
         NetMgr["Network Manager"]
@@ -105,8 +105,8 @@ flowchart TB
 ```
 
 <Steps>
-  <Step title="Start Sim" icon="play">
-    Run Sim via Docker — it needs access to Docker socket to create containers
+  <Step title="Start Simulate" icon="play">
+    Run kombify Simulate via Docker — it needs access to Docker socket to create containers
   </Step>
   <Step title="Create simulation" icon="plus">
     Name your simulation and choose which nodes you want
@@ -125,7 +125,7 @@ flowchart TB
 ## Quick Start
 
 <Steps>
-  <Step title="Start Sim">
+  <Step title="Start Simulate">
     ```bash
     docker run -d \
       -p 5270:5270 \
@@ -184,7 +184,7 @@ graph TB
         SSH["SSH Client"]
     end
     
-    subgraph SimContainer["Sim Container"]
+    subgraph SimContainer["Simulate Container"]
         WebUI["Web UI<br/>:5271"]
         API["REST API<br/>:5270"]
         Engine["Node Engine"]
@@ -417,7 +417,7 @@ graph TB
   </Accordion>
   
   <Accordion title="Test failure scenarios">
-    Sim lets you safely test failures:
+    kombify Simulate lets you safely test failures:
     
     ```bash
     # Stop a node to test failover

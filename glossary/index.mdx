@@ -16,7 +16,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Agent">
-    A lightweight daemon that runs on each managed node. Agents communicate with kombify Stack over gRPC using mTLS encryption, reporting node status and executing deployment commands.
+    A lightweight daemon that runs on each managed node. Agents communicate with kombify TechStack over gRPC using mTLS encryption, reporting node status and executing deployment commands.
     
     **Related:** [Node Agents](/stack/agents), [mTLS](#m)
   </Accordion>
@@ -52,7 +52,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Control Plane">
-    The central management layer (kombify Stack) that orchestrates all infrastructure operations. It validates configurations, manages state, and coordinates deployments across nodes.
+    The central management layer (kombify TechStack) that orchestrates all infrastructure operations. It validates configurations, manages state, and coordinates deployments across nodes.
   </Accordion>
   
   <Accordion title="CUE">
@@ -81,7 +81,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   </Accordion>
   
   <Accordion title="Docker Compose">
-    A tool for defining multi-container Docker applications. kombify Sim uses Docker Compose for container-based simulations.
+    A tool for defining multi-container Docker applications. kombify Simulate uses Docker Compose for container-based simulations.
     
     **Related:** [Sim Installation](/sim/install/docker-compose)
   </Accordion>
@@ -97,7 +97,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   </Accordion>
   
   <Accordion title="Engine">
-    The backend system in kombify Sim that creates virtual environments. Available engines include Docker, QEMU, and external providers.
+    The backend system in kombify Simulate that creates virtual environments. Available engines include Docker, QEMU, and external providers.
     
     **Related:** [Sim Configuration](/sim/configuration)
   </Accordion>
@@ -145,7 +145,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Job">
-    An async unit of work executed by kombify Stack, such as provisioning nodes, applying configurations, or running health checks. Jobs are queued and executed with retry logic.
+    An async unit of work executed by kombify TechStack, such as provisioning nodes, applying configurations, or running health checks. Jobs are queued and executed with retry logic.
   </Accordion>
 </AccordionGroup>
 
@@ -167,8 +167,8 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
     ```
   </Accordion>
   
-  <Accordion title="kombify Sim">
-    The simulation engine that creates realistic virtual environments for testing configurations before deploying to real hardware. Sim supports Docker, QEMU, and external backends.
+  <Accordion title="kombify Simulate">
+    The simulation engine that creates realistic virtual environments for testing configurations before deploying to real hardware. Simulate supports Docker, QEMU, and external backends.
     
     **Related:** [Sim Overview](/sim/overview)
   </Accordion>
@@ -179,7 +179,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
     **Related:** [Cloud Overview](/cloud/overview)
   </Accordion>
   
-  <Accordion title="kombify Stack">
+  <Accordion title="kombify TechStack">
     The core orchestration engine that validates configurations, manages infrastructure state, and coordinates deployments using the Unifier and OpenTofu.
     
     **Related:** [Stack Overview](/stack/overview)
@@ -210,7 +210,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="OpenTofu">
-    An open-source Infrastructure as Code tool (fork of Terraform) used by kombify Stack to provision and manage infrastructure resources.
+    An open-source Infrastructure as Code tool (fork of Terraform) used by kombify TechStack to provision and manage infrastructure resources.
   </Accordion>
 </AccordionGroup>
 
@@ -222,7 +222,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   </Accordion>
   
   <Accordion title="PocketBase">
-    The embedded database used by kombify Stack for storing configuration, state, and operational data.
+    The embedded database used by kombify TechStack for storing configuration, state, and operational data.
   </Accordion>
 </AccordionGroup>
 
@@ -230,7 +230,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Simulation">
-    A virtual environment created by kombify Sim that mimics real infrastructure for testing. Simulations can use Docker containers or QEMU VMs.
+    A virtual environment created by kombify Simulate that mimics real infrastructure for testing. Simulations can use Docker containers or QEMU VMs.
   </Accordion>
   
   <Accordion title="Spec-Driven">
@@ -255,7 +255,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Template">
-    A pre-configured VM or container image used by kombify Sim to create simulation nodes quickly.
+    A pre-configured VM or container image used by kombify Simulate to create simulation nodes quickly.
   </Accordion>
 </AccordionGroup>
 
@@ -263,7 +263,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
 
 <AccordionGroup>
   <Accordion title="Unifier">
-    The validation and resolution engine in kombify Stack that processes `kombination.yaml`, applies StackKit rules, resolves dependencies, and generates deployment plans.
+    The validation and resolution engine in kombify TechStack that processes `kombination.yaml`, applies StackKit rules, resolves dependencies, and generates deployment plans.
     
     **Related:** [Unifier Engine](/stack/unifier)
   </Accordion>

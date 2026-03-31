@@ -1,11 +1,11 @@
 ---
-title: kombify Stack
+title: kombify TechStack
 description: The brain of your homelab — orchestration made simple
 sidebarTitle: Overview
 icon: server
 ---
 
-**kombify Stack** is your homelab's control center. Tell it what you want, and it figures out how to make it happen — from a single server to a multi-node cluster.
+**kombify TechStack** is your homelab's control center. Tell it what you want, and it figures out how to make it happen — from a single server to a multi-node cluster.
 
 ## The simple version
 
@@ -31,7 +31,7 @@ Stack transforms this into hundreds of lines of configuration and deploys it to 
   - Deploys via mTLS-secured gRPC agents on your nodes
   - Continuously monitors for drift between desired and actual state
   
-  **Tech stack:** Go 1.24+, PocketBase (SQLite), OpenTofu, CUE, gRPC with mTLS
+  **Tech stack:** Go 1.25+, PocketBase (SQLite), OpenTofu, CUE, gRPC with mTLS
 </Accordion>
 
 ## Key features
@@ -59,7 +59,7 @@ flowchart LR
         YAML["<b>kombination.yaml</b><br/>Your wishlist"]
     end
 
-    subgraph Stack["⚙️ kombify Stack"]
+    subgraph Stack["⚙️ kombify TechStack"]
         direction TB
         Wizard["Wizard<br/><i>or manual edit</i>"]
         Validate["Validate<br/><i>against rules</i>"]
@@ -108,7 +108,7 @@ flowchart TB
         YAML["kombination.yaml"]
     end
 
-    subgraph Core["kombify Stack Core"]
+    subgraph Core["kombify TechStack Core"]
         API["REST API<br/><small>Port 5260</small>"]
         
         subgraph Unifier["Unifier Engine"]
@@ -169,7 +169,7 @@ graph TB
         Dev["👤 Developer"]
     end
 
-    subgraph Stack["kombify Stack"]
+    subgraph Stack["kombify TechStack"]
         Dashboard["🖥️ Dashboard<br/><small>SvelteKit</small>"]
         API["🔌 API<br/><small>Go + PocketBase</small>"]
         Agents["🤖 Agents<br/><small>Go + gRPC</small>"]
@@ -203,7 +203,7 @@ graph TB
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Backend** | Go 1.24+ | Core services, agents, CLI |
+| **Backend** | Go 1.25+ | Core services, agents, CLI |
 | **Frontend** | SvelteKit 2.x | Modern reactive dashboard |
 | **Database** | PocketBase (SQLite) | Embedded state management |
 | **IaC Engine** | OpenTofu 1.6+ | Infrastructure provisioning |
@@ -237,19 +237,19 @@ flowchart LR
     style Infra fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-Stack never modifies your configuration file. All transformations create separate artifacts that you can inspect.
+kombify TechStack never modifies your configuration file. All transformations create separate artifacts that you can inspect.
 
 ### 2. One Stack = one homelab
 
 <Note>
-  A single kombify Stack instance manages one homelab. That homelab can include multiple physical servers (nodes), but they belong to one logical unit.
+  A single kombify TechStack instance manages one homelab. That homelab can include multiple physical servers (nodes), but they belong to one logical unit.
 </Note>
 
 Need multiple homelabs? Use [kombify Cloud](/cloud/overview) to manage several Stack instances from one dashboard.
 
 ### 3. Brownfield-friendly
 
-Already have servers running? Stack doesn't force you to start from scratch:
+Already have servers running? kombify TechStack doesn't force you to start from scratch:
 
 ```mermaid
 flowchart LR

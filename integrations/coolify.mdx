@@ -1,10 +1,10 @@
 ---
 title: Coolify integration
-description: Deploy kombify Stack using Coolify
+description: Deploy kombify TechStack using Coolify
 ---
 
 
-Deploy and manage kombify Stack using Coolify, the self-hostable Heroku/Netlify alternative.
+Deploy and manage kombify TechStack using Coolify, the self-hostable Heroku/Netlify alternative.
 
 ## Overview
 
@@ -14,7 +14,7 @@ Deploy and manage kombify Stack using Coolify, the self-hostable Heroku/Netlify 
 - Git integration
 - Built-in monitoring
 
-You can use Coolify to deploy kombify Stack alongside your other services.
+You can use Coolify to deploy kombify TechStack alongside your other services.
 
 ## Prerequisites
 
@@ -41,7 +41,7 @@ You can use Coolify to deploy kombify Stack alongside your other services.
   <Step title="Configure source">
     - **Name:** `kombify-stack`
     - **Source:** GitHub repository
-    - **Repository:** `https://github.com/soulcreek/KombiStack`
+    - **Repository:** `https://github.com/kombify/techstack`
     - **Branch:** `main`
   </Step>
 
@@ -78,7 +78,7 @@ You can use Coolify to deploy kombify Stack alongside your other services.
   </Step>
 
   <Step title="Configure image">
-    - **Image:** `ghcr.io/soulcreek/kombistack:latest`
+    - **Image:** `ghcr.io/kombify/kombistack:latest`
     - **Port:** `5260`
   </Step>
 
@@ -111,18 +111,18 @@ You can use Coolify to deploy kombify Stack alongside your other services.
   </Step>
 </Steps>
 
-## Deploy kombify Sim alongside Stack
+## Deploy kombify Simulate alongside TechStack
 
 <Steps>
   <Step title="Create new Docker Compose resource">
     - **Name:** `kombify-sim`
-    - **Repository:** `https://github.com/soulcreek/KombiSim`
+    - **Repository:** `https://github.com/kombify/simulate`
   </Step>
 
   <Step title="Configure ports">
     Expose these ports:
-    - `5270` — Sim API
-    - `5271` — Sim UI
+    - `5270` — Simulate API
+    - `5271` — Simulate UI
     - `2222-2322` — SSH for simulated nodes
   </Step>
 
@@ -135,7 +135,7 @@ You can use Coolify to deploy kombify Stack alongside your other services.
   </Step>
 
   <Step title="Deploy">
-    Both Stack and Sim will be running on the same server.
+    Both TechStack and Simulate will be running on the same server.
   </Step>
 </Steps>
 
@@ -187,7 +187,7 @@ docker run --rm \
   alpine tar xzf /backup/kombistack-backup.tar.gz -C /
 ```
 
-## Update kombify Stack
+## Update kombify TechStack
 
 <Steps>
   <Step title="Pull latest changes">
@@ -241,7 +241,7 @@ Deploy all kombify components with Coolify:
 ```yaml docker-compose.yml
 services:
   kombistack:
-    image: ghcr.io/soulcreek/kombistack:latest
+    image: ghcr.io/kombify/kombistack:latest
     ports:
       - "5260:5260"
       - "5263:5263"
@@ -249,7 +249,7 @@ services:
       - stack-data:/app/data
 
   kombisim:
-    image: ghcr.io/soulcreek/kombisim:latest
+    image: ghcr.io/kombify/kombisim:latest
     ports:
       - "5270:5270"
       - "2222-2322:2222-2322"
@@ -282,7 +282,7 @@ volumes:
     Set up SSO with Zitadel
   </Card>
   <Card title="Quick start" icon="rocket" href="/quickstart-selfhosted">
-    Self-host kombify Stack
+    Self-host kombify TechStack
   </Card>
   <Card title="Architecture" icon="sitemap" href="/concepts/architecture">
     Understand kombify architecture

@@ -36,7 +36,7 @@ flowchart LR
 
 1. **Intent capture** — You describe your goal (e.g., "Secure photo cloud for my family")
 2. **Spec generation** — A wizard creates a versioned `kombination.yaml` specification file
-3. **Simulation** — kombify Sim tests your configuration before touching real hardware
+3. **Simulation** — kombify Simulate tests your configuration before touching real hardware
 4. **Rollout** — Validated blueprints (StackKits) are deployed to your infrastructure
 5. **Operation** — Continuous drift detection keeps your system aligned with its desired state
 
@@ -79,23 +79,26 @@ kombify follows the **Glass Box** principle: maximum guidance for beginners, ful
     **New to homelabs?** Start with the Easy Wizard — answer a few questions and get a working setup in minutes
   </Card>
   <Card title="I have existing infrastructure" icon="server" href="/stack/overview">
-    **Already running servers?** Use kombify Stack to bring structure to your existing setup without destroying it
+    **Already running servers?** Use kombify TechStack to bring structure to your existing setup without destroying it
   </Card>
   <Card title="I want to test first" icon="flask" href="/sim/overview">
-    **Prefer to experiment?** Use kombify Sim to simulate configurations in Docker before committing to real hardware
+    **Prefer to experiment?** Use kombify Simulate to simulate configurations in Docker before committing to real hardware
   </Card>
   <Card title="I need team features" icon="users" href="/cloud/overview">
     **Working with a team?** Use kombify Cloud for SSO, billing, and collaboration features
+  </Card>
+  <Card title="I want intelligent automation" icon="brain" href="/ai/overview">
+    **Want AI-powered ops?** Use kombify AI for conversational assistants and 24/7 autonomous monitoring
   </Card>
 </Columns>
 
 ## Core tools
 
 <CardGroup cols={2}>
-  <Card title="kombify Stack" icon="server" href="/stack/overview">
+  <Card title="kombify TechStack" icon="server" href="/stack/overview">
     **Orchestration engine** — The control plane for your homelab. Translates your intent into validated plans and operates your infrastructure.
   </Card>
-  <Card title="kombify Sim" icon="flask" href="/sim/overview">
+  <Card title="kombify Simulate" icon="flask" href="/sim/overview">
     **Simulation engine** — Test your configuration in realistic virtual environments before deploying to real hardware.
   </Card>
   <Card title="StackKits" icon="boxes-stacked" href="/stackkits/overview">
@@ -103,6 +106,9 @@ kombify follows the **Glass Box** principle: maximum guidance for beginners, ful
   </Card>
   <Card title="kombify Cloud" icon="cloud" href="/cloud/overview">
     **SaaS platform** — Central portal with identity, billing, and multi-tenant management for teams and organizations.
+  </Card>
+  <Card title="kombify AI" icon="brain" href="/ai/overview">
+    **Intelligent automation** — Conversational assistants and autonomous agents that monitor, troubleshoot, and maintain your homelab 24/7.
   </Card>
 </CardGroup>
 
@@ -132,7 +138,7 @@ flowchart LR
         YAML["kombination.yaml"]
     end
     
-    subgraph Kombify["⚙️ kombify Stack"]
+    subgraph Kombify["⚙️ kombify TechStack"]
         direction TB
         Parse["Parse"]
         Validate["Validate"]
@@ -159,7 +165,7 @@ flowchart LR
 ## The kombify ecosystem
 
 <AccordionGroup>
-  <Accordion title="kombify Stack — Infrastructure control plane" icon="server">
+  <Accordion title="kombify TechStack — Infrastructure control plane" icon="server">
     The core orchestration engine that manages your homelab nodes. It reads your `kombination.yaml`, validates it with CUE schemas, and deploys using OpenTofu.
     
     **Key capabilities:**
@@ -174,7 +180,7 @@ flowchart LR
     <Card title="Learn more about Stack" icon="arrow-right" href="/stack/overview" horizontal />
   </Accordion>
 
-  <Accordion title="kombify Sim — Simulation & discovery engine" icon="flask">
+  <Accordion title="kombify Simulate — Simulation & discovery engine" icon="flask">
     Test your homelab configuration before deploying to real hardware. Sim creates containers that behave like real servers and can discover existing devices on your network.
     
     **Key capabilities:**
@@ -220,6 +226,22 @@ flowchart LR
     **License:** Proprietary (SaaS)
     
     <Card title="Try Cloud" icon="arrow-right" href="/cloud/overview" horizontal />
+  </Accordion>
+
+  <Accordion title="kombify AI — Intelligent homelab automation" icon="brain">
+    AI-powered assistants and autonomous agents for your homelab. Conversational Companions help you configure and troubleshoot, while autonomous Managers monitor and maintain your infrastructure 24/7.
+
+    **Key capabilities:**
+    - **Companions** — Conversational assistants with persistent memory (Smart Home, Personal, Work)
+    - **Guard** — 24/7 autonomous watchdog with trust progression (Observer → Advisor → Autonomous)
+    - **Server Manager** — AI-powered sysadmin for package, user, and network management
+    - **Multi-provider support** — OpenAI, Anthropic, Google AI, Ollama, and more
+    - **BYOK** — Bring your own API keys for self-hosted deployments
+    - **Voice interaction** — Text-to-speech and speech-to-text for hands-free control
+
+    **License:** Proprietary (SaaS) / BYOK (Self-hosted)
+
+    <Card title="Explore AI" icon="arrow-right" href="/ai/overview" horizontal />
   </Accordion>
 </AccordionGroup>
 
@@ -278,16 +300,16 @@ These are the core beliefs that guide every kombify decision:
     Get started with kombify Cloud in **5 minutes** — no installation required
   </Card>
   <Card title="Quick start (self-hosted)" icon="server" href="/quickstart-selfhosted">
-    Deploy kombify Stack on your own infrastructure with full control
+    Deploy kombify TechStack on your own infrastructure with full control
   </Card>
 </Columns>
 
 <Columns cols={2}>
-  <Card title="Core concepts" icon="lightbulb" href="/concepts/architecture">
+  <Card title="Core concepts" icon="lightbulb" href="/concepts/spec-driven">
     Understand the spec-driven architecture and how components work together
   </Card>
-  <Card title="Identity & security" icon="shield-halved" href="/concepts/identity">
-    Learn about zero-trust architecture, passkeys, and mTLS
+  <Card title="kombify AI" icon="brain" href="/ai/overview">
+    Intelligent assistants and autonomous agents for your homelab
   </Card>
 </Columns>
 

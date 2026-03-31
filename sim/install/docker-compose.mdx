@@ -1,11 +1,11 @@
 ---
 title: Docker Compose Installation
-description: Install kombify Sim using Docker Compose for persistent deployments
+description: Install kombify Simulate using Docker Compose for persistent deployments
 sidebarTitle: Docker Compose
 ---
 
 
-Use Docker Compose for a more manageable, persistent kombify Sim deployment.
+Use Docker Compose for a more manageable, persistent kombify Simulate deployment.
 
 ## Quick Start
 
@@ -47,7 +47,7 @@ Use Docker Compose for a more manageable, persistent kombify Sim deployment.
     ```
   </Step>
 
-  <Step title="Start Sim">
+  <Step title="Start Simulate">
     ```bash
     docker compose up -d
     ```
@@ -63,7 +63,7 @@ Use Docker Compose for a more manageable, persistent kombify Sim deployment.
 ```mermaid
 graph TB
     subgraph DockerHost["Docker Host"]
-        subgraph KombiSim["kombisim container"]
+        subgraph KombiSim["kombify Simulate container"]
             API["REST API<br/>:5270"]
             UI["Web UI<br/>:5271"]
             Engine["Node Engine"]
@@ -130,7 +130,7 @@ networks:
 
 ### With Traefik (Remote Access)
 
-For accessing Sim remotely with HTTPS:
+For accessing kombify Simulate remotely with HTTPS:
 
 ```yaml docker-compose.yml
 version: "3.8"

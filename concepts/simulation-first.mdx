@@ -1,6 +1,6 @@
 ---
 title: Simulation first
-description: Test infrastructure configurations before deploying to real hardware with KombiSim
+description: Test infrastructure configurations before deploying to real hardware with kombify Simulate
 ---
 
 
@@ -23,13 +23,13 @@ kombify Cloud follows a **simulation-first** philosophy: test your infrastructur
   </Card>
 </CardGroup>
 
-## How KombiSim works
+## How kombify Simulate works
 
-KombiSim creates lightweight Docker-based "VMs" that simulate your infrastructure:
+kombify Simulate creates lightweight Docker-based "VMs" that simulate your infrastructure:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      KombiSim Engine                         │
+│                  kombify Simulate Engine                      │
 ├─────────────────────────────────────────────────────────────┤
 │  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
 │  │   Web UI    │───▶│  REST API   │───▶│   Docker    │     │
@@ -55,7 +55,7 @@ Each simulated node is a Docker container with:
 
 <Steps>
   <Step title="Create simulation">
-    Define your infrastructure in KombiSim:
+    Define your infrastructure in kombify Simulate:
     
     ```bash
     curl -X POST http://localhost:5270/api/v1/simulations \
@@ -75,7 +75,7 @@ Each simulated node is a Docker container with:
     curl -X POST http://localhost:5270/api/v1/simulations/{id}/start
     ```
     
-    KombiSim creates Docker containers and assigns SSH ports.
+    kombify Simulate creates Docker containers and assigns SSH ports.
   </Step>
 
   <Step title="Test configuration">
@@ -91,13 +91,13 @@ Each simulated node is a Docker container with:
     ```
   </Step>
 
-  <Step title="Deploy with KombiStack">
+  <Step title="Deploy with kombify TechStack">
     Once validated, deploy to real infrastructure:
-    
+
     ```bash
     # Export simulation config
     curl http://localhost:5270/api/v1/simulations/{id}/export > kombination.yaml
-    
+
     # Deploy to real hardware
     kombistack apply kombination.yaml
     ```
@@ -106,7 +106,7 @@ Each simulated node is a Docker container with:
 
 ## Pre-built templates
 
-KombiSim includes 6 templates for common scenarios:
+kombify Simulate includes 6 templates for common scenarios:
 
 <Tabs>
   <Tab title="Homelab basic">
@@ -187,9 +187,9 @@ KombiSim includes 6 templates for common scenarios:
   </Tab>
 </Tabs>
 
-## Integration with KombiStack
+## Integration with kombify TechStack
 
-KombiStack can automatically use KombiSim for validation:
+kombify TechStack can automatically use kombify Simulate for validation:
 
 ```yaml kombistack.yaml
 simulation:
@@ -208,15 +208,15 @@ When `simulate_before_deploy` is enabled:
 
 <Steps>
   <Step title="Create simulation">
-    KombiStack sends your `kombination.yaml` to KombiSim
+    kombify TechStack sends your `kombination.yaml` to kombify Simulate
   </Step>
 
   <Step title="Provision simulated nodes">
-    KombiSim creates Docker containers matching your spec
+    kombify Simulate creates Docker containers matching your spec
   </Step>
 
   <Step title="Run pre-checks">
-    KombiStack validates:
+    kombify TechStack validates:
     - SSH connectivity
     - Required packages
     - Network configuration
@@ -336,16 +336,16 @@ nodes:
 ## Limitations
 
 <Warning>
-  KombiSim is for **testing and validation**, not production workloads.
+  kombify Simulate is for **testing and validation**, not production workloads.
 </Warning>
 
-**What KombiSim simulates:**
+**What kombify Simulate simulates:**
 - ✅ Service deployment and configuration
 - ✅ Network connectivity and firewall rules
 - ✅ SSH access and authentication
 - ✅ Basic resource constraints
 
-**What KombiSim does NOT simulate:**
+**What kombify Simulate does NOT simulate:**
 - ❌ Real hardware performance
 - ❌ Actual network latency
 - ❌ Physical hardware failures
@@ -355,28 +355,28 @@ nodes:
 
 <CardGroup cols={2}>
   <Card
-    title="KombiSim quickstart"
+    title="kombify Simulate quickstart"
     icon="rocket"
     href="/tools/kombisim/quickstart"
   >
     Get started with simulation
   </Card>
   <Card
-    title="KombiSim templates"
+    title="kombify Simulate templates"
     icon="file-code"
     href="/tools/kombisim/templates"
   >
     Explore pre-built templates
   </Card>
   <Card
-    title="KombiSim API reference"
+    title="kombify Simulate API reference"
     icon="code"
     href="/api/kombisim/overview"
   >
     Full API documentation
   </Card>
   <Card
-    title="KombiStack integration"
+    title="kombify TechStack integration"
     icon="layer-group"
     href="/tools/kombistack/configuration"
   >

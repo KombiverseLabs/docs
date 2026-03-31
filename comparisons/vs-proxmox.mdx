@@ -218,7 +218,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
 Physical Server
 └── Proxmox VE
     ├── VM: kombify-controller
-    │   └── kombify Stack + Services
+    │   └── kombify TechStack + Services
     └── VM: truenas (storage)
 ```
 
@@ -244,7 +244,7 @@ Proxmox Cluster (3 nodes)
 
 ```
 Physical Servers
-├── Server 1: kombify Stack + Docker
+├── Server 1: kombify TechStack + Docker
 ├── Server 2: Docker worker
 └── Server 3: Docker worker
 ```
@@ -286,10 +286,10 @@ Physical Servers
   </Step>
   <Step title="Create VMs for kombify">
     Create Linux VMs (Ubuntu 22.04 recommended):
-    - 1 VM for kombify Stack controller
+    - 1 VM for kombify TechStack controller
     - 1+ VMs for worker nodes
   </Step>
-  <Step title="Install kombify Stack">
+  <Step title="Install kombify TechStack">
     On the controller VM:
     ```bash
     curl -fsSL https://get.kombify.dev | sh

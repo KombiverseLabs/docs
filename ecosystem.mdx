@@ -1,11 +1,11 @@
 ---
 title: kombify Ecosystem
-description: How Stack, Sim, StackKits, and Cloud work together
+description: How TechStack, Simulate, StackKits, Cloud, and AI work together
 icon: sitemap
 ---
 
 
-The kombify platform consists of four interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
+The kombify platform consists of five interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
 
 ## The Big Picture
 
@@ -24,8 +24,8 @@ graph TB
     subgraph Tools["kombify Tools"]
         direction LR
         SK["StackKits<br/>Blueprints"]
-        Sim["kombify Sim<br/>Testing"]
-        Stack["kombify Stack<br/>Deployment"]
+        Sim["kombify Simulate<br/>Testing"]
+        Stack["kombify TechStack<br/>Deployment"]
         Platform["kombify Cloud<br/>Management"]
         
         SK --> Sim --> Stack --> Platform
@@ -51,28 +51,36 @@ graph TB
     → *"What should I build?"*
   </Card>
   
-  <Card title="Sim" icon="flask-vial" href="/sim/overview">
+  <Card title="Simulate" icon="flask-vial" href="/sim/overview">
     **Test Before Deploy**
-    
+
     Spin up simulated nodes in Docker to test your configuration. Full SSH access, realistic networking, zero risk.
-    
+
     → *"Will it work?"*
   </Card>
-  
-  <Card title="Stack" icon="layer-group" href="/stack/overview">
+
+  <Card title="TechStack" icon="layer-group" href="/stack/overview">
     **Deploy & Orchestrate**
-    
+
     The control plane that provisions your infrastructure using OpenTofu and manages your nodes via secure gRPC agents.
-    
+
     → *"Deploy it!"*
   </Card>
-  
-  <Card title="kombify Platform" icon="globe" href="/cloud/overview">
+
+  <Card title="kombify Cloud" icon="globe" href="/cloud/overview">
     **Managed Platform**
-    
+
     SaaS platform with SSO, team management, and multi-homelab support. Let us handle the complexity.
-    
+
     → *"Manage it"*
+  </Card>
+
+  <Card title="kombify AI" icon="brain" href="/ai/overview">
+    **Intelligent Automation**
+
+    Conversational assistants and autonomous agents that monitor, troubleshoot, and maintain your homelab.
+
+    → *"Make it smart"*
   </Card>
 </CardGroup>
 
@@ -122,8 +130,8 @@ These tools are open-source and can run entirely on your infrastructure:
 graph LR
     subgraph OpenCore["Open Core (Self-Hosted)"]
         SK["StackKits<br/>Apache 2.0"]
-        Sim["kombify Sim<br/>Apache 2.0"]
-        Stack["kombify Stack<br/>Apache 2.0"]
+        Sim["kombify Simulate<br/>Apache 2.0"]
+        Stack["kombify TechStack<br/>Apache 2.0"]
     end
     
     SK -->|Blueprints| Stack
@@ -307,7 +315,7 @@ graph LR
 
 | Component | Technology | Purpose |
 |-----------|------------|---------|
-| **Backend** | Go 1.24+ | High-performance, single binary |
+| **Backend** | Go 1.25+ | High-performance, single binary |
 | **Frontend** | SvelteKit | Modern, reactive UI |
 | **Database** | PocketBase (SQLite) | Zero-dependency persistence |
 | **IaC** | OpenTofu | Infrastructure provisioning |
@@ -319,22 +327,22 @@ graph LR
 ## Choose Your Path
 
 <CardGroup cols={3}>
-  <Card title="Start with Sim" icon="flask-vial" href="/sim/overview">
+  <Card title="Start with Simulate" icon="flask-vial" href="/sim/overview">
     **Test first**
-    
+
     Try configurations in a safe environment before committing to real hardware.
   </Card>
-  
-  <Card title="Start with Stack" icon="layer-group" href="/stack/overview">
+
+  <Card title="Start with TechStack" icon="layer-group" href="/stack/overview">
     **Deploy now**
-    
+
     Jump straight into deployment if you already know what you want.
   </Card>
-  
+
   <Card title="Start with Cloud" icon="globe" href="/cloud/overview">
     **Managed experience**
-    
-    Let us handle the setup—focus on your applications.
+
+    Let us handle the setup — focus on your applications.
   </Card>
 </CardGroup>
 

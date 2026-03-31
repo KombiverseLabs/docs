@@ -144,7 +144,7 @@ Each node is automatically classified based on hardware and provider metadata:
 | **pi** | ARM + low memory or RPi detection | Reduced services, ARM images, tmpfs |
 
 <Note>
-  At Level 0 (standalone CLI), you specify context manually. At Level 2+ (with kombify Stack agent), context is auto-detected from hardware reports.
+  At Level 0 (standalone CLI), you specify context manually. At Level 2+ (with kombify TechStack agent), context is auto-detected from hardware reports.
 </Note>
 
 ### 3. Add-Ons = composable extensions
@@ -174,8 +174,8 @@ StackKits operates at different capability levels depending on how you access it
 | Level | Name | Access Method | Capabilities |
 |-------|------|---------------|-------------|
 | **0** | Standalone CLI | `stackkit` CLI directly | CUE validation, IaC generation, direct provisioning |
-| **1** | Control Plane | kombify Stack Web UI/API | Unifier pipeline, wizard UI, StackKit resolver |
-| **2** | Worker Agent | kombify Stack + gRPC Agent | Context auto-detection, placement engine |
+| **1** | Control Plane | kombify TechStack Web UI/API | Unifier pipeline, wizard UI, StackKit resolver |
+| **2** | Worker Agent | kombify TechStack + gRPC Agent | Context auto-detection, placement engine |
 | **3** | Runtime Intelligence | Day-2 operations | Drift detection, auto-remediation, cert renewal |
 | **4** | AI-Assisted (SaaS) | kombify Sphere | Natural language config, predictive scaling |
 
@@ -197,7 +197,7 @@ The combination of StackKit × Context produces curated default configurations:
 
 ### Validation flow
 
-When you run `stackkit validate` or use kombify Stack:
+When you run `stackkit validate` or use kombify TechStack:
 
 ```mermaid
 sequenceDiagram

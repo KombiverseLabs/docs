@@ -1,13 +1,13 @@
 ---
 title: Quick start (self-hosted)
-description: Run kombify Stack on your own infrastructure in 10 minutes
+description: Run kombify TechStack on your own infrastructure in 10 minutes
 ---
 
 
-Run kombify Stack on your own infrastructure with full control and no SaaS dependencies. This guide walks you through setting up a complete homelab management system.
+Run kombify TechStack on your own infrastructure with full control and no SaaS dependencies. This guide walks you through setting up a complete homelab management system.
 
 <Note>
-  **What you'll get:** A self-hosted kombify Stack instance that can manage your homelab, deploy StackKits, and monitor your infrastructure — all running on your own hardware.
+  **What you'll get:** A self-hosted kombify TechStack instance that can manage your homelab, deploy StackKits, and monitor your infrastructure — all running on your own hardware.
 </Note>
 
 ## Prerequisites
@@ -25,13 +25,13 @@ Run kombify Stack on your own infrastructure with full control and no SaaS depen
   If you prefer a managed experience without self-hosting, see [Quick start (SaaS)](/quickstart).
 </Tip>
 
-## Step 1: Install kombify Stack
+## Step 1: Install kombify TechStack
 
 <Steps>
   <Step title="Create directory and download compose file">
     ```bash
     mkdir ~/kombify && cd ~/kombify
-    curl -O https://raw.githubusercontent.com/soulcreek/KombiStack/main/docker-compose.yml
+    curl -O https://raw.githubusercontent.com/kombify/techstack/main/docker-compose.yml
     ```
   </Step>
 
@@ -41,8 +41,8 @@ Run kombify Stack on your own infrastructure with full control and no SaaS depen
     ```
     
     This starts:
-    - **kombify Stack Core** (API + PocketBase) on port 5260
-    - **kombify Stack UI** (SvelteKit dashboard) on port 5261
+    - **kombify TechStack Core** (API + PocketBase) on port 5260
+    - **kombify TechStack UI** (SvelteKit dashboard) on port 5261
   </Step>
 
   <Step title="Access the dashboard">
@@ -120,7 +120,7 @@ curl http://localhost:5260/api/v1/stacks
     ```
     
     <Note>
-      You can add multiple nodes. kombify Stack will distribute services across them based on available resources.
+      You can add multiple nodes. kombify TechStack will distribute services across them based on available resources.
     </Note>
   </Step>
 
@@ -135,7 +135,7 @@ curl http://localhost:5260/api/v1/stacks
 
 ## Step 4: Install agent on target server
 
-The kombify agent runs on each server you want to manage. It communicates with Stack via mTLS-secured gRPC.
+The kombify agent runs on each server you want to manage. It communicates with TechStack via mTLS-secured gRPC.
 
 <Steps>
   <Step title="Generate agent credentials">
@@ -182,7 +182,7 @@ The kombify agent runs on each server you want to manage. It communicates with S
   </Step>
 
   <Step title="Simulate first (optional but recommended)">
-    Click **"Simulate"** to test the configuration in kombify Sim before deploying to real hardware.
+    Click **"Simulate"** to test the configuration in kombify Simulate before deploying to real hardware.
   </Step>
 
   <Step title="Apply">
@@ -206,7 +206,7 @@ The kombify agent runs on each server you want to manage. It communicates with S
   </Step>
 </Steps>
 
-## Optional: Add kombify Sim
+## Optional: Add kombify Simulate
 
 Test configurations before deploying to real hardware.
 
@@ -214,7 +214,7 @@ Test configurations before deploying to real hardware.
 # Add to docker-compose.yml
 services:
   kombisim:
-    image: ghcr.io/soulcreek/kombisim:latest
+    image: ghcr.io/kombify/kombisim:latest
     ports:
       - "5270:5270"
       - "2222-2322:2222-2322"
@@ -231,7 +231,7 @@ Then restart:
 docker compose up -d
 ```
 
-Access Sim at [http://localhost:5270](http://localhost:5270).
+Access Simulate at [http://localhost:5270](http://localhost:5270).
 
 ## Configuration
 
@@ -270,14 +270,14 @@ network:
 
 <CardGroup cols={2}>
   <Card
-    title="Explore kombify Stack"
+    title="Explore kombify TechStack"
     icon="server"
     href="/stack/overview"
   >
-    Learn about Stack's features
+    Learn about TechStack's features
   </Card>
   <Card
-    title="Use kombify Sim"
+    title="Use kombify Simulate"
     icon="flask"
     href="/sim/overview"
   >
