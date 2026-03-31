@@ -31,13 +31,13 @@ kombify Simulate creates lightweight Docker-based "VMs" that simulate your infra
 ┌─────────────────────────────────────────────────────────────┐
 │                  kombify Simulate Engine                      │
 ├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐    ┌─────────────┐    ┌─────────────┐     │
-│  │   Web UI    │───▶│  REST API   │───▶│   Docker    │     │
-│  │ :5271       │    │   :5270     │    │   Engine    │     │
-│  └─────────────┘    └─────────────┘    └─────────────┘     │
+│  ┌─────────────────────┐    ┌─────────────┐               │
+│  │     REST API        │───▶│   Docker    │               │
+│  │      :5270          │    │   Engine    │               │
+│  └─────────────────────┘    └─────────────┘               │
 │                                                             │
 │  ┌─────────────────────────────────────────────────────────┤
-│  │  Port Range: 2222-2322 (SSH to containers)              │
+│  │  Port Range: 30000-39999 (SSH to containers)            │
 │  └─────────────────────────────────────────────────────────┘
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -46,7 +46,7 @@ kombify Simulate creates lightweight Docker-based "VMs" that simulate your infra
 
 Each simulated node is a Docker container with:
 
-- **Real SSH access** on ports 2222-2322
+- **Real SSH access** on ports 30000-39999
 - **Persistent storage** via Docker volumes
 - **Network isolation** with custom Docker networks
 - **Resource limits** to simulate different hardware tiers
@@ -86,7 +86,7 @@ Each simulated node is a Docker container with:
     curl http://localhost:5270/api/v1/nodes/{id}/ssh
     
     # SSH into node
-    ssh -p 2222 root@localhost
+    ssh -p 30001 root@localhost
     # Password: kombisim
     ```
   </Step>
@@ -357,14 +357,14 @@ nodes:
   <Card
     title="kombify Simulate quickstart"
     icon="rocket"
-    href="/tools/kombisim/quickstart"
+    href="/sim/quickstart"
   >
     Get started with simulation
   </Card>
   <Card
     title="kombify Simulate templates"
     icon="file-code"
-    href="/tools/kombisim/templates"
+    href="/sim/how-to/templates"
   >
     Explore pre-built templates
   </Card>
@@ -378,7 +378,7 @@ nodes:
   <Card
     title="kombify TechStack integration"
     icon="layer-group"
-    href="/tools/kombistack/configuration"
+    href="/stack/overview"
   >
     Configure automatic simulation
   </Card>

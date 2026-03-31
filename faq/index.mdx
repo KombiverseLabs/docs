@@ -84,7 +84,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     docker compose up -d
     ```
     
-    [Full installation guide →](/stack/install/docker)
+    [Self-hosting guide →](/stack/how-to/self-hosting)
   </Accordion>
   
   <Accordion title="Can I run kombify on Windows or macOS?">
@@ -129,7 +129,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
       </Step>
     </Steps>
     
-    [Detailed guide →](/stack/agents)
+    [Detailed guide →](/stack/overview)
   </Accordion>
 </AccordionGroup>
 
@@ -146,7 +146,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     
     **Example:**
     ```yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     
     nodes:
       - name: main-server
@@ -187,7 +187,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     **3. Custom StackKit** (advanced):
     Create your own StackKit extending an existing one.
     
-    [Customization guide →](/stackkits/creating-custom)
+    [Customization guide →](/stackkits/explanations/cue-architecture)
   </Accordion>
   
   <Accordion title="Can I use my existing Docker Compose files?">
@@ -224,7 +224,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     
     **Recommendation:** Start with Docker for speed, use QEMU for final validation.
     
-    [Engine configuration →](/sim/configuration)
+    [Engine configuration →](/sim/overview)
   </Accordion>
   
   <Accordion title="How do I SSH into simulation nodes?">
@@ -238,7 +238,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     
     Default credentials for simulations: `root` / `kombify`
     
-    [SSH access guide →](/sim/ssh-access)
+    [SSH access guide →](/sim/how-to/ssh-access)
   </Accordion>
 </AccordionGroup>
 
@@ -265,7 +265,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     openssl s_client -connect your-stack-host:5263
     ```
     
-    [Full troubleshooting →](/stack/troubleshooting)
+    [Full troubleshooting →](/stack/reference/troubleshooting)
   </Accordion>
   
   <Accordion title="Deployment fails with validation error">
@@ -277,7 +277,7 @@ Find answers to the most common questions about kombify. Can't find what you're 
     kombify validate kombination.yaml
     
     # See detailed schema
-    kombify schema show base-homelab
+    kombify schema show base-kit
     ```
     
     **Common fixes:**

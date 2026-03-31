@@ -89,7 +89,7 @@ addons:
 ## Available StackKits
 
 <CardGroup cols={3}>
-  <Card title="Base Kit" icon="house" href="/stackkits/kits/base-homelab">
+  <Card title="Base Kit" icon="house" href="/stackkits/kits/base-kit">
     **Single-environment**
     
     - Docker Compose
@@ -97,7 +97,7 @@ addons:
     - Context-aware defaults
     - Perfect first homelab
   </Card>
-  <Card title="High Availability Kit" icon="shield-halved" href="/stackkits/kits/ha-homelab">
+  <Card title="High Availability Kit" icon="shield-halved" href="/stackkits/kits/ha-kit">
     **High-availability**
     
     - Docker Swarm cluster
@@ -141,14 +141,14 @@ StackKits use a strict 3-layer architecture for maximum reusability:
 
 Each StackKit is defined in [CUE](https://cuelang.org/), a powerful configuration language:
 
-```cue base-homelab/stackfile.cue
+```cue base-kit/stackfile.cue
 package base_homelab
 
 import "github.com/kombihq/stackkits/base"
 
 #BaseHomelabKit: base.#BaseStackKit & {
     metadata: {
-        name: "base-homelab"
+        name: "base-kit"
         version: "4.0.0"
     }
     
@@ -299,10 +299,10 @@ services:
 ## Next steps
 
 <Columns cols={3}>
-  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-homelab">
+  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-kit">
     Explore services and configuration options
   </Card>
-  <Card title="CUE basics" icon="code" href="/stackkits/customization/cue-basics">
+  <Card title="CUE basics" icon="code" href="/stackkits/explanations/cue-architecture">
     Learn the configuration language
   </Card>
   <Card title="Quick start" icon="rocket" href="/stackkits/quickstart">

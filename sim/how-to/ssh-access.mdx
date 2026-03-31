@@ -14,7 +14,7 @@ Every simulated node has full SSH access, just like a real server.
 |-------|-------|
 | **User** | `root` |
 | **Password** | `kombisim` |
-| **Port Range** | 2222-2322 |
+| **Port Range** | 30000-39999 |
 
 ## Connecting
 
@@ -29,15 +29,15 @@ curl -s http://localhost:5270/api/v1/nodes | jq '.[] | {name, ssh_port}'
 
 Output:
 ```json
-{"name": "node-1", "ssh_port": 2222}
-{"name": "node-2", "ssh_port": 2223}
-{"name": "node-3", "ssh_port": 2224}
+{"name": "node-1", "ssh_port": 30001}
+{"name": "node-2", "ssh_port": 30002}
+{"name": "node-3", "ssh_port": 30003}
 ```
 
 ### Connect via SSH
 
 ```bash
-ssh -p 2222 root@localhost
+ssh -p 30001 root@localhost
 # Password: kombisim
 ```
 
@@ -48,14 +48,14 @@ Add to `~/.ssh/config`:
 ```
 Host sim-node-1
     HostName localhost
-    Port 2222
+    Port 30001
     User root
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
 
 Host sim-node-2
     HostName localhost
-    Port 2223
+    Port 30002
     User root
     StrictHostKeyChecking no
     UserKnownHostsFile /dev/null
@@ -72,10 +72,10 @@ ssh sim-node-1
 
 ```bash
 # Copy your key to the node
-ssh-copy-id -p 2222 root@localhost
+ssh-copy-id -p 30001 root@localhost
 
 # Or manually
-cat ~/.ssh/id_rsa.pub | ssh -p 2222 root@localhost \
+cat ~/.ssh/id_rsa.pub | ssh -p 30001 root@localhost \
   "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
 ```
 
@@ -99,16 +99,16 @@ curl -X POST http://localhost:5270/api/v1/nodes \
 
 ```bash
 # Upload
-scp -P 2222 local-file.txt root@localhost:/tmp/
+scp -P 30001 local-file.txt root@localhost:/tmp/
 
 # Download
-scp -P 2222 root@localhost:/var/log/syslog ./
+scp -P 30001 root@localhost:/var/log/syslog ./
 ```
 
 ### rsync
 
 ```bash
-rsync -avz -e "ssh -p 2222" ./myapp/ root@localhost:/opt/myapp/
+rsync -avz -e "ssh -p 30001" ./myapp/ root@localhost:/opt/myapp/
 ```
 
 ## Port Forwarding
@@ -117,7 +117,7 @@ Access services inside nodes:
 
 ```bash
 # Forward node's port 80 to local 8080
-ssh -p 2222 -L 8080:localhost:80 root@localhost
+ssh -p 30001 -L 8080:localhost:80 root@localhost
 ```
 
 Now access `http://localhost:8080` to reach the node's web server.
@@ -134,7 +134,7 @@ Now access `http://localhost:8080` to reach the node's web server.
   <Accordion title="Host key changed">
     Sim nodes are ephemeral, so host keys change:
     ```bash
-    ssh-keygen -R "[localhost]:2222"
+    ssh-keygen -R "[localhost]:30001"
     ```
   </Accordion>
 </AccordionGroup>

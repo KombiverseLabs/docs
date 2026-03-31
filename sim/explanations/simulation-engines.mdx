@@ -9,14 +9,14 @@ Understanding how kombify Simulate's simulation engines work helps you choose th
 
 ## Engine types
 
-kombify Simulate supports multiple simulation backends, each with different trade-offs between realism, speed, and resource usage.
+kombify Simulate supports five simulation engines, each with different trade-offs between realism, speed, and resource usage.
 
-### Docker-based simulation (Default)
+### Docker (Default)
 
 The default engine uses Docker containers that behave like lightweight virtual machines. Each simulated node gets:
 
 - A full Linux userspace (Ubuntu-based)
-- SSH access on dedicated ports (2222-2322)
+- SSH access on dedicated ports (30000-39999)
 - Realistic networking with configurable subnets
 - Systemd-like service management
 
@@ -24,9 +24,9 @@ The default engine uses Docker containers that behave like lightweight virtual m
 graph TB
     subgraph Host["Your Machine"]
         subgraph Docker["Docker Engine"]
-            N1["Simulated Node 1<br/><small>SSH: 2222</small>"]
-            N2["Simulated Node 2<br/><small>SSH: 2223</small>"]
-            N3["Simulated Node 3<br/><small>SSH: 2224</small>"]
+            N1["Simulated Node 1<br/><small>SSH: 30001</small>"]
+            N2["Simulated Node 2<br/><small>SSH: 30002</small>"]
+            N3["Simulated Node 3<br/><small>SSH: 30003</small>"]
         end
         Net["Simulated Network<br/><small>172.20.0.0/16</small>"]
     end
@@ -39,11 +39,41 @@ graph TB
 
 **Best for:** Quick iteration, CI/CD pipelines, most testing scenarios.
 
-### Hybrid simulation
+### Incus
 
-Hybrid mode mixes simulated nodes with real hardware. This lets you test configurations that include devices you already own.
+Incus provides full system containers with real systemd init. Higher fidelity than Docker containers, closer to real VM behavior.
 
-**Best for:** Brownfield adoption, testing against real NAS devices or existing servers.
+**Best for:** Testing systemd-dependent configurations, realistic OS simulation.
+
+### QEMU
+
+Full virtual machine simulation using QEMU/KVM. Provides hardware-level fidelity with dedicated kernels.
+
+**Best for:** Hardware-level testing, kernel-dependent configurations, GPU passthrough testing.
+
+### Azure
+
+Creates real Azure VMs for cloud-fidelity testing. Requires Azure credentials.
+
+**Best for:** Testing cloud deployments, validating Azure-specific configurations.
+
+### DigitalOcean
+
+Creates real DigitalOcean Droplets for cloud-fidelity testing. Requires DigitalOcean API token.
+
+**Best for:** Testing cloud deployments, validating production-like environments.
+
+### Engine comparison
+
+| Engine | Fidelity | Speed | Cost | Use case |
+|--------|----------|-------|------|----------|
+| **Docker** | Medium | Fast | Free | Development, CI/CD |
+| **Incus** | High | Fast | Free | System-level testing |
+| **QEMU** | Very High | Slow | Free | Hardware-level testing |
+| **Azure** | Production | Medium | Paid | Cloud validation |
+| **DigitalOcean** | Production | Medium | Paid | Cloud validation |
+
+Set the engine via the `KOMBISIM_ENGINE` environment variable or API parameter.
 
 ## How simulation differs from production
 

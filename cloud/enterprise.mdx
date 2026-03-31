@@ -1,6 +1,6 @@
 ---
 title: Enterprise
-description: Enterprise features and deployment options for Cloud
+description: Enterprise features and deployment options for kombify Cloud
 sidebarTitle: Enterprise
 icon: building
 ---
@@ -70,11 +70,11 @@ kombify Cloud Enterprise is designed for organizations requiring advanced securi
 ### OIDC setup
 
 <Steps>
-  <Step title="Get Cloud OIDC details">
-    In Cloud: **Settings** → **Security** → **SSO**
-    
+  <Step title="Get kombify Cloud OIDC details">
+    In kombify Cloud: **Settings** → **Security** → **SSO**
+
     Copy:
-    - Redirect URI: `https://Cloud.kombify.dev/auth/callback`
+    - Redirect URI: `https://app.kombify.io/auth/callback`
     - Client ID: (provided)
   </Step>
   <Step title="Configure your IdP">
@@ -84,17 +84,17 @@ kombify Cloud Enterprise is designed for organizations requiring advanced securi
     - Configure scopes: `openid`, `profile`, `email`
     - Copy Client Secret
   </Step>
-  <Step title="Complete Cloud setup">
-    Enter in Cloud:
+  <Step title="Complete kombify Cloud setup">
+    Enter in kombify Cloud:
     - Issuer URL
     - Client ID
     - Client Secret
   </Step>
   <Step title="Configure role mapping">
-    Map IdP groups to Cloud roles:
-    - `Cloud-admins` → Admin
-    - `Cloud-operators` → Operator
-    - `Cloud-viewers` → Viewer
+    Map IdP groups to kombify Cloud roles:
+    - `kombify-admins` → Admin
+    - `kombify-operators` → Operator
+    - `kombify-viewers` → Viewer
   </Step>
   <Step title="Enable SSO">
     Toggle **Enable SSO**
@@ -106,10 +106,10 @@ kombify Cloud Enterprise is designed for organizations requiring advanced securi
 ### SAML setup
 
 <Accordion title="SAML configuration details">
-**Cloud SAML metadata:**
-- Entity ID: `https://Cloud.kombify.dev/saml/metadata`
-- ACS URL: `https://Cloud.kombify.dev/saml/acs`
-- SLO URL: `https://Cloud.kombify.dev/saml/slo`
+**kombify Cloud SAML metadata:**
+- Entity ID: `https://app.kombify.io/saml/metadata`
+- ACS URL: `https://app.kombify.io/saml/acs`
+- SLO URL: `https://app.kombify.io/saml/slo`
 
 **Required attributes:**
 - `email` (required)
@@ -125,7 +125,7 @@ Automatically sync users from your IdP:
 1. Enable SCIM in **Settings** → **Security** → **SCIM**
 2. Copy SCIM endpoint and token
 3. Configure SCIM in your IdP
-4. Map groups to Cloud roles
+4. Map groups to kombify Cloud roles
 
 **Supported operations:**
 - Create user
@@ -135,43 +135,24 @@ Automatically sync users from your IdP:
 
 ## Self-hosted deployment
 
-Run Cloud in your own infrastructure.
+Run kombify Cloud in your own infrastructure.
 
 ### Deployment options
 
 | Option | Description |
 |--------|-------------|
-| **Kubernetes** | Helm chart for K8s clusters |
-| **Docker Compose** | Single-node deployment |
-| **VM/Bare metal** | Traditional server deployment |
+| **Docker Compose** | Standard deployment via Docker Compose |
+| **Coolify** | Managed deployment via Coolify PaaS |
 
 ### Requirements
 
-<Tabs>
-  <Tab title="Kubernetes">
-    **Minimum:**
-    - Kubernetes 1.28+
-    - 3 nodes (4 CPU, 8 GB RAM each)
-    - 100 GB storage (SSD recommended)
-    - Ingress controller
-    - cert-manager (for TLS)
-    
-    **Recommended:**
-    - 5+ nodes for HA
-    - Managed PostgreSQL
-    - Managed Redis
-  </Tab>
-  <Tab title="Docker Compose">
-    **Minimum:**
-    - 4 CPU cores
-    - 16 GB RAM
-    - 100 GB SSD storage
-    - Docker 24+
-    - Docker Compose v2
-    
-    **Note:** Single-node deployment, not HA
-  </Tab>
-</Tabs>
+**Minimum:**
+- 4 CPU cores
+- 16 GB RAM
+- 100 GB SSD storage
+- Docker 24+
+- Docker Compose v2
+- PostgreSQL 17
 
 ### Installation
 
@@ -181,34 +162,26 @@ Run Cloud in your own infrastructure.
   </Step>
   <Step title="Download package">
     ```bash
-    curl -L https://get.kombify.dev/Cloud-enterprise | bash
+    docker pull ghcr.io/kombiverse/kombify-cloud:enterprise
     ```
   </Step>
   <Step title="Configure">
-    Edit `Cloud-config.yaml`:
+    Edit `docker-compose.yaml`:
     ```yaml
     license_key: "your-license-key"
-    domain: "Cloud.yourcompany.com"
+    domain: "cloud.yourcompany.com"
     database:
       host: "postgres.internal"
-      name: "Cloud"
-    redis:
-      host: "redis.internal"
+      name: "kombify"
     ```
   </Step>
   <Step title="Deploy">
-    **Kubernetes:**
-    ```bash
-    helm install Cloud ./Cloud-chart -f Cloud-config.yaml
-    ```
-    
-    **Docker Compose:**
     ```bash
     docker compose up -d
     ```
   </Step>
   <Step title="Initialize">
-    Access `https://Cloud.yourcompany.com/setup` to complete initial configuration.
+    Access `https://cloud.yourcompany.com/setup` to complete initial configuration.
   </Step>
 </Steps>
 
@@ -219,11 +192,11 @@ Self-hosted instances receive updates via:
 - **Manual** — Download and apply updates yourself
 
 ```bash
-# Check for updates
-Cloud-ctl update check
+# Pull latest images
+docker compose pull
 
 # Apply update
-Cloud-ctl update apply
+docker compose up -d
 ```
 
 ## Custom integrations
@@ -269,7 +242,7 @@ SLA does not cover:
 
 ## Getting started
 
-<Card title="Contact Enterprise Sales" icon="envelope" href="mailto:enterprise@kombify.dev">
+<Card title="Contact Enterprise Sales" icon="envelope" href="mailto:enterprise@kombify.io">
   Schedule a demo and get a custom quote for your organization.
 </Card>
 

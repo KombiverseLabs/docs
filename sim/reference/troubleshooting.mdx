@@ -1,6 +1,6 @@
 ---
 title: Simulate troubleshooting
-description: Common issues and solutions for kombify Simulateulate
+description: Common issues and solutions for kombify Simulate
 sidebarTitle: Troubleshooting
 icon: wrench
 ---
@@ -58,7 +58,7 @@ docker stats --no-stream
    
    Check if SSH ports are in use:
    ```bash
-   netstat -tuln | grep -E "222[0-9]"
+   netstat -tuln | grep -E "3000[0-9]"
    ```
    
    Fix: Stop conflicting services or change SSH port range
@@ -103,10 +103,10 @@ curl http://localhost:5270/api/v1/nodes/<node-id>/ssh
 **Check 4: Firewall?**
 ```bash
 # Windows
-netsh advfirewall firewall show rule name=all | findstr "2222"
+netsh advfirewall firewall show rule name=all | findstr "3000"
 
 # Linux
-sudo iptables -L -n | grep 2222
+sudo iptables -L -n | grep 3000
 ```
 
 **Fix: Reset node**

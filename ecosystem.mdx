@@ -5,7 +5,7 @@ icon: sitemap
 ---
 
 
-The kombify platform consists of five interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
+The kombify platform consists of six interconnected tools, each solving a specific problem in the homelab infrastructure lifecycle.
 
 ## The Big Picture
 
@@ -81,6 +81,14 @@ graph TB
     Conversational assistants and autonomous agents that monitor, troubleshoot, and maintain your homelab.
 
     → *"Make it smart"*
+  </Card>
+
+  <Card title="SpeechKit" icon="waveform-lines" href="/ai/how-to/speechkit">
+    **Voice Framework**
+
+    Windows-first STT/TTS framework powering voice interaction across kombify AI with 6 providers and real-time voice agent mode.
+
+    → *"Talk to it"*
   </Card>
 </CardGroup>
 
@@ -174,7 +182,7 @@ All tools share a common configuration format:
 
 ```yaml
 # kombination.yaml - The universal config
-stackkit: base-homelab      # ← StackKit to use
+stackkit: base-kit           # ← StackKit to use
 version: "1.0.0"
 
 domain: homelab.local
@@ -316,8 +324,8 @@ graph LR
 | Component | Technology | Purpose |
 |-----------|------------|---------|
 | **Backend** | Go 1.25+ | High-performance, single binary |
-| **Frontend** | SvelteKit | Modern, reactive UI |
-| **Database** | PocketBase (SQLite) | Zero-dependency persistence |
+| **Frontend** | SvelteKit 2 / Svelte 5 | Modern, reactive UI |
+| **Database** | PostgreSQL 17 (Cloud), PocketBase (TechStack) | Production persistence |
 | **IaC** | OpenTofu | Infrastructure provisioning |
 | **Validation** | CUE | Schema definition & validation |
 | **Agent Comm** | gRPC + mTLS | Secure, efficient RPC |
@@ -373,6 +381,6 @@ graph LR
   </Step>
   
   <Step title="Read the Concepts">
-    Understand [spec-driven architecture](/concepts/spec-driven) and the [Unifier Engine](/concepts/architecture).
+    Understand [spec-driven architecture](/concepts/spec-driven) and the [Unifier Engine](/concepts/spec-driven).
   </Step>
 </Steps>

@@ -12,7 +12,7 @@ The `kombination.yaml` file is the central configuration for your kombify deploy
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
 | `version` | string | Yes | Spec version (currently `"1.0"`) |
-| `stackkit` | string | Yes | StackKit to use (`base-homelab`, `ha-homelab`, `modern-homelab`) |
+| `stackkit` | string | Yes | StackKit to use (`base-kit`, `ha-kit`, `modern-homelab`) |
 | `meta` | object | Yes | Metadata about your homelab |
 | `nodes` | array | Yes | Server definitions |
 | `services` | array/object | Yes | Services to deploy |
@@ -125,7 +125,7 @@ The validator checks:
 
 ```yaml
 version: "1.0"
-stackkit: base-homelab
+stackkit: base-kit
 
 meta:
   name: family-cloud

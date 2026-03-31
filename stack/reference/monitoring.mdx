@@ -8,6 +8,10 @@ icon: chart-line
 
 kombify TechStack provides comprehensive monitoring for your infrastructure through built-in metrics, health checks, and integrations with popular observability tools.
 
+<Note>
+  **Monitoring 2.0:** TechStack now includes an embedded Prometheus TSDB with a PromQL-compatible API, enabling built-in metric storage and querying without external Prometheus. External Prometheus integration remains supported.
+</Note>
+
 ## Built-in health checks
 
 ### API health endpoint
@@ -30,9 +34,9 @@ Response:
 }
 ```
 
-### Kubernetes probes
+### Health probes
 
-Stack exposes Kubernetes-compatible health probes:
+Stack exposes standard health probes (compatible with Kubernetes, Docker healthchecks, and load balancers):
 
 | Endpoint | Purpose | When to use |
 |----------|---------|-------------|
@@ -41,18 +45,12 @@ Stack exposes Kubernetes-compatible health probes:
 | `/health/startup` | Startup probe | Has it started successfully? |
 
 ```yaml
-# Kubernetes deployment example
-livenessProbe:
-  httpGet:
-    path: /health/live
-    port: 5260
-  periodSeconds: 30
-  
-readinessProbe:
-  httpGet:
-    path: /health/ready
-    port: 5260
-  periodSeconds: 10
+# Docker Compose healthcheck example
+healthcheck:
+  test: ["CMD", "curl", "-f", "http://localhost:5260/health/ready"]
+  interval: 30s
+  timeout: 10s
+  retries: 3
 ```
 
 ## Prometheus metrics
@@ -260,7 +258,7 @@ Response:
 Deploy a complete monitoring stack with Prometheus, Grafana, and Loki:
 
 ```yaml kombination.yaml
-stackkit: base-homelab
+stackkit: base-kit
 variant: default
 
 services:
@@ -282,7 +280,7 @@ monitoring:
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Troubleshooting" icon="bug" href="/stack/troubleshooting">
+  <Card title="Troubleshooting" icon="bug" href="/stack/reference/troubleshooting">
     Debug common issues
   </Card>
   <Card title="Drift detection" icon="arrows-rotate" href="/concepts/spec-driven">

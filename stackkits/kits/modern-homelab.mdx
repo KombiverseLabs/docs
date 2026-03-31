@@ -9,7 +9,7 @@ icon: microchip
 The **Modern Homelab Kit** brings multi-node hybrid infrastructure to your homelab. Designed for advanced users who need public-facing services, cloud+local server setups, and full observability across nodes.
 
 <Warning>
-  **v1.1 Planned** -- This StackKit is designed and specified but not yet functional. Use the [Base Kit](/stackkits/kits/base-homelab) for v1.0 deployments.
+  **Schema-only** -- This StackKit has a CUE schema defined but is not yet functional. Use the [Base Kit](/stackkits/kits/base-kit) for production deployments.
 </Warning>
 
 ## Overview
@@ -89,7 +89,7 @@ graph TB
 - SSH access to all nodes
 
 <Warning>
-  The Modern Homelab Kit has higher complexity and resource requirements than the Base Kit. If you only need a single local server, use the [Base Kit](/stackkits/kits/base-homelab) instead.
+  The Modern Homelab Kit has higher complexity and resource requirements than the Base Kit. If you only need a single local server, use the [Base Kit](/stackkits/kits/base-kit) instead.
 </Warning>
 
 ## Architecture deep dive
@@ -250,9 +250,9 @@ graph TB
 
   <Step title="Deploy infrastructure">
     ```bash
-    kombify validate
-    kombify generate
-    kombify deploy
+    stackkit validate
+    stackkit generate
+    stackkit deploy
     ```
   </Step>
 </Steps>
@@ -405,7 +405,7 @@ nodes:
 ```
 
 ```bash
-kombify deploy --node local-media
+stackkit deploy --node local-media
 ```
 
 The new node is automatically joined to the Headscale VPN mesh and registered in Coolify.
@@ -452,7 +452,7 @@ The StackKit configures firewall rules automatically:
 | **Monitoring** | Basic (Uptime Kuma) | Prometheus + Grafana | Full PLG stack |
 | **Domain Required** | No | No | Yes |
 | **Complexity** | Low | Medium | High |
-| **Status** | v1.0 | v1.0 | v1.1 planned |
+| **Status** | v1.0 (production) | vision-only | schema-only |
 
 ## Troubleshooting
 
@@ -491,14 +491,14 @@ The StackKit configures firewall rules automatically:
 <Steps>
   <Step title="Backup all data">
     ```bash
-    kombify backup --all --output ./backup
+    stackkit backup --all --output ./backup
     ```
   </Step>
 
   <Step title="Provision cloud node">
     Add a cloud node to your `kombination.yaml` and provision it:
     ```yaml
-    stackkit: modern-homelab  # Changed from Base Kit
+    stackkit: modern-homelab  # Changed from base-kit
 
     nodes:
       - name: cloud-entry
@@ -518,14 +518,14 @@ The StackKit configures firewall rules automatically:
 
   <Step title="Deploy hybrid infrastructure">
     ```bash
-    kombify generate
-    kombify deploy
+    stackkit generate
+    stackkit deploy
     ```
   </Step>
 
   <Step title="Restore data on local node">
     ```bash
-    kombify restore --from ./backup --node local-server
+    stackkit restore --from ./backup --node local-server
     ```
   </Step>
 </Steps>
@@ -533,16 +533,10 @@ The StackKit configures firewall rules automatically:
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="VPN Setup Guide" icon="lock" href="/guides/networking">
-    Configure Headscale VPN for your homelab
-  </Card>
-  <Card title="Monitoring Setup" icon="chart-line" href="/guides/monitoring">
+  <Card title="Monitoring Setup" icon="chart-line" href="/stack/reference/monitoring">
     Configure the PLG observability stack
   </Card>
-  <Card title="Coolify Guide" icon="rocket" href="/guides/coolify">
+  <Card title="Coolify Guide" icon="rocket" href="/integrations/coolify">
     Deploy applications with Coolify
-  </Card>
-  <Card title="Security Hardening" icon="shield" href="/guides/security">
-    Secure your hybrid infrastructure
   </Card>
 </CardGroup>

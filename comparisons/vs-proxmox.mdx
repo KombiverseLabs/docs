@@ -20,7 +20,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
 | **Primary Function** | Service deployment & lifecycle | VM/Container hosting |
 | **Runs on** | Any Linux with Docker | Bare metal |
 | **Manages** | Services & configurations | VMs & LXC containers |
-| **IaC** | Native (OpenTofu) | API/Terraform provider |
+| **IaC** | Native (CUE + YAML spec) | API/Terraform provider |
 | **Testing** | Built-in simulation | Separate VMs needed |
 
 ## Understanding the Difference
@@ -32,7 +32,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
 │              Your Services                   │  ← kombify manages this
 │  (Traefik, Immich, Home Assistant, etc.)    │
 ├─────────────────────────────────────────────┤
-│              Docker / Kubernetes             │  ← Container runtime
+│              Docker Compose                  │  ← Container runtime
 ├─────────────────────────────────────────────┤
 │              Linux VMs / LXC                 │  ← Proxmox manages this
 ├─────────────────────────────────────────────┤
@@ -101,7 +101,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
     2. Create a VM for kombify
     3. Run kombify installer
     4. Use Easy Wizard or write `kombination.yaml`
-    5. Test with kombify Sim
+    5. Test with kombify Simulate
     6. Deploy ✅
     
     **Time investment:** Hours
@@ -147,7 +147,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
   <Accordion title="kombify: Declarative & Validated">
     ```yaml
     # kombination.yaml - everything in one place
-    stackkit: base-homelab
+    stackkit: base-kit
     
     nodes:
       - name: proxmox-vm-01
@@ -304,7 +304,7 @@ Physical Servers
   <Step title="Deploy services">
     Create your `kombination.yaml` and deploy:
     ```bash
-    kombify sim create  # Test first
+    kombify simulate create  # Test first
     kombify deploy      # Then deploy
     ```
   </Step>
@@ -343,7 +343,7 @@ The community maintains [Proxmox VE Helper Scripts](https://tteck.github.io/Prox
   <Card title="New to homelabs?" icon="rocket" href="/quickstart">
     Start with kombify on a single machine, add Proxmox later if needed.
   </Card>
-  <Card title="Already have Proxmox?" icon="server" href="/stack/install/docker">
+  <Card title="Already have Proxmox?" icon="server" href="/stack/how-to/self-hosting">
     Install kombify in a VM and start orchestrating.
   </Card>
 </CardGroup>

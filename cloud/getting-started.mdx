@@ -11,13 +11,13 @@ Connect your homelab to kombify Cloud for managed monitoring, updates, and team 
 ## Prerequisites
 
 - A kombify TechStack installation (self-hosted or managed)
-- A Cloud account at [Cloud.kombify.dev](https://Cloud.kombify.dev)
+- A kombify Cloud account at [app.kombify.io](https://app.kombify.io)
 
 ## Step 1: Create Account
 
 <Steps>
   <Step title="Sign up">
-    Visit [Cloud.kombify.dev](https://Cloud.kombify.dev) and click **Sign Up**.
+    Visit [app.kombify.io](https://app.kombify.io) and click **Sign Up**.
   </Step>
   <Step title="Verify email">
     Check your inbox and verify your email address.
@@ -36,16 +36,11 @@ Connect your homelab to kombify Cloud for managed monitoring, updates, and team 
   <Step title="Get pairing token">
     Copy the displayed pairing token.
   </Step>
-  <Step title="Install agent">
-    On your homelab server:
-    ```bash
-    curl -fsSL https://get.kombify.dev/Cloud-agent | bash
-    Cloud-agent init --token YOUR_TOKEN
-    sudo systemctl enable --now Cloud-agent
-    ```
+  <Step title="Connect your homelab">
+    Enter the pairing token in your kombify TechStack instance under **Settings** → **Cloud Connection**.
   </Step>
   <Step title="Verify connection">
-    Your homelab should appear in the dashboard within 30 seconds.
+    Your homelab should appear in the kombify Cloud dashboard within 30 seconds.
   </Step>
 </Steps>
 
@@ -62,27 +57,25 @@ Once connected, you can:
 
 ```mermaid
 graph LR
-    subgraph Cloud["Cloud Cloud"]
+    subgraph KombifyCloud["kombify Cloud"]
         Dashboard["Dashboard"]
         API["Cloud API"]
     end
-    
+
     subgraph YourNetwork["Your Network"]
-        Agent["Cloud Agent"]
         Stack["kombify TechStack"]
         Nodes["Your Nodes"]
     end
-    
+
     Dashboard --> API
-    API <-->|mTLS| Agent
-    Agent --> Stack
+    API <-->|mTLS| Stack
     Stack --> Nodes
-    
-    style Cloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+
+    style KombifyCloud fill:#1e293b,stroke:#38bdf8,color:#f8fafc
     style YourNetwork fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
-**Important:** Your data stays on your infrastructure. Cloud only manages configuration and provides monitoring.
+**Important:** Your data stays on your infrastructure. kombify Cloud only manages configuration and provides monitoring.
 
 ## Next Steps
 

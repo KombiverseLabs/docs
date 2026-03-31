@@ -15,7 +15,7 @@ icon: server
 
 ```yaml kombination.yaml
 # This is all you write
-stackkit: base-homelab
+stackkit: base-kit
 services:
   - traefik    # Handles web traffic
   - immich     # Your photo cloud
@@ -285,7 +285,7 @@ flowchart LR
 
 ```yaml kombination.yaml
 version: "1.0"
-stackkit: base-homelab
+stackkit: base-kit
 
 meta:
   name: my-homelab
@@ -317,19 +317,11 @@ kombify plan
 kombify apply
 ```
 
-## Installation Options
+## Self-Hosting
 
-<CardGroup cols={3}>
-  <Card title="Docker" icon="docker" href="/stack/install/docker">
-    Fastest way to get started — single `docker compose up`
-  </Card>
-  <Card title="Kubernetes" icon="dharmachakra" href="/stack/install/kubernetes">
-    Production-ready Helm chart with HA support
-  </Card>
-  <Card title="Bare Metal" icon="server" href="/stack/install/bare-metal">
-    Install directly on Linux servers
-  </Card>
-</CardGroup>
+<Card title="Self-Hosting Guide" icon="server" href="/stack/how-to/self-hosting">
+  Deploy kombify TechStack on your own infrastructure with Docker Compose
+</Card>
 
 ## Next Steps
 
@@ -337,7 +329,7 @@ kombify apply
   <Card title="Quick Start" icon="rocket" href="/stack/quickstart">
     Deploy your first stack in 10 minutes
   </Card>
-  <Card title="Architecture Deep Dive" icon="sitemap" href="/stack/architecture">
+  <Card title="Architecture Deep Dive" icon="sitemap" href="/stack/explanations/architecture">
     Understand the Unifier, agents, and data flow
   </Card>
 </Columns>
@@ -347,7 +339,7 @@ kombify apply
 ## Getting Help
 
 <Columns cols={3}>
-  <Card title="Troubleshooting" icon="wrench" href="/stack/troubleshooting">
+  <Card title="Troubleshooting" icon="wrench" href="/stack/reference/troubleshooting">
     Common issues and solutions
   </Card>
   <Card title="Discord" icon="discord" href="https://discord.gg/kombify">

@@ -6,6 +6,10 @@ icon: shield-halved
 ---
 
 
+<Warning>
+  **Vision-only** -- This StackKit is not yet implemented. The documentation below describes the planned architecture and capabilities. Use the [Base Kit](/stackkits/kits/base-kit) for production deployments today.
+</Warning>
+
 The **High Availability Kit** provides high-availability infrastructure for homelabs that can't afford downtime. It supports 2-5 nodes with automatic failover.
 
 ## Overview
@@ -137,7 +141,7 @@ graph LR
 <Steps>
   <Step title="Define your nodes">
     ```yaml kombination.yaml
-    stackkit: ha-homelab
+    stackkit: ha-kit
     
     domain: homelab.local
     email: you@example.com
@@ -183,18 +187,18 @@ graph LR
   
   <Step title="Validate and generate">
     ```bash
-    kombify validate
-    kombify generate
+    stackkit validate
+    stackkit generate
     ```
   </Step>
   
   <Step title="Deploy to all nodes">
     ```bash
     # Deploy to primary first
-    kombify deploy --node node-1
-    
+    stackkit deploy --node node-1
+
     # Then replicas
-    kombify deploy --node node-2
+    stackkit deploy --node node-2
     ```
   </Step>
 </Steps>
@@ -334,7 +338,7 @@ monitoring:
 ssh node-1 "sudo systemctl stop docker"
 
 # Watch failover
-kombify status --watch
+stackkit status --watch
 
 # Expected output:
 # [12:00:01] node-1: UNREACHABLE
@@ -389,11 +393,11 @@ ssh node-1 "sudo systemctl start docker"
   <Step title="Add second node hardware">
     Install same OS and Docker version as your current node.
   </Step>
-  
+
   <Step title="Update kombination.yaml">
     ```yaml
-    stackkit: ha-homelab  # Changed!
-    
+    stackkit: ha-kit  # Changed from base-kit!
+
     nodes:
       - name: node-1      # Existing
         ip: 192.168.1.10
@@ -401,16 +405,16 @@ ssh node-1 "sudo systemctl start docker"
       - name: node-2      # New
         ip: 192.168.1.11
         role: replica
-    
+
     failover:
       strategy: keepalived
       virtual_ip: 192.168.1.100
     ```
   </Step>
-  
+
   <Step title="Migrate data">
     ```bash
-    kombify migrate --from base-homelab --to ha-homelab
+    stackkit migrate --from base-kit --to ha-kit
     ```
   </Step>
 </Steps>
@@ -418,10 +422,7 @@ ssh node-1 "sudo systemctl start docker"
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Backup Strategy" icon="cloud-arrow-up" href="/guides/backups">
-    Even HA needs backups!
-  </Card>
-  <Card title="Monitoring Setup" icon="chart-line" href="/guides/monitoring">
+  <Card title="Monitoring Setup" icon="chart-line" href="/stack/reference/monitoring">
     Set up comprehensive monitoring
   </Card>
 </CardGroup>

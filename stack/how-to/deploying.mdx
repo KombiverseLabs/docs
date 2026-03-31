@@ -33,7 +33,7 @@ flowchart LR
     Create or update your `kombination.yaml`:
     
     ```yaml kombination.yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     
     nodes:
       - name: main-server
@@ -208,10 +208,10 @@ curl -X POST http://localhost:5260/api/v1/stacks/{stack-id}/rollback
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Monitoring" icon="chart-line" href="/stack/operations/monitoring">
+  <Card title="Monitoring" icon="chart-line" href="/stack/reference/monitoring">
     Monitor your deployed infrastructure
   </Card>
-  <Card title="Drift detection" icon="arrows-rotate" href="/stack/troubleshooting">
+  <Card title="Drift detection" icon="arrows-rotate" href="/stack/reference/troubleshooting">
     Detect and fix configuration drift
   </Card>
 </CardGroup>

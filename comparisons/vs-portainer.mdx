@@ -18,7 +18,7 @@ Both kombify and Portainer help manage containerized infrastructure, but they se
 |---------|---------|-----------|
 | **Primary Focus** | Infrastructure lifecycle | Container management |
 | **Learning Curve** | Guided (wizard-based) | Low |
-| **IaC Support** | Native (OpenTofu) | Limited |
+| **IaC Support** | Native (CUE + YAML spec) | Limited |
 | **Pre-deployment Testing** | Built-in simulation | No |
 | **Templates** | StackKits (composable) | Stacks (Compose files) |
 | **Multi-node** | All tiers | Business/Enterprise |
@@ -59,7 +59,7 @@ Both kombify and Portainer help manage containerized infrastructure, but they se
     
     ```yaml
     # kombination.yaml - Your entire homelab defined
-    stackkit: base-homelab
+    stackkit: base-kit
     
     nodes:
       - name: server-01
@@ -117,13 +117,13 @@ Both kombify and Portainer help manage containerized infrastructure, but they se
     
     ```bash
     # Create a simulation from your config
-    kombify sim create --from kombination.yaml
-    
+    kombify simulate create --from kombination.yaml
+
     # Run automated tests
-    kombify sim test
-    
+    kombify simulate test
+
     # SSH in to explore
-    kombify sim ssh server-01
+    kombify simulate ssh server-01
     
     # Satisfied? Deploy to production
     kombify deploy
@@ -154,9 +154,9 @@ Both kombify and Portainer help manage containerized infrastructure, but they se
     
     ```
     StackKits Available:
-    ├── base-homelab      # Essential services
-    ├── ha-homelab        # High-availability
-    └── modern-homelab    # Kubernetes-native
+    ├── base-kit      # Essential services
+    ├── ha-kit        # High-availability
+    └── modern-homelab    # Cutting-edge services
     
     Each includes:
     - Pre-configured services
@@ -167,7 +167,7 @@ Both kombify and Portainer help manage containerized infrastructure, but they se
     
     **Customization is layered:**
     ```yaml
-    stackkit: base-homelab  # Base template
+    stackkit: base-kit  # Base template
     
     services:
       - +grafana           # Add optional service
@@ -267,7 +267,7 @@ services:
   <Step title="Enhance with StackKit">
     Apply a StackKit for best practices:
     ```yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     # Your imported services are preserved
     ```
   </Step>

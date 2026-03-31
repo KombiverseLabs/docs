@@ -15,31 +15,32 @@ The Stack API lets you automate everything you can do in the dashboard — creat
 ### 1. Get an authentication token
 
 ```bash
-# Login to get JWT token
-curl -X POST http://localhost:5260/api/collections/users/auth-with-password \
-  -H "Content-Type: application/json" \
-  -d '{
-    "identity": "admin@kombistack.local",
-    "password": "your-password"
-  }'
+# Authenticate via Zitadel OIDC
+# 1. Obtain a token from your Zitadel instance
+TOKEN=$(curl -s -X POST https://auth.kombify.dev/oauth/v2/token \
+  -d "grant_type=client_credentials" \
+  -d "client_id=YOUR_CLIENT_ID" \
+  -d "client_secret=YOUR_CLIENT_SECRET" \
+  -d "scope=openid" | jq -r '.access_token')
+
+# 2. Use the token in API requests
+curl http://localhost:5260/api/v1/stacks \
+  -H "Authorization: Bearer $TOKEN"
 ```
 
 Response:
 ```json
 {
-  "token": "eyJhbGciOiJIUzI1NiIs...",
-  "record": {
-    "id": "user_abc123",
-    "email": "admin@kombistack.local"
-  }
+  "access_token": "eyJhbGciOiJSUzI1NiIs...",
+  "token_type": "Bearer",
+  "expires_in": 3600,
+  "scope": "openid"
 }
 ```
 
 ### 2. Use the token in requests
 
 ```bash
-export TOKEN="eyJhbGciOiJIUzI1NiIs..."
-
 curl -H "Authorization: Bearer $TOKEN" \
   http://localhost:5260/api/v1/stacks
 ```
@@ -56,7 +57,7 @@ curl -H "Authorization: Bearer $TOKEN" \
   <Card title="Jobs" icon="list-check" href="/api/kombistack/jobs">
     Track deployment jobs and their progress
   </Card>
-  <Card title="Unifier" icon="wand-magic-sparkles" href="/api/kombistack/unifier">
+  <Card title="Validation" icon="wand-magic-sparkles" href="/api/kombistack/overview">
     Validate configurations and generate IaC
   </Card>
 </CardGroup>
@@ -93,7 +94,7 @@ STACK_ID=$(curl -s -X POST http://localhost:5260/api/v1/stacks \
   -H "Content-Type: application/json" \
   -d '{
     "name": "my-homelab",
-    "stackkit": "base-homelab",
+    "stackkit": "base-kit",
     "config": {
       "services": ["traefik", "immich", "homepage"]
     }
@@ -234,7 +235,7 @@ All errors follow a consistent format:
   <Card title="Jobs API" icon="list-check" href="/api/kombistack/jobs">
     Job tracking and logs
   </Card>
-  <Card title="Unifier API" icon="wand-magic-sparkles" href="/api/kombistack/unifier">
+  <Card title="Validation API" icon="wand-magic-sparkles" href="/api/kombistack/overview">
     Validation and generation
   </Card>
 </CardGroup>

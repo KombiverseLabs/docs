@@ -40,7 +40,7 @@ icon: globe
 <Accordion title="🔧 Technical details" icon="code">
   Cloud is a multi-tenant SaaS platform built with:
   - **Frontend:** SvelteKit with real-time updates
-  - **Backend:** Go API with PocketBase for state
+  - **Backend:** Go API with PostgreSQL 17 and Prisma ORM
   - **Identity:** Zitadel for OIDC/SAML/passkey authentication
   - **Billing:** Stripe for subscriptions
   - **Agent:** Lightweight Go binary with mTLS for secure homelab connectivity
@@ -126,7 +126,7 @@ graph TB
         subgraph Backend["Backend"]
             API["🔌 API<br/><small>Go</small>"]
             Auth["🔐 Identity<br/><small>Zitadel</small>"]
-            PB["💾 State<br/><small>PocketBase</small>"]
+            PB["💾 State<br/><small>PostgreSQL + Prisma</small>"]
         end
         
         subgraph Integrations["Integrations"]
@@ -184,29 +184,25 @@ sequenceDiagram
 
 </Accordion>
 
-### Agent Installation
+### SSO-Based Tool Access
+
+kombify Cloud provides seamless authenticated access to all kombify tools via token-based SSO. Users authenticate once via Zitadel on [kombify.io](https://kombify.io), and get automatic access to their TechStack, Simulate, and AI instances without additional login steps.
 
 <Steps>
-  <Step title="Get pairing token">
-    In Cloud dashboard, go to **Homelabs → Add Homelab** and copy your pairing token.
+  <Step title="Sign up">
+    Create your account at [kombify.io](https://kombify.io).
   </Step>
-  
-  <Step title="Install agent">
-    ```bash
-    curl -fsSL https://get.kombify.dev/Cloud-agent | bash
-    ```
+
+  <Step title="Create organization">
+    Set up your organization and configure your subscription plan.
   </Step>
-  
-  <Step title="Configure agent">
-    ```bash
-    Cloud-agent init --token YOUR_PAIRING_TOKEN
-    ```
+
+  <Step title="Add team members">
+    Invite team members and assign roles for access control.
   </Step>
-  
-  <Step title="Start agent">
-    ```bash
-    sudo systemctl enable --now Cloud-agent
-    ```
+
+  <Step title="Launch tools">
+    Access TechStack, Simulate, and AI directly from the unified dashboard -- SSO handles authentication automatically.
   </Step>
 </Steps>
 
@@ -258,34 +254,30 @@ Supported identity providers:
 ## Pricing Plans
 
 <CardGroup cols={3}>
-  <Card title="Starter" icon="seedling">
-    **Free**
-    
-    - 1 homelab
-    - 5 nodes max
+  <Card title="Free" icon="gift">
+    **$0/month**
+
+    - 1 connected homelab
+    - 1 team member
     - Community support
-    - 7-day backup retention
   </Card>
-  
-  <Card title="Pro" icon="rocket">
-    **$19/month**
-    
-    - 3 homelabs
-    - Unlimited nodes
-    - Priority support
-    - 30-day backup retention
-    - Custom domain
-  </Card>
-  
-  <Card title="Team" icon="building">
-    **$49/month**
-    
-    - 10 homelabs
-    - Unlimited nodes
+
+  <Card title="Pro" icon="bolt">
+    **$15/month**
+
+    - 5 connected homelabs
     - 5 team members
-    - SSO integration
-    - 90-day backup retention
-    - SLA guarantee
+    - Email support
+    - All tools included
+  </Card>
+
+  <Card title="Team" icon="users">
+    **$49/month**
+
+    - Unlimited homelabs
+    - 25 team members
+    - Priority support
+    - SSO (OIDC)
   </Card>
 </CardGroup>
 
@@ -358,7 +350,7 @@ Built-in monitoring:
 
 <Steps>
   <Step title="Create account">
-    Sign up at [Cloud.kombify.dev](https://Cloud.kombify.dev)
+    Sign up at [kombify.io](https://kombify.io)
   </Step>
   
   <Step title="Add your first homelab">
@@ -373,16 +365,16 @@ Built-in monitoring:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Quickstart Guide" icon="rocket" href="/cloud/quickstart">
+  <Card title="Quickstart Guide" icon="rocket" href="/quickstart">
     Get up and running in 5 minutes
   </Card>
-  <Card title="Agent Installation" icon="download" href="/cloud/agent">
+  <Card title="Agent Installation" icon="download" href="/cloud/overview">
     Detailed agent setup instructions
   </Card>
-  <Card title="SSO Setup" icon="key" href="/cloud/sso">
+  <Card title="SSO Setup" icon="key" href="/cloud/enterprise">
     Configure enterprise authentication
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/cloud">
+  <Card title="API Reference" icon="code" href="/api/kombisphere/overview">
     Automate with the Cloud API
   </Card>
 </CardGroup>

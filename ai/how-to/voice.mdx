@@ -5,14 +5,15 @@ sidebarTitle: Voice
 icon: microphone
 ---
 
-kombify AI supports voice interaction through text-to-speech (TTS) and speech-to-text (STT), enabling hands-free homelab management.
+kombify AI supports voice interaction through text-to-speech (TTS) and speech-to-text (STT), enabling hands-free homelab management. The underlying voice framework is [SpeechKit](/ai/how-to/speechkit), which provides the full STT/TTS pipeline and real-time voice agent capabilities.
 
 ## Voice capabilities
 
 | Feature | Technology | Status |
 |---------|-----------|--------|
-| **Speech-to-text** | Whisper | Available |
-| **Text-to-speech** | Qwen3-TTS | Available |
+| **Speech-to-text** | Azure Speech, Google Cloud STT, Deepgram, OpenAI Whisper, Groq Whisper, Faster Whisper (local) | Available |
+| **Text-to-speech** | Qwen3-TTS via Kokoro pipeline (local) | Available |
+| **Voice Agent Mode** | Gemini Live API (real-time bidirectional) | Available |
 | **Speaker verification** | Voice biometrics | In development |
 
 ## Enabling voice
@@ -35,7 +36,7 @@ In the web chat at `chat.kombify.io`, click the microphone icon next to the text
 - **Smart home control** — "Turn off the office lights" (via Smart Home Companion)
 
 <Note>
-  Voice processing happens locally in self-hosted mode. In SaaS mode, audio is processed securely and not stored after transcription.
+  Voice processing happens locally in self-hosted mode. In SaaS mode, audio is processed securely and not stored after transcription. With Faster Whisper (STT) and Qwen3-TTS, you can run a fully local voice pipeline with no cloud dependencies.
 </Note>
 
 ## Further reading
@@ -46,5 +47,8 @@ In the web chat at `chat.kombify.io`, click the microphone icon next to the text
   </Card>
   <Card title="Mobile app" icon="mobile" href="/ai/quickstart">
     Set up the mobile app for voice-first interaction
+  </Card>
+  <Card title="SpeechKit" icon="waveform-lines" href="/ai/how-to/speechkit">
+    Technical details on the STT/TTS framework powering voice
   </Card>
 </CardGroup>

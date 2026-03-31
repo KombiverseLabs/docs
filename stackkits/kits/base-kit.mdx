@@ -65,7 +65,7 @@ Choose a variant that matches your use case:
     | **whoami** | Debug/test service |
     
     ```yaml kombination.yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     variant: default
     ```
   </Tab>
@@ -81,7 +81,7 @@ Choose a variant that matches your use case:
     | **whoami** | Debug/test service |
     
     ```yaml kombination.yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     variant: beszel
     ```
   </Tab>
@@ -97,7 +97,7 @@ Choose a variant that matches your use case:
     | **Dozzle** | Real-time Docker log viewer |
     
     ```yaml kombination.yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     variant: minimal
     ```
   </Tab>
@@ -175,7 +175,7 @@ Choose a variant that matches your use case:
 <Steps>
   <Step title="Create your spec file">
     ```yaml kombination.yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     variant: default
     
     # Node configuration
@@ -209,7 +209,7 @@ Choose a variant that matches your use case:
     
     Output:
     ```
-    ✓ StackKit: base-homelab (v1.0.0)
+    ✓ StackKit: base-kit (v1.0.0)
     ✓ Variant: default
     ✓ OS: ubuntu-24
     ✓ Compute tier: standard
@@ -375,7 +375,7 @@ The Base Kit enforces these rules:
 <Warning>
   If you need more than 1 node, consider:
   - [Modern Homelab Kit](/stackkits/kits/modern-homelab) — Multi-node with Headscale VPN
-  - [High Availability Kit](/stackkits/kits/ha-homelab) — High-availability Docker Swarm cluster
+  - [High Availability Kit](/stackkits/kits/ha-kit) — High-availability Docker Swarm cluster
 </Warning>
 
 ## Troubleshooting
@@ -410,10 +410,10 @@ The Base Kit enforces these rules:
 ## Next steps
 
 <CardGroup cols={2}>
-  <Card title="CUE basics" icon="code" href="/stackkits/cue-basics">
+  <Card title="CUE basics" icon="code" href="/stackkits/explanations/cue-architecture">
     Learn how to customize StackKit schemas
   </Card>
-  <Card title="Create custom StackKit" icon="plus" href="/stackkits/creating-custom">
+  <Card title="Create custom StackKit" icon="plus" href="/stackkits/explanations/cue-architecture">
     Build your own StackKit from scratch
   </Card>
 </CardGroup>

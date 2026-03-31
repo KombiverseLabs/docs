@@ -39,7 +39,7 @@ graph TB
     end
 
     subgraph Platform["Platform Layer"]
-        Docker["Docker / Kubernetes"]
+        Docker["Docker Compose"]
         Networks["Networks"]
         Volumes["Volumes"]
     end
@@ -58,7 +58,7 @@ graph TB
 ```
 
 1. **OS Layer** — Base operating system configuration, security hardening, networking
-2. **Platform Layer** — Container runtime (Docker or Kubernetes), standard networks, volumes
+2. **Platform Layer** — Container runtime (Docker Compose), standard networks, volumes
 3. **Application Layer** — Modular services that users select and configure
 
 ## How validation works

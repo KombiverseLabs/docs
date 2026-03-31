@@ -90,7 +90,6 @@
             "pages": [
               "guides/self-hosting/overview",
               "guides/self-hosting/docker-compose",
-              "guides/self-hosting/kubernetes",
               "guides/self-hosting/security"
             ]
           },
@@ -146,18 +145,10 @@
             ]
           },
           {
-            "group": "Installation",
-            "icon": "download",
-            "pages": [
-              "stack/install/docker",
-              "stack/install/bare-metal",
-              "stack/install/kubernetes"
-            ]
-          },
-          {
             "group": "How-To",
             "icon": "book-open",
             "pages": [
+              "stack/how-to/self-hosting",
               "stack/how-to/deploying"
             ]
           },
@@ -191,17 +182,10 @@
             ]
           },
           {
-            "group": "Installation",
-            "icon": "download",
-            "pages": [
-              "sim/install/docker",
-              "sim/install/docker-compose"
-            ]
-          },
-          {
             "group": "How-To",
             "icon": "book-open",
             "pages": [
+              "sim/how-to/self-hosting",
               "sim/how-to/templates",
               "sim/how-to/ssh-access"
             ]
@@ -238,8 +222,8 @@
             "group": "Available Kits",
             "icon": "box",
             "pages": [
-              "stackkits/kits/base-homelab",
-              "stackkits/kits/ha-homelab",
+              "stackkits/kits/base-kit",
+              "stackkits/kits/ha-kit",
               "stackkits/kits/modern-homelab"
             ]
           },
@@ -318,7 +302,8 @@
               "ai/how-to/companions",
               "ai/how-to/guard",
               "ai/how-to/byok",
-              "ai/how-to/voice"
+              "ai/how-to/voice",
+              "ai/how-to/speechkit"
             ]
           },
           {

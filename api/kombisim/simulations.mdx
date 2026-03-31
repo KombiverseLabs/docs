@@ -118,13 +118,13 @@ Content-Type: application/json
       "id": "node_aaa111",
       "name": "primary",
       "status": "creating",
-      "ssh_port": 2222
+      "ssh_port": 30001
     },
     {
       "id": "node_bbb222",
       "name": "replica-1",
       "status": "creating",
-      "ssh_port": 2223
+      "ssh_port": 30002
     }
   ],
   "networks": [
@@ -158,7 +158,7 @@ GET /api/v1/simulations/{id}
       "name": "primary",
       "os": "ubuntu-22.04",
       "status": "running",
-      "ssh_port": 2222,
+      "ssh_port": 30001,
       "ip_addresses": {
         "internal": "172.20.0.10"
       },
@@ -319,9 +319,9 @@ curl -X POST http://localhost:5270/api/v1/simulations \
   }'
 
 # SSH into each node
-ssh -p 2222 root@localhost  # node-1
-ssh -p 2223 root@localhost  # node-2
-ssh -p 2224 root@localhost  # node-3
+ssh -p 30001 root@localhost  # node-1
+ssh -p 30002 root@localhost  # node-2
+ssh -p 30003 root@localhost  # node-3
 ```
 
 </Accordion>

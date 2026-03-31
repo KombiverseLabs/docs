@@ -14,17 +14,17 @@ Available StackKits:
 
 | Kit | Use Case | Complexity |
 |-----|----------|------------|
-| `base-homelab` | Single node, beginners | Low |
-| `ha-homelab` | High availability | Medium |
+| `base-kit` | Single node, beginners | Low |
+| `ha-kit` | High availability | Medium |
 | `modern-homelab` | Multi-node Docker + Coolify | High |
 
-For this quickstart, we'll use `base-homelab`.
+For this quickstart, we'll use `base-kit`.
 
 ## Step 2: Create kombination.yaml
 
 ```yaml
 # kombination.yaml
-stackkit: base-homelab
+stackkit: base-kit
 
 domain: homelab.local
 email: you@example.com
@@ -86,10 +86,10 @@ After deployment:
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-homelab">
+  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-kit">
     Full documentation for the Base Kit
   </Card>
-  <Card title="Add Services" icon="plus" href="/guides/adding-services">
+  <Card title="Add Services" icon="plus">
     Expand your homelab with more services
   </Card>
 </CardGroup>

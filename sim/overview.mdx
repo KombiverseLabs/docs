@@ -43,13 +43,13 @@ flowchart LR
 ```
 
 <Accordion title="🔧 Technical details" icon="code">
-  kombify Simulate uses Docker containers with full init systems (systemd/OpenRC) to simulate real Linux servers. Each simulated node:
+  kombify Simulate uses multiple engines (Docker, Incus, QEMU, Azure, DigitalOcean) to simulate real Linux servers. Each simulated node:
   - Runs a complete Linux distribution (Ubuntu, Debian, Rocky, Alpine)
-  - Has its own SSH server accessible on unique ports (2222-2322)
+  - Has its own SSH server accessible on unique ports (30000-39999)
   - Can be networked together in custom topologies
   - Supports resource limits matching real hardware specs
-  
-  **Architecture:** Go backend with SvelteKit dashboard, REST API for automation
+
+  **Architecture:** Go backend with REST API for automation. Supports 5 engines for different fidelity levels.
 </Accordion>
 
 ## Key features
@@ -87,9 +87,9 @@ flowchart TB
     end
     
     subgraph Docker["🐳 Docker"]
-        N1["<b>node-1</b><br/>Ubuntu 22.04<br/><small>SSH: 2222</small>"]
-        N2["<b>node-2</b><br/>Debian 12<br/><small>SSH: 2223</small>"]
-        N3["<b>node-3</b><br/>Rocky 9<br/><small>SSH: 2224</small>"]
+        N1["<b>node-1</b><br/>Ubuntu 22.04<br/><small>SSH: 30001</small>"]
+        N2["<b>node-2</b><br/>Debian 12<br/><small>SSH: 30002</small>"]
+        N3["<b>node-3</b><br/>Rocky 9<br/><small>SSH: 30003</small>"]
         Net["🌐 Virtual Networks"]
     end
     
@@ -129,17 +129,17 @@ flowchart TB
     ```bash
     docker run -d \
       -p 5270:5270 \
-      -p 5271:5271 \
-      -p 2222-2322:2222-2322 \
+      -p 30000-39999:30000-39999 \
       -v /var/run/docker.sock:/var/run/docker.sock \
       ghcr.io/kombify/sim:latest
     ```
   </Step>
   
-  <Step title="Open Dashboard">
-    Navigate to `http://localhost:5271` in your browser.
-    
-    ![Sim Dashboard](/images/sim-dashboard.png)
+  <Step title="Verify API">
+    Check the API is running:
+    ```bash
+    curl http://localhost:5270/health
+    ```
   </Step>
   
   <Step title="Create Simulation">
@@ -168,7 +168,9 @@ flowchart TB
   
   <Step title="SSH into Node">
     ```bash
-    ssh -p 2222 root@localhost
+    # Port is assigned dynamically from range 30000-39999
+    # Check the node details for the assigned SSH port
+    ssh -p 30001 root@localhost
     # Password: kombisim
     ```
   </Step>
@@ -185,7 +187,6 @@ graph TB
     end
     
     subgraph SimContainer["Simulate Container"]
-        WebUI["Web UI<br/>:5271"]
         API["REST API<br/>:5270"]
         Engine["Node Engine"]
         DB["SQLite DB"]
@@ -195,20 +196,18 @@ graph TB
         Socket["/var/run/docker.sock"]
         
         subgraph Nodes["Simulated Nodes"]
-            N1["node-1<br/>:2222"]
-            N2["node-2<br/>:2223"]
-            N3["node-3<br/>:2224"]
+            N1["node-1<br/>:30001"]
+            N2["node-2<br/>:30002"]
+            N3["node-3<br/>:30003"]
         end
         
         Networks["Docker Networks"]
     end
     
-    Browser --> WebUI
     CLI --> API
     SSH --> Nodes
-    
+
     API --> Engine
-    WebUI --> API
     Engine --> DB
     Engine --> Socket
     Socket --> Nodes
@@ -221,13 +220,31 @@ graph TB
 
 ## Supported Operating Systems
 
-| OS | Image | SSH Port Base |
-|----|-------|---------------|
-| Ubuntu 22.04 | `ubuntu-22.04` | 2222 |
-| Ubuntu 24.04 | `ubuntu-24.04` | 2222 |
-| Debian 12 | `debian-12` | 2222 |
-| Rocky Linux 9 | `rocky-9` | 2222 |
-| Alpine 3.19 | `alpine-3.19` | 2222 |
+| OS | Image |
+|----|-------|
+| Ubuntu 22.04 | `ubuntu-22.04` |
+| Ubuntu 24.04 | `ubuntu-24.04` |
+| Debian 12 | `debian-12` |
+| Rocky Linux 9 | `rocky-9` |
+| Alpine 3.19 | `alpine-3.19` |
+
+<Note>
+  SSH ports are dynamically assigned from the range 30000-39999. Check the node details via API for the assigned port.
+</Note>
+
+## Simulation Engines
+
+kombify Simulate supports multiple backends for different fidelity levels:
+
+| Engine | Type | Best for |
+|--------|------|----------|
+| **Docker** | Container-based | Fast iteration, CI/CD (default) |
+| **Incus** | System container | Full OS simulation with systemd |
+| **QEMU** | Virtual machine | Hardware-level fidelity |
+| **Azure** | Cloud VM | Real cloud infrastructure testing |
+| **DigitalOcean** | Cloud VM | Real cloud infrastructure testing |
+
+Set the engine via the `KOMBISIM_ENGINE` environment variable.
 
 ## Use Cases
 
@@ -441,16 +458,16 @@ graph TB
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Docker Installation" icon="docker" href="/sim/install/docker">
-    Quick start with Docker
+  <Card title="Self-Hosting Guide" icon="server" href="/sim/how-to/self-hosting">
+    Deploy Simulate on your own infrastructure
   </Card>
-  <Card title="Docker Compose" icon="layer-group" href="/sim/install/docker-compose">
-    Persistent deployment with Compose
-  </Card>
-  <Card title="Templates" icon="book" href="/sim/templates">
+  <Card title="Templates" icon="book" href="/sim/how-to/templates">
     Pre-built simulation templates
   </Card>
-  <Card title="API Reference" icon="code" href="/api-reference/sim">
+  <Card title="Simulation Engines" icon="gear" href="/sim/explanations/simulation-engines">
+    Understanding the different engine backends
+  </Card>
+  <Card title="API Reference" icon="code" href="/api/kombisim/overview">
     Full API documentation
   </Card>
 </CardGroup>

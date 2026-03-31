@@ -249,21 +249,21 @@ nodes:
 
 **Why:** Low-latency access for users in different regions
 
-### 3. Hybrid Kubernetes
+### 3. Backup and redundancy
 
 ```yaml
-# Cloud control plane
-- name: k8s-control-1
-  provider: hetzner
-  services: [k3s-server]
-
-# Local worker nodes
-- name: k8s-worker-1
+# Primary homelab
+- name: primary-server
   provider: local
-  services: [k3s-agent]
+  services: [traefik, immich, authelia]
+
+# Cloud backup target
+- name: backup-vps
+  provider: hetzner
+  services: [restic-server]
 ```
 
-**Why:** Managed control plane, local compute for cost savings
+**Why:** Local performance with off-site backups for disaster recovery
 
 ## Networking considerations
 
@@ -384,14 +384,14 @@ services:
   <Card
     title="Deploy hybrid infrastructure"
     icon="rocket"
-    href="/tools/kombistack/quickstart"
+    href="/stack/quickstart"
   >
     Follow the kombify TechStack quickstart
   </Card>
   <Card
     title="Networking guide"
     icon="network-wired"
-    href="/guides/deployment/monitoring"
+    href="/stack/reference/monitoring"
   >
     Configure VPN and networking
   </Card>

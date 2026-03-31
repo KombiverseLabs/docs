@@ -18,7 +18,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   <Accordion title="Agent">
     A lightweight daemon that runs on each managed node. Agents communicate with kombify TechStack over gRPC using mTLS encryption, reporting node status and executing deployment commands.
     
-    **Related:** [Node Agents](/stack/agents), [mTLS](#m)
+    **Related:** [Node Agents](/stack/overview), [mTLS](#m)
   </Accordion>
   
   <Accordion title="Add-on">
@@ -44,7 +44,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   <Accordion title="Bootstrap">
     The initial setup process for a new node joining a kombify-managed infrastructure. This involves agent installation, certificate exchange, and initial configuration.
     
-    **Related:** [Worker Script](/stack/install/bare-metal)
+    **Related:** [Self-Hosting Guide](/stack/how-to/self-hosting)
   </Accordion>
 </AccordionGroup>
 
@@ -67,7 +67,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
     }
     ```
     
-    **Related:** [StackKits CUE Basics](/stackkits/cue-basics)
+    **Related:** [StackKits CUE Basics](/stackkits/explanations/cue-architecture)
   </Accordion>
 </AccordionGroup>
 
@@ -77,13 +77,13 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   <Accordion title="Drift Detection">
     Continuous monitoring that compares actual infrastructure state against the desired state defined in `kombination.yaml`. When drift is detected, kombify can automatically remediate or alert.
     
-    **Related:** [Operations](/stack/operations/monitoring)
+    **Related:** [Operations](/stack/reference/monitoring)
   </Accordion>
   
   <Accordion title="Docker Compose">
     A tool for defining multi-container Docker applications. kombify Simulate uses Docker Compose for container-based simulations.
     
-    **Related:** [Sim Installation](/sim/install/docker-compose)
+    **Related:** [Self-Hosting Guide](/sim/how-to/self-hosting)
   </Accordion>
 </AccordionGroup>
 
@@ -99,7 +99,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   <Accordion title="Engine">
     The backend system in kombify Simulate that creates virtual environments. Available engines include Docker, QEMU, and external providers.
     
-    **Related:** [Sim Configuration](/sim/configuration)
+    **Related:** [Sim Configuration](/sim/overview)
   </Accordion>
 </AccordionGroup>
 
@@ -157,7 +157,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
     
     **Example:**
     ```yaml
-    stackkit: base-homelab
+    stackkit: base-kit
     nodes:
       - name: server-01
         type: local
@@ -243,9 +243,9 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
     A pre-packaged, validated infrastructure template that provides sensible defaults and best practices for common use cases. StackKits are defined using CUE schemas.
     
     **Available StackKits:**
-    - `base-homelab` (**Base Kit**) - Essential homelab with reverse proxy and SSO
-    - `ha-homelab` (**High Availability Kit**) - High-availability setup with failover
-    - `modern-homelab` (**Modern Homelab Kit**) - Cloud-native stack with Kubernetes
+    - `base-kit` (**Base Kit**) - Essential homelab with reverse proxy and SSO
+    - `ha-kit` (**High Availability Kit**) - High-availability setup with failover (vision-only)
+    - `modern-homelab` (**Modern Homelab Kit**) - Hybrid cloud+local infrastructure
     
     **Related:** [StackKits Overview](/stackkits/overview)
   </Accordion>
@@ -265,7 +265,7 @@ This glossary defines the key terms, concepts, and acronyms used throughout the 
   <Accordion title="Unifier">
     The validation and resolution engine in kombify TechStack that processes `kombination.yaml`, applies StackKit rules, resolves dependencies, and generates deployment plans.
     
-    **Related:** [Unifier Engine](/stack/unifier)
+    **Related:** [Unifier Engine](/stack/overview)
   </Accordion>
 </AccordionGroup>
 
