@@ -58,17 +58,7 @@
             "pages": [
               "introduction",
               "ecosystem",
-              "platform-urls",
               "changelog"
-            ]
-          },
-          {
-            "group": "Why kombify?",
-            "icon": "lightbulb",
-            "pages": [
-              "overview/why-kombify",
-              "overview/use-cases",
-              "overview/how-it-works"
             ]
           },
           {
@@ -95,43 +85,6 @@
             ]
           },
           {
-            "group": "Using kombify Cloud",
-            "icon": "cloud",
-            "pages": [
-              "guides/cloud/getting-started",
-              "guides/cloud/dashboard",
-              "guides/cloud/tool-launcher",
-              "guides/cloud/team-management"
-            ]
-          },
-          {
-            "group": "Using kombify Stack",
-            "icon": "server",
-            "pages": [
-              "guides/stack/first-stack",
-              "guides/stack/configuration-wizard",
-              "guides/stack/managing-nodes"
-            ]
-          },
-          {
-            "group": "Using kombify Sim",
-            "icon": "flask",
-            "pages": [
-              "guides/sim/first-simulation",
-              "guides/sim/templates",
-              "guides/sim/ssh-access"
-            ]
-          },
-          {
-            "group": "Using StackKits",
-            "icon": "boxes-stacked",
-            "pages": [
-              "guides/stackkits/choosing-a-kit",
-              "guides/stackkits/architectures",
-              "guides/stackkits/customizing"
-            ]
-          },
-          {
             "group": "Self-Hosting",
             "icon": "server",
             "pages": [
@@ -151,6 +104,15 @@
             ]
           },
           {
+            "group": "Authentication",
+            "icon": "key",
+            "pages": [
+              "guides/auth/overview",
+              "guides/auth/api-keys",
+              "guides/auth/sso-integration"
+            ]
+          },
+          {
             "group": "AI-Assisted Setup",
             "icon": "robot",
             "pages": [
@@ -164,8 +126,8 @@
             "icon": "circle-question",
             "pages": [
               "guides/troubleshooting-wizard",
-              "faq",
-              "glossary",
+              "faq/index",
+              "glossary/index",
               "community"
             ]
           }
@@ -190,16 +152,6 @@
               "stack/install/docker",
               "stack/install/bare-metal",
               "stack/install/kubernetes"
-            ]
-          },
-          {
-            "group": "Concepts",
-            "icon": "lightbulb",
-            "pages": [
-              "concepts/hybrid-infrastructure",
-              "concepts/spec-driven",
-              "concepts/stackkits",
-              "concepts/simulation-first"
             ]
           },
           {
@@ -242,13 +194,6 @@
             ]
           },
           {
-            "group": "Advanced",
-            "icon": "gear",
-            "pages": [
-              "sim/network-discovery"
-            ]
-          },
-          {
             "group": "Operations",
             "icon": "wrench",
             "pages": [
@@ -277,6 +222,13 @@
               "stackkits/kits/ha-homelab",
               "stackkits/kits/modern-homelab"
             ]
+          },
+          {
+            "group": "How-To",
+            "icon": "book-open",
+            "pages": [
+              "guides/stackkits/choosing-a-kit"
+            ]
           }
         ]
       },
@@ -302,21 +254,70 @@
             ]
           },
           {
-            "group": "Authentication",
-            "icon": "key",
-            "pages": [
-              "guides/auth/overview",
-              "guides/auth/api-keys",
-              "guides/auth/sso-integration"
-            ]
-          },
-          {
             "group": "Billing",
             "icon": "credit-card",
             "pages": [
               "cloud/pricing",
               "cloud/subscriptions",
               "cloud/enterprise"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Concepts",
+        "icon": "lightbulb",
+        "pages": [
+          {
+            "group": "Platform",
+            "icon": "sitemap",
+            "pages": [
+              "concepts/spec-driven",
+              "concepts/hybrid-infrastructure",
+              "concepts/simulation-first"
+            ]
+          },
+          {
+            "group": "StackKits",
+            "icon": "boxes-stacked",
+            "pages": [
+              "concepts/stackkits"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API Reference",
+        "icon": "code",
+        "pages": [
+          {
+            "group": "kombify Stack",
+            "icon": "server",
+            "pages": [
+              "api/kombistack/overview",
+              "api/kombistack/stacks",
+              "api/kombistack/workers",
+              "api/kombistack/jobs"
+            ]
+          },
+          {
+            "group": "kombify Sim",
+            "icon": "flask",
+            "pages": [
+              "api/kombisim/overview",
+              "api/kombisim/simulations",
+              "api/kombisim/nodes",
+              "api/kombisim/templates"
+            ]
+          },
+          {
+            "group": "kombify Cloud",
+            "icon": "cloud",
+            "pages": [
+              "api/kombisphere/overview",
+              "api/kombisphere/authentication",
+              "api/kombisphere/tools",
+              "api/kombisphere/subscriptions"
             ]
           }
         ]
