@@ -12,17 +12,17 @@ StackKits are pre-built infrastructure blueprints that define what services to r
   <Card title="Base Kit" icon="house" href="/stackkits/kits/base-kit">
     **Best for getting started**
     
-    Single server, 4-6 essential services. Perfect for your first homelab.
+    Single-environment pattern. Local or cloud, any node count. Perfect for your first homelab.
   </Card>
   <Card title="Modern Homelab Kit" icon="rocket" href="/stackkits/kits/modern-homelab">
-    **Best for power users**
+    **Best for hybrid setups**
     
-    Advanced services like local AI, development tools, and cutting-edge apps.
+    Cloud and local combined — both mandatory. Multi-node on both ends possible.
   </Card>
   <Card title="High Availability Kit" icon="shield" href="/stackkits/kits/ha-kit">
     **Best for reliability**
     
-    3+ servers with Docker Swarm, automatic failover, and redundant storage.
+    Automatic failover, redundancy, and quorum consensus. 3+ nodes minimum.
   </Card>
 </CardGroup>
 
@@ -30,11 +30,11 @@ StackKits are pre-built infrastructure blueprints that define what services to r
 
 | Question | Base | Modern | HA |
 |----------|------|--------|-----|
-| How many servers do you have? | 1 | 1-2 | 3+ |
-| Do you need high availability? | No | No | Yes |
-| Want AI/ML services? | No | Yes | Optional |
+| Where does your infra run? | Local or cloud (single environment) | Cloud and local (both required) | Any — HA features are the point |
+| Do you need high availability? | No | No | Yes — automatic failover |
+| Want AI/ML services? | Optional | Yes | Optional |
 | Experience level? | Beginner | Intermediate | Advanced |
-| Typical use case | Photos, files, media | Dev env, AI, advanced apps | Production services |
+| Typical use case | First homelab, simple setups | Hybrid cloud+home, power users | Production services, uptime-critical |
 
 ## Add-ons
 

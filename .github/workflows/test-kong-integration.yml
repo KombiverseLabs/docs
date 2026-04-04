@@ -54,7 +54,7 @@ jobs:
   # ==========================================================
   validate-syntax:
     name: Validate YAML Syntax
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Checkout repository
@@ -97,7 +97,7 @@ jobs:
   # ==========================================================
   validate-kong:
     name: Validate Kong Configuration
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: validate-syntax
     
     steps:
@@ -157,7 +157,7 @@ jobs:
   # ==========================================================
   security-checks:
     name: Security Configuration Checks
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: validate-syntax
     
     steps:
@@ -246,7 +246,7 @@ jobs:
   # ==========================================================
   smoke-tests:
     name: Staging Smoke Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: [validate-kong, security-checks]
     if: github.event.inputs.run_smoke_tests != 'false'
     environment:
@@ -378,7 +378,7 @@ jobs:
   # ==========================================================
   config-diff:
     name: Configuration Diff
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: validate-kong
     if: github.event_name == 'pull_request'
     environment:
@@ -469,7 +469,7 @@ jobs:
     name: Test Summary
     needs: [validate-syntax, validate-kong, security-checks, smoke-tests]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Generate Summary

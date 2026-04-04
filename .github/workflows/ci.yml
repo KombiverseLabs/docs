@@ -15,7 +15,7 @@ permissions:
 jobs:
   validate-content:
     name: Validate Documentation Content
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Checkout
@@ -64,7 +64,7 @@ jobs:
 
   check-brand-guidelines:
     name: Check Brand Guidelines
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Checkout
@@ -87,7 +87,7 @@ jobs:
   ci-passed:
     name: ✅ CI Passed
     needs: [validate-content, check-brand-guidelines]
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: always()
     steps:
       - name: Check all jobs passed

@@ -73,7 +73,7 @@ jobs:
   # ==========================================================
   validate:
     name: Validate Kong Configuration
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Checkout repository
@@ -117,7 +117,7 @@ jobs:
   deploy:
     name: Deploy to ${{ github.event.inputs.environment || 'production' }}
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     environment:
       name: ${{ github.event.inputs.environment || 'production' }}
       url: https://api.kombify.io/health
@@ -340,7 +340,7 @@ jobs:
     name: Smoke Tests
     needs: deploy
     if: needs.deploy.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Checkout repository
@@ -408,7 +408,7 @@ jobs:
     name: Notify Deployment Status
     needs: [deploy, smoke-tests]
     if: always()
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.DEPLOY_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - name: Determine Status

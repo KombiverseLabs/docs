@@ -49,7 +49,7 @@ jobs:
   
   validate-structure:
     name: 📋 Validate Documentation Structure
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -79,7 +79,7 @@ jobs:
 
   validate-content-quality:
     name: 📝 Validate Content Quality
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     steps:
       - uses: actions/checkout@v4
       
@@ -109,7 +109,7 @@ jobs:
   
   update-screenshots:
     name: 📸 Update Screenshots
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: |
       github.event_name == 'schedule' || 
       github.event_name == 'workflow_dispatch' && 
@@ -177,7 +177,7 @@ jobs:
 
   generate-diagrams:
     name: 🎨 Generate Diagrams
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: |
       github.event_name == 'workflow_dispatch' && 
       (inputs.action == 'generate-diagrams' || inputs.action == 'full-refresh')
@@ -227,7 +227,7 @@ jobs:
 
   check-external-links:
     name: 🔗 Check External Links
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: github.event_name == 'schedule'
     
     steps:
@@ -259,7 +259,7 @@ jobs:
   
   ai-content-review:
     name: 🤖 AI Content Review
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: |
       github.event_name == 'workflow_dispatch' && 
       (inputs.action == 'ai-suggestions' || inputs.action == 'full-refresh')
@@ -300,7 +300,7 @@ jobs:
   
   update-changelog:
     name: 📝 Update Changelog
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [validate-structure]
     
@@ -344,7 +344,7 @@ jobs:
   
   generate-health-report:
     name: 📊 Generate Health Report
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     if: github.event_name == 'schedule'
     needs: [validate-structure, validate-content-quality, check-external-links]
     

@@ -56,7 +56,7 @@ jobs:
   # =============================================================================
   setup:
     name: Setup Test Environment
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     outputs:
       test_env: ${{ steps.set-env.outputs.environment }}
     steps:
@@ -89,7 +89,7 @@ jobs:
   # =============================================================================
   test:
     name: Run E2E Tests
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: setup
     environment: ${{ needs.setup.outputs.test_env }}
     timeout-minutes: 30
@@ -249,7 +249,7 @@ jobs:
   # =============================================================================
   report:
     name: Generate Test Report
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: [setup, test]
     if: always()
     steps:
@@ -282,7 +282,7 @@ jobs:
   # =============================================================================
   notify:
     name: Notify on Failure
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     needs: test
     if: failure() && github.event_name == 'schedule'
     steps:

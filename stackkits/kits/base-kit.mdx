@@ -1,12 +1,12 @@
 ---
 title: Base Kit
-description: The professional single-server homelab blueprint
+description: The single-environment homelab blueprint — local or cloud, any node count
 sidebarTitle: Base Kit
 icon: house
 ---
 
 
-The **Base Kit** is designed for **professional single-server deployments**. It provides a carefully curated set of services that work well together out of the box, optimized for reliability and simplicity on a standalone node. This solution is built for both efficiency and complexity management on a single host, making it suitable for any skill level requiring a standalone architecture.
+The **Base Kit** is designed for **single-environment deployments** — all services share one deployment target. It can run on a single server or span multiple nodes in the same environment (local or cloud). This is the simplest architecture pattern, optimized for reliability and straightforward operations.
 
 <Note>
   The Base Kit follows an IaC-first approach using OpenTofu for infrastructure provisioning and Docker Compose for service deployment.
@@ -16,7 +16,7 @@ The **Base Kit** is designed for **professional single-server deployments**. It 
 
 ```mermaid
 graph TB
-    subgraph Node["Single Node"]
+    subgraph Env["Single Environment (local or cloud)"]
         subgraph Core["Core Services"]
             Traefik["Traefik v3<br/>Reverse Proxy"]
         end
@@ -41,7 +41,7 @@ graph TB
     Traefik --> Monitoring
     Traefik --> Identity
     
-    style Node fill:#1e293b,stroke:#38bdf8,color:#f8fafc
+    style Env fill:#1e293b,stroke:#38bdf8,color:#f8fafc
     style Core fill:#1e293b,stroke:#fbbf24,color:#f8fafc
     style Platform fill:#1e293b,stroke:#4ade80,color:#f8fafc
     style Monitoring fill:#1e293b,stroke:#a78bfa,color:#f8fafc
@@ -368,14 +368,14 @@ The Base Kit enforces these rules:
 
 | Constraint | Value | Reason |
 |------------|-------|--------|
-| Max nodes | 1 | Single-node design |
+| Environment | Single (local or cloud) | Single-environment pattern |
 | Traefik required | Yes | All services need routing |
 | Min RAM | 4 GB | Services won't fit in less |
 
 <Warning>
-  If you need more than 1 node, consider:
-  - [Modern Homelab Kit](/stackkits/kits/modern-homelab) — Multi-node with Headscale VPN
-  - [High Availability Kit](/stackkits/kits/ha-kit) — High-availability Docker Swarm cluster
+  The Base Kit serves a single-environment pattern. If you need:
+  - **Hybrid local + cloud** — [Modern Homelab Kit](/stackkits/kits/modern-homelab)
+  - **Automatic failover and redundancy** — [High Availability Kit](/stackkits/kits/ha-kit)
 </Warning>
 
 ## Troubleshooting

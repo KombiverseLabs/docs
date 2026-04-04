@@ -58,9 +58,9 @@ A StackKit defines **how infrastructure is organized**, not how many servers you
 
 | StackKit | Pattern | What it means |
 |----------|---------|--------------|
-| **base** | Single-environment | All services in one deployment target |
-| **modern** | Hybrid infrastructure | Local + cloud connected via VPN overlay |
-| **ha** | High-availability cluster | Redundancy, failover, quorum consensus |
+| **base** | Single-environment | All services in one deployment target (local or cloud, any node count) |
+| **modern** | Hybrid infrastructure | Local + cloud combined, both mandatory, multi-node on both ends possible |
+| **ha** | High-availability cluster | Automatic failover, redundancy, quorum consensus (3+ nodes minimum) |
 
 <Tip>
   A `base` StackKit can run on 3 Raspberry Pis. An `ha` StackKit can run on 1 powerful server. The StackKit defines the *pattern*, not the *scale*.

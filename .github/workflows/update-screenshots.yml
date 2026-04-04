@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   capture-screenshots:
-    runs-on: ubuntu-latest
+    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
     
     steps:
       - uses: actions/checkout@v4

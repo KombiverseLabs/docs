@@ -89,7 +89,7 @@ graph TB
 - SSH access to all nodes
 
 <Warning>
-  The Modern Homelab Kit has higher complexity and resource requirements than the Base Kit. If you only need a single local server, use the [Base Kit](/stackkits/kits/base-kit) instead.
+  The Modern Homelab Kit requires both cloud and local infrastructure. If you only need a single environment (local or cloud), use the [Base Kit](/stackkits/kits/base-kit) instead.
 </Warning>
 
 ## Architecture deep dive
@@ -354,7 +354,7 @@ observability:
 
 ### Coolify -- Multi-node PaaS
 
-Coolify manages deployments across your nodes. Unlike Dokploy (used in the Base Kit for single nodes), Coolify provides:
+Coolify manages deployments across your nodes. While the Base Kit uses Dokploy within a single-environment pattern, Coolify provides additional capabilities for hybrid setups:
 
 - Multi-node deployment via SSH
 - Git-based deployments (push to deploy)
