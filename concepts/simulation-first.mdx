@@ -58,7 +58,7 @@ Each simulated node is a Docker container with:
     Define your infrastructure in kombify Simulate:
     
     ```bash
-    curl -X POST http://localhost:5270/api/v1/simulations \
+    curl -X POST https://api.kombify.io/v1/simulation/simulations \
       -H "Content-Type: application/json" \
       -d '{
         "name": "my-homelab-test",
@@ -72,7 +72,7 @@ Each simulated node is a Docker container with:
 
   <Step title="Start nodes">
     ```bash
-    curl -X POST http://localhost:5270/api/v1/simulations/{id}/start
+    curl -X POST https://api.kombify.io/v1/simulation/simulations/{id}/start
     ```
     
     kombify Simulate creates Docker containers and assigns SSH ports.
@@ -83,7 +83,7 @@ Each simulated node is a Docker container with:
     
     ```bash
     # Get SSH details
-    curl http://localhost:5270/api/v1/nodes/{id}/ssh
+    curl https://api.kombify.io/v1/simulation/nodes/{id}/ssh
     
     # SSH into node
     ssh -p 30001 root@localhost
@@ -96,7 +96,7 @@ Each simulated node is a Docker container with:
 
     ```bash
     # Export simulation config
-    curl http://localhost:5270/api/v1/simulations/{id}/export > kombination.yaml
+    curl https://api.kombify.io/v1/simulation/simulations/{id}/export > kombination.yaml
 
     # Deploy to real hardware
     kombistack apply kombination.yaml
@@ -307,11 +307,11 @@ nodes:
     
     ```bash
     # Apply template
-    curl -X POST http://localhost:5270/api/v1/templates/homelab-basic/apply \
+    curl -X POST https://api.kombify.io/v1/simulation/templates/homelab-basic/apply \
       -d '{"simulation_name": "my-test", "auto_start": true}'
     
     # Customize nodes
-    curl -X PATCH http://localhost:5270/api/v1/nodes/{id} \
+    curl -X PATCH https://api.kombify.io/v1/simulation/nodes/{id} \
       -d '{"resources": {"memory": "8GB"}}'
     ```
   </Accordion>
@@ -320,7 +320,7 @@ nodes:
     Delete simulations after testing to free resources:
     
     ```bash
-    curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
+    curl -X DELETE https://api.kombify.io/v1/simulation/simulations/{id}
     ```
   </Accordion>
 
@@ -328,7 +328,7 @@ nodes:
     Save working configurations for reuse:
     
     ```bash
-    curl http://localhost:5270/api/v1/simulations/{id}/export > validated-config.yaml
+    curl https://api.kombify.io/v1/simulation/simulations/{id}/export > validated-config.yaml
     ```
   </Accordion>
 </AccordionGroup>

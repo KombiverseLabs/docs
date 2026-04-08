@@ -24,7 +24,7 @@ Each node gets a unique SSH port:
 
 ```bash
 # List nodes with SSH ports
-curl -s http://localhost:5270/api/v1/nodes | jq '.[] | {name, ssh_port}'
+curl -s https://api.kombify.io/v1/simulation/nodes | jq '.[] | {name, ssh_port}'
 ```
 
 Output:
@@ -84,7 +84,7 @@ cat ~/.ssh/id_rsa.pub | ssh -p 30001 root@localhost \
 When creating a node, include your public key:
 
 ```bash
-curl -X POST http://localhost:5270/api/v1/nodes \
+curl -X POST https://api.kombify.io/v1/simulation/nodes \
   -H "Content-Type: application/json" \
   -d '{
     "name": "secure-node",
@@ -126,7 +126,7 @@ Now access `http://localhost:8080` to reach the node's web server.
 
 <AccordionGroup>
   <Accordion title="Connection refused">
-    1. Check the node is running: `curl http://localhost:5270/api/v1/nodes`
+    1. Check the node is running: `curl https://api.kombify.io/v1/simulation/nodes`
     2. Verify the port: node may be on different port
     3. Wait a few seconds after node creation
   </Accordion>

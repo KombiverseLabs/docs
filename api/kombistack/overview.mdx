@@ -7,7 +7,7 @@ description: REST API reference for the homelab orchestration engine
 The Stack API lets you automate everything you can do in the dashboard — create stacks, manage nodes, trigger deployments, and monitor status.
 
 <Note>
-  **Base URL:** `http://localhost:5260/api/v1` (self-hosted) or `https://stack.kombify.io/api/v1` (managed)
+  **Base URL:** `https://api.kombify.io/v1/orchestrator` (SaaS) or `http://localhost:5260/api/v1` (self-hosted)
 </Note>
 
 ## Quick start
@@ -24,7 +24,7 @@ TOKEN=$(curl -s -X POST https://auth.kombify.dev/oauth/v2/token \
   -d "scope=openid" | jq -r '.access_token')
 
 # 2. Use the token in API requests
-curl http://localhost:5260/api/v1/stacks \
+curl https://api.kombify.io/v1/orchestrator/stacks \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -42,7 +42,7 @@ Response:
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \
-  http://localhost:5260/api/v1/stacks
+  https://api.kombify.io/v1/orchestrator/stacks
 ```
 
 ## API endpoints
@@ -89,7 +89,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 ```bash
 # 1. Create the stack
-STACK_ID=$(curl -s -X POST http://localhost:5260/api/v1/stacks \
+STACK_ID=$(curl -s -X POST https://api.kombify.io/v1/orchestrator/stacks \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
@@ -101,15 +101,15 @@ STACK_ID=$(curl -s -X POST http://localhost:5260/api/v1/stacks \
   }' | jq -r '.id')
 
 # 2. Preview changes
-curl -X POST "http://localhost:5260/api/v1/stacks/$STACK_ID/plan" \
+curl -X POST "https://api.kombify.io/v1/orchestrator/stacks/$STACK_ID/plan" \
   -H "Authorization: Bearer $TOKEN"
 
 # 3. Apply to infrastructure
-curl -X POST "http://localhost:5260/api/v1/stacks/$STACK_ID/apply" \
+curl -X POST "https://api.kombify.io/v1/orchestrator/stacks/$STACK_ID/apply" \
   -H "Authorization: Bearer $TOKEN"
 
 # 4. Check job status
-curl "http://localhost:5260/api/v1/jobs?stack_id=$STACK_ID" \
+curl "https://api.kombify.io/v1/orchestrator/jobs?stack_id=$STACK_ID" \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -119,7 +119,7 @@ curl "http://localhost:5260/api/v1/jobs?stack_id=$STACK_ID" \
 
 ```bash
 # List all workers with status
-curl http://localhost:5260/api/v1/workers \
+curl https://api.kombify.io/v1/orchestrator/workers \
   -H "Authorization: Bearer $TOKEN"
 ```
 
@@ -148,7 +148,7 @@ Response:
 
 ```bash
 # Validate a kombination.yaml
-curl -X POST http://localhost:5260/api/v1/unifier/validate \
+curl -X POST https://api.kombify.io/v1/orchestrator/unifier/validate \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/yaml" \
   --data-binary @kombination.yaml

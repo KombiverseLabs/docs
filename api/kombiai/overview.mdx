@@ -1,0 +1,46 @@
+---
+title: kombify AI API
+description: REST API reference for the AI platform
+---
+
+The AI API provides programmatic access to kombify's AI features — chat, companions, voice, BYOK key management, cost tracking, and agent federation.
+
+<Note>
+  **Base URL:** `https://api.kombify.io/v1/ai` (SaaS) or `http://localhost:5270/api/v1` (self-hosted)
+</Note>
+
+## Authentication
+
+All endpoints (except health and A2A federation) require authentication via JWT token or API key through Kong Gateway.
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  https://api.kombify.io/v1/ai/models
+```
+
+See [Authentication](/guides/auth/overview) for details on obtaining tokens.
+
+## Rate limiting
+
+Authenticated `/v1/ai/*` routes are rate-limited. Limits vary by tier (free, pro, enterprise, self-hosted). Rate limit headers are included in responses.
+
+## Streaming
+
+Chat and voice endpoints support Server-Sent Events (SSE) streaming. Set `Accept: text/event-stream` or `"stream": true` in the request body.
+
+## API endpoints
+
+<CardGroup cols={2}>
+  <Card title="Chat" icon="comments" href="/api/kombiai/chat">
+    Chat, sessions, and companion interactions
+  </Card>
+  <Card title="Models & Keys" icon="key" href="/api/kombiai/models">
+    Model discovery, BYOK key management, preferences
+  </Card>
+  <Card title="Voice" icon="microphone" href="/api/kombiai/voice">
+    Speech-to-text, text-to-speech, voice chat
+  </Card>
+  <Card title="Usage & Costs" icon="chart-line" href="/api/kombiai/usage">
+    Cost tracking, token budgets, usage aggregation
+  </Card>
+</CardGroup>

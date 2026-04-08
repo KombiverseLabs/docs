@@ -1,4 +1,5 @@
 name: Weekly Docs Health Check
+# Health check job: validates docs structure & navigation
 
 on:
   schedule:
@@ -8,6 +9,7 @@ on:
 jobs:
   health-check:
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
 

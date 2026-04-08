@@ -97,7 +97,7 @@ docker exec <container-id> /usr/sbin/sshd
 **Check 3: Correct port?**
 Get the correct SSH port from the API:
 ```bash
-curl http://localhost:5270/api/v1/nodes/<node-id>/ssh
+curl https://api.kombify.io/v1/simulation/nodes/<node-id>/ssh
 ```
 
 **Check 4: Firewall?**
@@ -111,8 +111,8 @@ sudo iptables -L -n | grep 3000
 
 **Fix: Reset node**
 ```bash
-curl -X POST http://localhost:5270/api/v1/nodes/<node-id>/stop
-curl -X POST http://localhost:5270/api/v1/nodes/<node-id>/start
+curl -X POST https://api.kombify.io/v1/simulation/nodes/<node-id>/stop
+curl -X POST https://api.kombify.io/v1/simulation/nodes/<node-id>/start
 ```
 </Accordion>
 
@@ -192,7 +192,7 @@ docker stats --no-stream
 
 1. Stop unused simulations:
    ```bash
-   curl -X POST http://localhost:5270/api/v1/simulations/<id>/stop
+   curl -X POST https://api.kombify.io/v1/simulation/simulations/<id>/stop
    ```
 
 2. Reduce node resources in simulation config:
@@ -207,7 +207,7 @@ docker stats --no-stream
 
 3. Use minimal template:
    ```bash
-   curl -X POST http://localhost:5270/api/v1/templates/single-local/apply
+   curl -X POST https://api.kombify.io/v1/simulation/templates/single-local/apply
    ```
 </Accordion>
 

@@ -17,8 +17,12 @@ kombify TechStack provides comprehensive monitoring for your infrastructure thro
 ### API health endpoint
 
 ```bash
-curl http://localhost:5260/api/v1/health
+curl https://api.kombify.io/v1/orchestrator/health
 ```
+
+<Tip>
+  **Self-hosted:** Replace the base URL with `http://localhost:5260/api/v1` when running TechStack locally.
+</Tip>
 
 Response:
 ```json
@@ -91,7 +95,7 @@ Each connected agent reports metrics about its node:
 
 ```bash
 # Get worker status
-curl http://localhost:5260/api/v1/workers
+curl https://api.kombify.io/v1/orchestrator/workers
 ```
 
 Response:
@@ -225,7 +229,7 @@ Monitor deployed services via Stack's built-in checks:
 
 ```bash
 # Get service health for a stack
-curl http://localhost:5260/api/v1/stacks/{stack-id}/health
+curl https://api.kombify.io/v1/orchestrator/stacks/{stack-id}/health
 ```
 
 Response:

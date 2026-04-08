@@ -30,7 +30,7 @@ Sim includes pre-built templates for common homelab scenarios. Templates define 
 ### Via API
 
 ```bash
-curl -X POST http://localhost:5270/api/v1/simulations \
+curl -X POST https://api.kombify.io/v1/simulation/simulations \
   -H "Content-Type: application/json" \
   -d '{
     "name": "my-cluster",
@@ -102,7 +102,7 @@ scripts:
 Load your template:
 
 ```bash
-curl -X POST http://localhost:5270/api/v1/templates \
+curl -X POST https://api.kombify.io/v1/simulation/templates \
   -H "Content-Type: application/json" \
   -d @my-template.yaml
 ```

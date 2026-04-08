@@ -36,7 +36,7 @@ GET /api/v1/simulations
 **Example:**
 
 ```bash
-curl http://localhost:5270/api/v1/simulations
+curl https://api.kombify.io/v1/simulation/simulations
 ```
 
 **Response:**
@@ -304,7 +304,7 @@ Content-Type: application/json
 
 ```bash
 # Create simulation with 3 nodes
-curl -X POST http://localhost:5270/api/v1/simulations \
+curl -X POST https://api.kombify.io/v1/simulation/simulations \
   -H "Content-Type: application/json" \
   -d '{
     "name": "ha-test",
@@ -332,14 +332,14 @@ ssh -p 30003 root@localhost  # node-3
 SIM_ID="sim_xyz789"
 
 # Create snapshot
-curl -X POST "http://localhost:5270/api/v1/simulations/$SIM_ID/snapshot" \
+curl -X POST "https://api.kombify.io/v1/simulation/simulations/$SIM_ID/snapshot" \
   -H "Content-Type: application/json" \
   -d '{"name": "pre-change"}'
 
 # Make your risky changes via SSH...
 
 # If something breaks, restore
-curl -X POST "http://localhost:5270/api/v1/simulations/$SIM_ID/restore" \
+curl -X POST "https://api.kombify.io/v1/simulation/simulations/$SIM_ID/restore" \
   -H "Content-Type: application/json" \
   -d '{"snapshot_id": "snap_111222"}'
 ```

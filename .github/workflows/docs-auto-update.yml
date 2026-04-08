@@ -1,4 +1,5 @@
 name: Documentation Auto-Update & Enhancement
+# Critical path: validate-structure → update-changelog / generate-health-report
 
 on:
   push:
@@ -50,6 +51,7 @@ jobs:
   validate-structure:
     name: 📋 Validate Documentation Structure
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       
@@ -80,6 +82,7 @@ jobs:
   validate-content-quality:
     name: 📝 Validate Content Quality
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       
@@ -110,11 +113,12 @@ jobs:
   update-screenshots:
     name: 📸 Update Screenshots
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 10
     if: |
-      github.event_name == 'schedule' || 
-      github.event_name == 'workflow_dispatch' && 
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch' &&
       (inputs.action == 'update-screenshots' || inputs.action == 'full-refresh')
-    
+
     steps:
       - uses: actions/checkout@v4
       
@@ -178,10 +182,11 @@ jobs:
   generate-diagrams:
     name: 🎨 Generate Diagrams
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     if: |
-      github.event_name == 'workflow_dispatch' && 
+      github.event_name == 'workflow_dispatch' &&
       (inputs.action == 'generate-diagrams' || inputs.action == 'full-refresh')
-    
+
     steps:
       - uses: actions/checkout@v4
       
@@ -228,8 +233,9 @@ jobs:
   check-external-links:
     name: 🔗 Check External Links
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     if: github.event_name == 'schedule'
-    
+
     steps:
       - uses: actions/checkout@v4
       
@@ -260,10 +266,11 @@ jobs:
   ai-content-review:
     name: 🤖 AI Content Review
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     if: |
-      github.event_name == 'workflow_dispatch' && 
+      github.event_name == 'workflow_dispatch' &&
       (inputs.action == 'ai-suggestions' || inputs.action == 'full-refresh')
-    
+
     steps:
       - uses: actions/checkout@v4
       
@@ -301,9 +308,10 @@ jobs:
   update-changelog:
     name: 📝 Update Changelog
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [validate-structure]
-    
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -345,9 +353,10 @@ jobs:
   generate-health-report:
     name: 📊 Generate Health Report
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    timeout-minutes: 5
     if: github.event_name == 'schedule'
     needs: [validate-structure, validate-content-quality, check-external-links]
-    
+
     steps:
       - uses: actions/checkout@v4
       

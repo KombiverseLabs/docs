@@ -315,28 +315,32 @@ Set the engine via the `KOMBISIM_ENGINE` environment variable.
 
 ## API Overview
 
+<Note>
+  **Base URL:** `https://api.kombify.io/v1/simulation` (SaaS) or `http://localhost:5270/api/v1` (self-hosted/local)
+</Note>
+
 ### Simulations
 
 ```bash
 # List simulations
-curl http://localhost:5270/api/v1/simulations
+curl https://api.kombify.io/v1/simulation/simulations
 
 # Create simulation
-curl -X POST http://localhost:5270/api/v1/simulations \
+curl -X POST https://api.kombify.io/v1/simulation/simulations \
   -d '{"name": "test"}'
 
 # Delete simulation
-curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
+curl -X DELETE https://api.kombify.io/v1/simulation/simulations/{id}
 ```
 
 ### Nodes
 
 ```bash
 # List nodes in simulation
-curl http://localhost:5270/api/v1/nodes?simulation_id={sim_id}
+curl https://api.kombify.io/v1/simulation/nodes?simulation_id={sim_id}
 
 # Create node
-curl -X POST http://localhost:5270/api/v1/nodes \
+curl -X POST https://api.kombify.io/v1/simulation/nodes \
   -d '{
     "name": "web-server",
     "simulation_id": "sim_xxx",
@@ -344,10 +348,10 @@ curl -X POST http://localhost:5270/api/v1/nodes \
   }'
 
 # Get node details
-curl http://localhost:5270/api/v1/nodes/{id}
+curl https://api.kombify.io/v1/simulation/nodes/{id}
 
 # Delete node
-curl -X DELETE http://localhost:5270/api/v1/nodes/{id}
+curl -X DELETE https://api.kombify.io/v1/simulation/nodes/{id}
 ```
 
 ## Resource Limits
@@ -355,7 +359,7 @@ curl -X DELETE http://localhost:5270/api/v1/nodes/{id}
 Configure resources per node:
 
 ```bash
-curl -X POST http://localhost:5270/api/v1/nodes \
+curl -X POST https://api.kombify.io/v1/simulation/nodes \
   -d '{
     "name": "db-server",
     "os": "ubuntu-22.04",
@@ -373,7 +377,7 @@ curl -X POST http://localhost:5270/api/v1/nodes \
 
 ```bash
 # Create isolated network
-curl -X POST http://localhost:5270/api/v1/networks \
+curl -X POST https://api.kombify.io/v1/simulation/networks \
   -d '{
     "name": "backend",
     "subnet": "172.30.0.0/24",
@@ -381,7 +385,7 @@ curl -X POST http://localhost:5270/api/v1/networks \
   }'
 
 # Attach node to network
-curl -X POST http://localhost:5270/api/v1/nodes/{id}/networks \
+curl -X POST https://api.kombify.io/v1/simulation/nodes/{id}/networks \
   -d '{"network_id": "net_xxx", "ip": "172.30.0.10"}'
 ```
 
@@ -438,10 +442,10 @@ graph TB
     
     ```bash
     # Stop a node to test failover
-    curl -X POST http://localhost:5270/api/v1/nodes/{id}/stop
+    curl -X POST https://api.kombify.io/v1/simulation/nodes/{id}/stop
     
     # Simulate network partition
-    curl -X POST http://localhost:5270/api/v1/networks/{id}/disconnect \
+    curl -X POST https://api.kombify.io/v1/simulation/networks/{id}/disconnect \
       -d '{"node_id": "node_xxx"}'
     ```
   </Accordion>
@@ -450,7 +454,7 @@ graph TB
     Delete simulations when done to free resources:
     
     ```bash
-    curl -X DELETE http://localhost:5270/api/v1/simulations/{id}
+    curl -X DELETE https://api.kombify.io/v1/simulation/simulations/{id}
     ```
   </Accordion>
 </AccordionGroup>

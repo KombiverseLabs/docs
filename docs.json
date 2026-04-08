@@ -381,6 +381,17 @@
               "api/kombisphere/tools",
               "api/kombisphere/subscriptions"
             ]
+          },
+          {
+            "group": "kombify AI",
+            "icon": "brain",
+            "pages": [
+              "api/kombiai/overview",
+              "api/kombiai/chat",
+              "api/kombiai/models",
+              "api/kombiai/voice",
+              "api/kombiai/usage"
+            ]
           }
         ]
       }

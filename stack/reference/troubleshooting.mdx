@@ -14,10 +14,10 @@ Run a quick health check:
 
 ```bash
 # API health
-curl http://localhost:5260/api/v1/health
+curl https://api.kombify.io/v1/orchestrator/health
 
 # Detailed server info
-curl http://localhost:5260/api/v1/info
+curl https://api.kombify.io/v1/orchestrator/info
 ```
 
 ## Common issues
@@ -79,7 +79,7 @@ curl http://localhost:5260/api/v1/info
     
     5. Check if worker needs approval:
        ```bash
-       curl http://localhost:5260/api/v1/workers?status=pending
+       curl https://api.kombify.io/v1/orchestrator/workers?status=pending
        ```
   </Accordion>
   
@@ -95,7 +95,7 @@ curl http://localhost:5260/api/v1/info
     
     2. Get detailed validation errors:
        ```bash
-       curl -X POST http://localhost:5260/api/v1/unifier/validate \
+       curl -X POST https://api.kombify.io/v1/orchestrator/unifier/validate \
          -H "Content-Type: application/yaml" \
          --data-binary @kombination.yaml
        ```
@@ -166,7 +166,7 @@ curl http://localhost:5260/api/v1/info
     **Solutions:**
     1. Check drift details:
        ```bash
-       curl http://localhost:5260/api/v1/stacks/{stack-id}/drift
+       curl https://api.kombify.io/v1/orchestrator/stacks/{stack-id}/drift
        ```
     
     2. Common causes:
@@ -177,10 +177,10 @@ curl http://localhost:5260/api/v1/info
     3. Resolve drift:
        ```bash
        # Apply Stack state to nodes
-       curl -X POST http://localhost:5260/api/v1/stacks/{stack-id}/drift/resolve
+       curl -X POST https://api.kombify.io/v1/orchestrator/stacks/{stack-id}/drift/resolve
        
        # Or ignore specific drift
-       curl -X POST http://localhost:5260/api/v1/stacks/{stack-id}/drift/ignore \
+       curl -X POST https://api.kombify.io/v1/orchestrator/stacks/{stack-id}/drift/ignore \
          -d '{"resources": ["traefik.config"]}'
        ```
   </Accordion>
@@ -222,7 +222,7 @@ curl http://localhost:5260/api/v1/info
 KOMBISTACK_LOG_LEVEL=debug docker run ...
 
 # Or via API at runtime
-curl -X PATCH http://localhost:5260/api/v1/settings \
+curl -X PATCH https://api.kombify.io/v1/orchestrator/settings \
   -d '{"log_level": "debug"}'
 ```
 
@@ -253,7 +253,7 @@ docker logs kombistack 2>&1 | jq 'select(.job_id=="job_abc123")'
 ### Get system info
 
 ```bash
-curl http://localhost:5260/api/v1/info | jq
+curl https://api.kombify.io/v1/orchestrator/info | jq
 ```
 
 ### Export debug bundle
@@ -262,7 +262,7 @@ Collect all diagnostic information:
 
 ```bash
 curl -o debug-bundle.tar.gz \
-  http://localhost:5260/api/v1/debug/bundle
+  https://api.kombify.io/v1/orchestrator/debug/bundle
 ```
 
 This includes:
@@ -275,7 +275,7 @@ This includes:
 ### Check connectivity matrix
 
 ```bash
-curl http://localhost:5260/api/v1/workers/connectivity
+curl https://api.kombify.io/v1/orchestrator/workers/connectivity
 ```
 
 ## Recovery procedures
@@ -284,17 +284,17 @@ curl http://localhost:5260/api/v1/workers/connectivity
 
 ```bash
 # Cancel stuck job
-curl -X POST http://localhost:5260/api/v1/jobs/{job-id}/cancel
+curl -X POST https://api.kombify.io/v1/orchestrator/jobs/{job-id}/cancel
 
 # Force cleanup
-curl -X POST http://localhost:5260/api/v1/jobs/{job-id}/cleanup
+curl -X POST https://api.kombify.io/v1/orchestrator/jobs/{job-id}/cleanup
 ```
 
 ### Rebuild worker connection
 
 ```bash
 # On Stack server
-curl -X DELETE http://localhost:5260/api/v1/workers/{worker-id}
+curl -X DELETE https://api.kombify.io/v1/orchestrator/workers/{worker-id}
 
 # On node - restart agent
 systemctl restart kombify-agent
@@ -329,7 +329,7 @@ If you're still stuck:
 3. **GitHub Issues:** [github.com/kombify/stack/issues](https://github.com/kombify/stack/issues)
 
 When reporting issues, include:
-- Stack version (`curl http://localhost:5260/api/v1/info`)
+- Stack version (`curl https://api.kombify.io/v1/orchestrator/info`)
 - Error messages (full log output)
 - Steps to reproduce
 - Your `kombination.yaml` (sanitized)
