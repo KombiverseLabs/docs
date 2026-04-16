@@ -41,7 +41,7 @@ icon: globe
   Cloud is a multi-tenant SaaS platform built with:
   - **Frontend:** SvelteKit with real-time updates
   - **Backend:** Go API with PostgreSQL 17 and Prisma ORM
-  - **Identity:** Zitadel for OIDC/SAML/passkey authentication
+  - **Identity:** Auth0 for OIDC/SAML/passkey authentication
   - **Billing:** Stripe for subscriptions
   - **Agent:** Lightweight Go binary with mTLS for secure homelab connectivity
   
@@ -88,7 +88,7 @@ flowchart TB
 |------|----------|-----|
 | **Your files & databases** | Your servers | Your data never leaves your infrastructure |
 | **Configuration** | Cloud cloud | So you can access it from anywhere |
-| **User accounts** | Cloud cloud | Managed securely by Zitadel |
+| **User accounts** | Cloud cloud | Managed securely by Auth0 |
 | **Deployment history** | Cloud cloud | Track who changed what, when |
 
 ## Key features
@@ -125,7 +125,7 @@ graph TB
         
         subgraph Backend["Backend"]
             API["🔌 API<br/><small>Go</small>"]
-            Auth["🔐 Identity<br/><small>Zitadel</small>"]
+            Auth["🔐 Identity<br/><small>Auth0</small>"]
             PB["💾 State<br/><small>PostgreSQL + Prisma</small>"]
         end
         
@@ -186,7 +186,7 @@ sequenceDiagram
 
 ### SSO-Based Tool Access
 
-kombify Cloud provides seamless authenticated access to all kombify tools via token-based SSO. Users authenticate once via Zitadel on [kombify.io](https://kombify.io), and get automatic access to their TechStack, Simulate, and AI instances without additional login steps.
+kombify Cloud provides seamless authenticated access to all kombify tools via token-based SSO. Users authenticate once via Auth0 on [kombify.io](https://kombify.io), and get automatic access to their TechStack, Simulate, and AI instances without additional login steps.
 
 <Steps>
   <Step title="Sign up">
@@ -220,28 +220,28 @@ kombify Cloud provides seamless authenticated access to all kombify tools via to
 
 ### SSO Configuration
 
-Cloud uses Zitadel for enterprise-grade authentication:
+Cloud uses Auth0 for enterprise-grade authentication:
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Cloud
-    participant Zitadel
+    participant Auth0
     participant IdP as Your IdP (Optional)
     
     User->>Cloud: Access dashboard
-    Cloud->>Zitadel: Redirect to login
+    Cloud->>Auth0: Redirect to login
     
     alt Native Login
-        Zitadel->>User: Show login form
-        User->>Zitadel: Enter credentials
+        Auth0->>User: Show login form
+        User->>Auth0: Enter credentials
     else Enterprise SSO
-        Zitadel->>IdP: Redirect to corporate IdP
+        Auth0->>IdP: Redirect to corporate IdP
         User->>IdP: Authenticate
-        IdP->>Zitadel: Return assertion
+        IdP->>Auth0: Return assertion
     end
     
-    Zitadel->>Cloud: Return tokens
+    Auth0->>Cloud: Return tokens
     Cloud->>User: Authenticated session
 ```
 

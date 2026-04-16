@@ -97,7 +97,7 @@
             "group": "Integrations",
             "icon": "plug",
             "pages": [
-              "integrations/zitadel",
+              "integrations/auth0",
               "integrations/proxmox",
               "integrations/coolify"
             ]

@@ -15,8 +15,8 @@ The Stack API lets you automate everything you can do in the dashboard — creat
 ### 1. Get an authentication token
 
 ```bash
-# Authenticate via Zitadel OIDC
-# 1. Obtain a token from your Zitadel instance
+# Authenticate via Auth0 OIDC
+# 1. Obtain a token from your Auth0 instance
 TOKEN=$(curl -s -X POST https://auth.kombify.dev/oauth/v2/token \
   -d "grant_type=client_credentials" \
   -d "client_id=YOUR_CLIENT_ID" \

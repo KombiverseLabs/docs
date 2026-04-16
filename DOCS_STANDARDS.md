@@ -184,7 +184,7 @@ Internal docs cover these areas comprehensively:
 | **Tools** | Deep internals for each tool | Architecture, configuration, feature targets per tool |
 | **Infrastructure** | Server landscape, DNS/routing, CI/CD, environments | IONOS/Hostinger setup, Cloudflare, GitHub Actions |
 | **Operations** | Deployment, monitoring, runbooks, recovery, updates | How to deploy each tool, incident response, DB ops |
-| **Dependencies** | Go modules, npm packages, external services | Zitadel, Stripe, Doppler integration details |
+| **Dependencies** | Go modules, npm packages, external services | Auth0, Stripe, Doppler integration details |
 | **Standards** | URL standards, health contracts, API design, testing | Platform-wide conventions enforced across repos |
 | **Diagrams Gallery** | All Excalidraw architecture diagrams | Platform overview, tool interactions, deployment flows |
 
