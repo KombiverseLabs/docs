@@ -1,117 +1,83 @@
-# GitHub Copilot Instructions - kombify Documentation
+# GitHub Copilot Instructions — mintlify-docs
+
+Dieses File spiegelt die Kerninhalte aus `AGENTS.md` und `CLAUDE.md` in der Copilot-Konvention. Bei Konflikten gilt: User-Global-CLAUDE.md > AGENTS.md > dieses File.
 
 ## Project Context
 
-This is a Mintlify documentation site for the kombify platform. Content is written in MDX with YAML frontmatter. The site configuration lives in `docs.json`.
+Tier-1 Public Documentation fuer die kombify-Plattform, gebaut mit Mintlify. Content in MDX mit YAML-Frontmatter. Site-Config in `docs.json`. Deploy automatisch auf `docs.kombify.io` bei main-Push.
 
-## Brand Rules
+## Normative Quellen (Core)
 
-- Always use "kombify" with a lowercase k
-- Tool names: "kombify Stack", "kombify Sim", "kombify StackKits", "kombify Sphere"
-- The user config file is called `kombination.yaml`
+- `../kombify Core/standards/DOCS_STANDARDS.md` — 3-Tier-Doku-Modell, Diataxis-4-Level, Writing-Rules
+- `../kombify Core/standards/PRODUCT-SEGMENTATION.md` — Tools/SaaS/Homelab-Trennung, bindend fuer Content
+- `../kombify Core/standards/DEVELOPMENT-STANDARDS.md` — Repo-Konventionen
 
-## File Format
+## Brand-Naming (verbindlich)
 
-Every `.mdx` page must start with YAML frontmatter:
+- "kombify" immer lowercase
+- Tool-Namen: `kombify-TechStack`, `kombify-Sim`, `kombify-StackKits`, `kombify-AI`, `kombify Cloud`
+- **Nicht** verwenden: `kombistack`, `kombisim`, `kombisphere`, `kombi*` (Altnamen, 2026-04 entfernt)
+- Config-Datei: `kombination.yaml`
 
+## MDX-Format
+
+Jede Seite startet mit YAML-Frontmatter:
 ```yaml
 ---
-title: "Page title in sentence case"
-description: "One-line summary for SEO"
+title: "Titel in sentence case"
+description: "Ein-Satz-Summary fuer SEO"
 ---
 ```
 
-## Writing Style
+## Writing-Style
 
-- Second-person voice ("you", not "we" or "the user")
-- Sentence-case headings (not Title Case)
-- All code blocks must have language tags (```yaml, ```bash, ```go, etc.)
-- Internal links use relative paths without `.mdx` extension
-- Prerequisites section at top of procedural pages
+- Second-person ("you", nicht "we")
+- Sentence-case Headings
+- Code-Bloecke mit Language-Tag (```yaml, ```bash, ```go)
+- Interne Links relativ ohne `.mdx`
+- Prerequisites-Section am Top prozeduraler Seiten
+- Keine Emojis im Content
 
-## Mintlify Components
+## Mintlify-Komponenten
 
-When writing MDX content, use these components:
+`<Card>`, `<CardGroup>`, `<Steps>` + `<Step>`, `<Tabs>` + `<Tab>`, `<Accordion>`, `<Note>`, `<Warning>`, `<Tip>`, `<CodeGroup>`, `<ParamField>`, `<ResponseField>`.
 
-```mdx
-<Card title="Title" icon="icon-name" href="/path">
-  Description text.
-</Card>
+## Verzeichnis-Struktur (Ist-Zustand)
 
-<CardGroup cols={2}>
-  <Card>...</Card>
-  <Card>...</Card>
-</CardGroup>
+- `ai/`, `ai-tools/` — kombify-AI + AI-Tool-Integrationen
+- `api/kombifyai|kombifycloud|kombifysim|kombifytechstack/` — API Reference
+- `cloud/` — kombify Cloud Portal
+- `concepts/` — Architektur-/Design-Konzepte
+- `guides/` — How-To (Auth, Deployment, Self-Hosting, StackKits, Troubleshooting)
+- `integrations/` — Auth0, Coolify, Proxmox
+- `sim/`, `stack/`, `stackkits/` — OSS-Tool-Docs
+- `comparisons/`, `faq/`, `glossary/` — sekundaer
+- `_templates/` — MDX-Vorlagen
+- `images/`, `logo/` — Assets
 
-<Steps>
-  <Step title="Step name">
-    Content here.
-  </Step>
-</Steps>
+## docs.json-Navigation
 
-<Tabs>
-  <Tab title="Tab 1">Content</Tab>
-  <Tab title="Tab 2">Content</Tab>
-</Tabs>
+Bei neuen Seiten Nav mit aktualisieren — sonst 404:
+- `tabs[].pages[].pages[]` — Tab-Inhalt
+- `redirects[]` — fuer umbenannte Pfade (z.B. Altnamen-Weiterleitung)
 
-<Accordion title="Expandable section">
-  Hidden content.
-</Accordion>
+## Code-Beispiele
 
-<Note>Important information.</Note>
-<Warning>Critical warning.</Warning>
-<Tip>Helpful suggestion.</Tip>
-
-<CodeGroup>
-```bash Title 1
-command here
-```
-```yaml Title 2
-config: here
-```
-</CodeGroup>
-
-<ParamField path="name" type="string" required>
-  Parameter description.
-</ParamField>
-
-<ResponseField name="field" type="string">
-  Response field description.
-</ResponseField>
-```
-
-## Directory Structure
-
-- `/stack/` - kombify Stack documentation
-- `/sim/` - kombify Sim documentation
-- `/stackkits/` - kombify StackKits documentation
-- `/sphere/` - kombify Sphere documentation
-- `/concepts/` - Architecture and design concepts
-- `/guides/` - Deployment, auth, self-hosting guides
-- `/api-reference/` - API endpoint documentation
-- `/integrations/` - Third-party integration guides
-- `/snippets/` - Reusable MDX fragments
-- `/internal-notes/` - Source material (NEVER publish directly)
-- `/tools/` - DEPRECATED, do not use
-
-## docs.json Navigation
-
-When adding pages, update `docs.json`:
-- `tabs[].pages[].pages[]` - Add page path (no `.mdx` extension)
-- `navigation.pages[].pages[]` - Main sidebar entries
-
-## Code Examples
-
-- Use realistic values matching actual kombify APIs
-- Include multiple languages where applicable (bash, JavaScript, Python, Go)
-- Show both request and response for API examples
-- Configuration examples should use `kombination.yaml` filename
+- Realistische Werte passend zu aktuellen kombify-APIs
+- Mehrsprachig wo sinnvoll (bash, JS, Python, Go)
+- Request + Response bei API-Beispielen
+- Config-Beispiele nutzen `kombination.yaml`
 
 ## Do NOT
 
-- Use Title Case for headings
-- Skip frontmatter on any MDX file
-- Use absolute URLs for internal links
-- Add pages to the `/tools/` directory
-- Copy content from `internal-notes/` without rewriting
-- Use emojis in documentation content
+- Title-Case-Headings verwenden
+- Frontmatter auslassen
+- Absolute URLs fuer interne Links
+- Alte Tool-Namen einfuehren (`kombistack`, `kombisim`, `kombisphere`, `kombi*`)
+- Business-Content (Pricing, Marketing-Strategie) publizieren — gehoert nach Notion
+- Core-Standards duplizieren — auf sie verlinken
+- Automatisch pushen. `git push` auf `main` nur auf explizite User-Anweisung.
+
+## Task-Tracking (Beads)
+
+`bd list`, `bd ready`, `bd show <id>`, `bd update <id> --status in_progress`, `bd close <id>`, `bd sync`. Cross-Repo-Themen in GitHub Projects.

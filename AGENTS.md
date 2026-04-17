@@ -1,40 +1,48 @@
-# Agent Instructions
+# AGENTS.md — mintlify-docs
 
-This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
+Generische AI-Agent-Instruktionen (Copilot, Codex, Gemini, Claude). Synchron halten mit `CLAUDE.md`.
 
-## Quick Reference
+## Normative Quellen
 
-```bash
-bd ready              # Find available work
-bd show <id>          # View issue details
-bd update <id> --status in_progress  # Claim work
-bd close <id>         # Complete work
-bd sync               # Sync with git
-```
+Siehe `CLAUDE.md` Abschnitt "Normative Quellen (Core)". Gleiche Liste, gleiche Bindung.
 
-## Landing the Plane (Session Completion)
+## Repo-Kontext
 
-**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-Code, kein Test-Code. Content in MDX + `docs.json`-Nav.
 
-**MANDATORY WORKFLOW:**
+## Task-Tracking
 
-1. **File issues for remaining work** - Create issues for anything that needs follow-up
-2. **Run quality gates** (if code changed) - Tests, linters, builds
-3. **Update issue status** - Close finished work, update in-progress items
-4. **PUSH TO REMOTE** - This is MANDATORY:
-   ```bash
-   git pull --rebase
-   bd sync
-   git push
-   git status  # MUST show "up to date with origin"
-   ```
-5. **Clean up** - Clear stashes, prune remote branches
-6. **Verify** - All changes committed AND pushed
-7. **Hand off** - Provide context for next session
+- **Beads** (`.beads/`) ist local source of truth fuer Repo-Tasks.
+- Cross-Repo oder Milestone-Tasks in GitHub Projects (KombiverseLabs Roadmap).
+- Beads-Issue zuerst ansehen, bevor eigenstaendig Content geaendert wird:
+  ```
+  bd list                         # offene Tasks
+  bd ready                        # verfuegbare Arbeit
+  bd show <id>                    # Details
+  bd update <id> --status in_progress
+  bd close <id>
+  bd sync                         # vor Commit
+  ```
 
-**CRITICAL RULES:**
-- Work is NOT complete until `git push` succeeds
-- NEVER stop before pushing - that leaves work stranded locally
-- NEVER say "ready to push when you are" - YOU must push
-- If push fails, resolve and retry until it succeeds
+## Commit- und Push-Policy
 
+- Commits sind erwuenscht und muessen Konventionen folgen (Conventional Commits).
+- **`git push` auf `main` nur auf explizite User-Anweisung.** Siehe User-Global-CLAUDE.md.
+- Kein automatisches Push am Ende einer Session. Lokal committen und bei User rueckfragen oder warten.
+- Bei Push-Freigabe: `git pull --rebase` + `bd sync` + `git push`.
+
+## Do / Dont
+
+**Do:**
+- Neue Seiten ueber `_templates/` starten.
+- `docs.json` mit aktualisieren (Nav registrieren, sonst 404).
+- Brand-Naming pruefen (siehe DOCS_STANDARDS §6).
+- Bei API-Aenderungen: `redirects`-Array in `docs.json` pflegen.
+- Tier-Disziplin halten: nur Public-Content hier.
+
+**Dont:**
+- Keine alten Produkt-Namen einfuehren (`kombistack`, `kombisim`, `kombisphere`).
+- Keine Duplikate von Core-Standards (lokale DOCS_STANDARDS.md-Kopie wurde 2026-04-18 geloescht).
+- Keine Business-Content (Pricing-Strategie, Customer-Daten) — gehoert nach Notion.
+- Keine internal-only Flows, Secrets oder URLs publizieren.
+- Nie automatisch pushen.

@@ -356,30 +356,30 @@
             "group": "kombify TechStack",
             "icon": "server",
             "pages": [
-              "api/kombistack/overview",
-              "api/kombistack/stacks",
-              "api/kombistack/workers",
-              "api/kombistack/jobs"
+              "api/kombifytechstack/overview",
+              "api/kombifytechstack/stacks",
+              "api/kombifytechstack/workers",
+              "api/kombifytechstack/jobs"
             ]
           },
           {
             "group": "kombify Simulate",
             "icon": "flask",
             "pages": [
-              "api/kombisim/overview",
-              "api/kombisim/simulations",
-              "api/kombisim/nodes",
-              "api/kombisim/templates"
+              "api/kombifysim/overview",
+              "api/kombifysim/simulations",
+              "api/kombifysim/nodes",
+              "api/kombifysim/templates"
             ]
           },
           {
             "group": "kombify Cloud",
             "icon": "cloud",
             "pages": [
-              "api/kombisphere/overview",
-              "api/kombisphere/authentication",
-              "api/kombisphere/tools",
-              "api/kombisphere/subscriptions"
+              "api/kombifycloud/overview",
+              "api/kombifycloud/authentication",
+              "api/kombifycloud/tools",
+              "api/kombifycloud/subscriptions"
             ]
           },
           {
@@ -397,6 +397,11 @@
       }
     ]
   },
+  "redirects": [
+    { "source": "/api/kombistack/:path*", "destination": "/api/kombifytechstack/:path*" },
+    { "source": "/api/kombisim/:path*", "destination": "/api/kombifysim/:path*" },
+    { "source": "/api/kombisphere/:path*", "destination": "/api/kombifycloud/:path*" }
+  ],
   "footerSocials": {
     "x": "https://x.com/kombifydev",
     "github": "https://github.com/kombify",
