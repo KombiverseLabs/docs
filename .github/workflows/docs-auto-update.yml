@@ -35,6 +35,10 @@ on:
           - full-refresh
           - ai-suggestions
 
+concurrency:
+  group: docs-auto-update-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: write
   pull-requests: write
