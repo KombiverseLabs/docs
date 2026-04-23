@@ -2,20 +2,6 @@ name: Documentation Auto-Update & Enhancement
 # Critical path: validate-structure → update-changelog / generate-health-report
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - '**.mdx'
-      - 'docs.json'
-      - 'snippets/**'
-      - 'scripts/**'
-  
-  pull_request:
-    branches: [main]
-    paths:
-      - '**.mdx'
-      - 'docs.json'
-  
   schedule:
     # Daily at 6 AM UTC for content freshness
     - cron: '0 6 * * *'
@@ -387,8 +373,10 @@ jobs:
           retention-days: 1
       
       - name: Post to Slack
-        if: ${{ secrets.SLACK_WEBHOOK }}
+        if: env.SLACK_WEBHOOK != ''
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
         run: |
           curl -X POST -H 'Content-type: application/json' \
             --data '{"text":"📊 Weekly docs health report generated. Check GitHub Actions for details."}' \
-            ${{ secrets.SLACK_WEBHOOK }}
+            "$SLACK_WEBHOOK"
