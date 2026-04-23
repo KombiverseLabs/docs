@@ -13,13 +13,16 @@ Use this guide when you want to deploy a standard SvelteKit app with StackKits a
 
 ## Choose a rollout path
 
-| Decision | Install Engine | CLI Tool | kombify-TechStack |
-|----------|----------------|----------|-------------------|
-| First user decision | Which one-liner do I run? | Which standard and commands do I run? | What outcome or use case do I want? |
-| Canonical command | `curl -sSL base.stackkit.cc \| sh` | `curl -sSL install.stackkit.cc \| sh` | UI flow, no shell command |
-| StackKit standard | Encoded by the one-liner or installer prompt. | You choose `base-kit`, `modern-homelab`, or `ha-kit`. | TechStack asks StackKits to resolve the standard from intent and target evaluation. |
-| User input style | One command; optional guided prompts. | Commands and spec values. | Use-case clicks, intent text, target selection, confirmation. |
-| Best fit | Fast default homelab install. | Technical operator path. | Guided user experience. |
+First choose the experience: direct StackKits execution or guided TechStack outcome selection. Install Engine and CLI are both direct StackKits paths.
+
+| Decision | Direct StackKits | kombify-TechStack |
+|----------|------------------|-------------------|
+| First user decision | Where should StackKits run, and do I want one-command automation or explicit CLI control? | What outcome or use case do I want? |
+| Canonical action | Install Engine: `curl -sSL base.stackkit.cc \| sh`; CLI: `stackkit init <standard>` -> `stackkit apply`. | UI flow/job, no shell command. |
+| CLI install | Included in the Install Engine. CLI-only use can install through package/release/Git; today `curl -sSL install.stackkit.cc \| sh` is the documented CLI install script. | No user shell install step. |
+| StackKit standard | Install Engine encodes or prompts for the standard; CLI users choose `base-kit`, `modern-homelab`, or `ha-kit`. | TechStack asks StackKits to resolve the standard from intent and target evaluation. |
+| User input style | One installer command or explicit CLI commands/spec values. | Use-case clicks, intent text, target selection, confirmation. |
+| Best fit | Direct technical execution: fastest default install or reproducible CLI workflow. | Guided user experience. |
 
 ## Required decisions
 
