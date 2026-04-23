@@ -1,0 +1,167 @@
+---
+title: "Deploy with CLI or TechStack"
+description: "Choose the standalone StackKits CLI path or the guided kombify-TechStack path for a SvelteKit app deployment."
+sidebarTitle: "CLI or TechStack"
+icon: route
+---
+
+Use this guide when you want to deploy a standard SvelteKit app with StackKits and need to decide between the standalone CLI path and the guided kombify-TechStack path.
+
+<Note>
+  Both paths use StackKits as the source of truth. The CLI is the direct operator path. kombify-TechStack is the orchestration layer with a SvelteKit UI, node inventory, job status, and agent-based execution.
+</Note>
+
+## Choose a rollout path
+
+| Use the CLI when... | Use kombify-TechStack when... |
+|---------------------|-------------------------------|
+| You are comfortable with a terminal and a spec file. | You want a guided web UI. |
+| You are deploying a single homelab, dev server, or small VPS. | You want node inventory, job status, retries, and day-2 operations. |
+| You want the smallest standalone path. | You want a managed workflow for non-technical users or teams. |
+| You can run `stackkit` directly on the target or from your workstation. | You want TechStack to coordinate workers or agents. |
+
+## Standard SvelteKit app contract
+
+A SvelteKit app deployment needs the same core information in either path:
+
+| Field | Purpose |
+|-------|---------|
+| App name | Stable service and route name. |
+| Artifact | A container image such as `ghcr.io/acme/my-app:latest`, or a buildable source repository when your workflow supports it. |
+| Port | The internal app port, commonly `3000` for the SvelteKit Node adapter. |
+| Hostname | The final route, for example `app.home.lab`. |
+| Health path | Prefer `/health`, following the kombify health contract. |
+| Auth policy | Default to the StackKits login gateway unless the route is intentionally public. |
+| Environment | Non-secret runtime values such as `PUBLIC_*`. |
+| Secrets | Secret references only. Do not put literal secrets into the spec. |
+
+Example intent:
+
+```yaml stack-spec.yaml
+stackkit: base-kit
+
+network:
+  domain: home.lab
+
+apps:
+  web:
+    kind: sveltekit
+    image: ghcr.io/acme/my-sveltekit-app:latest
+    port: 3000
+    route:
+      host: app.home.lab
+      auth: login-gateway
+    health:
+      path: /health
+    env:
+      PUBLIC_APP_NAME: "My App"
+```
+
+## Roll out with the CLI
+
+<Steps>
+  <Step title="Install StackKits">
+    Install the `stackkit` CLI with the one-line installer:
+
+    ```bash
+    curl -sSL https://raw.githubusercontent.com/kombifyio/stackKits/main/install.sh | bash
+    ```
+  </Step>
+
+  <Step title="Create a BaseKit spec">
+    Start from the BaseKit because it is the default single-environment StackKit:
+
+    ```bash
+    mkdir my-sveltekit-stack
+    cd my-sveltekit-stack
+    stackkit init base-kit
+    ```
+  </Step>
+
+  <Step title="Add your SvelteKit app">
+    Add the app fields to `stack-spec.yaml`: image, port, route, health path, environment, and secret references.
+  </Step>
+
+  <Step title="Prepare, plan, and apply">
+    Validate the host, generate the deployment assets, preview the change, and apply it:
+
+    ```bash
+    stackkit prepare
+    stackkit generate
+    stackkit plan
+    stackkit apply
+    ```
+  </Step>
+
+  <Step title="Check status">
+    Confirm that the app container, route, and health check are working:
+
+    ```bash
+    stackkit status
+    ```
+  </Step>
+</Steps>
+
+## Roll out with kombify-TechStack
+
+<Steps>
+  <Step title="Open TechStack">
+    Open the kombify-TechStack dashboard and create a new stack.
+  </Step>
+
+  <Step title="Select BaseKit">
+    Choose **BaseKit** for the first standard SvelteKit rollout. BaseKit is the StackKit for one trust domain, from a single machine to several co-managed nodes.
+  </Step>
+
+  <Step title="Add a SvelteKit app">
+    Enter the same app contract fields: image, port, hostname, health path, auth policy, environment, and secret references.
+  </Step>
+
+  <Step title="Connect the target">
+    Select an existing node or connect a worker/agent so TechStack can run prechecks and apply the StackKits deployment.
+  </Step>
+
+  <Step title="Review and apply">
+    Review the generated plan, apply it, and follow the job status until the route and health check pass.
+  </Step>
+</Steps>
+
+## Verify
+
+After either rollout path, verify the same outcome:
+
+```bash
+curl -fsS http://app.home.lab/health
+```
+
+Expected result:
+
+- The app route resolves through the StackKits gateway.
+- The health endpoint returns success for deployment health checks.
+- The app UI route is protected by the login gateway unless you explicitly configured it as public.
+- `stackkit status` or the TechStack job view shows the app as healthy.
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="The app container starts, but the route does not work">
+    Check the hostname, domain, reverse proxy labels, and whether the app listens on the configured internal port.
+  </Accordion>
+  <Accordion title="The health check fails">
+    Make sure your SvelteKit app exposes `/health` and returns a successful response without requiring a browser session.
+  </Accordion>
+  <Accordion title="Secrets are missing at runtime">
+    Use secret references from your selected execution path. Do not paste raw secret values into public specs or documentation examples.
+  </Accordion>
+</AccordionGroup>
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="StackKits quickstart" icon="rocket" href="/stackkits/quickstart">
+    Create and deploy your first StackKit.
+  </Card>
+  <Card title="Choose a kit" icon="list" href="/guides/stackkits/choosing-a-kit">
+    Compare BaseKit, Modern Homelab, and High Availability Kit.
+  </Card>
+</CardGroup>
