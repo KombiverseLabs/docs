@@ -1,95 +1,89 @@
 ---
 title: StackKits Quickstart
-description: Use your first StackKit in 5 minutes
+description: Deploy your first StackKit with the one-line installer or the CLI
 sidebarTitle: Quickstart
 icon: rocket
 ---
 
+The fastest StackKits path is the Install Engine: one short command on the host that should become your homelab. If you want more control, install the CLI only and run the steps yourself.
 
-Learn to use StackKits by creating a simple homelab configuration.
+## Fastest path
 
-## Step 1: Choose a StackKit
-
-Available StackKits:
-
-| Kit | Use Case | Complexity |
-|-----|----------|------------|
-| `base-kit` | Single-environment (local or cloud) | Low |
-| `modern-homelab` | Hybrid (cloud + local, both mandatory) | Medium |
-| `ha-kit` | High availability (failover, redundancy) | High |
-
-For this quickstart, we'll use `base-kit`.
-
-## Step 2: Create kombination.yaml
-
-```yaml
-# kombination.yaml
-stackkit: base-kit
-
-domain: homelab.local
-email: you@example.com
-
-ssl:
-  provider: selfsigned
-
-services:
-  traefik:
-    enabled: true
-  portainer:
-    enabled: true
-  homepage:
-    enabled: true
-```
-
-## Step 3: Validate Configuration
+Run the BaseKit one-liner on a Linux or macOS host with root/sudo access:
 
 ```bash
-kombify validate
+curl -sSL base.stackkit.cc | sh
 ```
 
-Expected output:
-```
-✓ Configuration valid
-✓ All service dependencies satisfied
-✓ No port conflicts detected
+This installs the `stackkit` CLI, installs the BaseKit definitions, prepares Docker and OpenTofu, initializes the stack, generates deployment artifacts, applies the stack, and prints the service URLs.
 
-Ready to deploy!
-```
+## Per-kit one-liners
 
-## Step 4: Generate Infrastructure
+Use a kit-specific one-liner when you already know the StackKit standard:
 
 ```bash
-kombify generate
+curl -sSL base.stackkit.cc | sh      # BaseKit
+curl -sSL modern.stackkit.cc | sh    # Modern Homelab
+curl -sSL ha.stackkit.cc | sh        # High Availability
 ```
 
-This creates:
-- `docker-compose.yml`
-- Service configuration files
-- TLS certificates (if self-signed)
+| StackKit | Use case | Complexity |
+|----------|----------|------------|
+| `base-kit` | Single-environment homelab | Low |
+| `modern-homelab` | Hybrid local + cloud setup | Medium |
+| `ha-kit` | High availability and failover | High |
 
-## Step 5: Deploy
+## CLI-only path
 
-```bash
-docker compose up -d
-```
+Use the CLI-only installer when you want to make the technical choices yourself:
 
-## What You Get
+<Steps>
+  <Step title="Install the CLI">
+    ```bash
+    curl -sSL install.stackkit.cc | sh
+    ```
+  </Step>
 
-After deployment:
+  <Step title="Initialize a StackKit">
+    ```bash
+    mkdir my-homelab
+    cd my-homelab
+    stackkit init base-kit
+    ```
+  </Step>
 
-| Service | URL |
-|---------|-----|
-| Traefik Dashboard | `https://traefik.homelab.local` |
-| Portainer | `https://portainer.homelab.local` |
-| Homepage | `https://home.homelab.local` |
+  <Step title="Prepare and generate">
+    ```bash
+    stackkit prepare
+    stackkit generate
+    ```
+  </Step>
 
-## Next Steps
+  <Step title="Preview and apply">
+    ```bash
+    stackkit plan
+    stackkit apply
+    ```
+  </Step>
+
+  <Step title="Check status">
+    ```bash
+    stackkit status
+    ```
+  </Step>
+</Steps>
+
+## What you get
+
+The BaseKit default provisions a homelab foundation with StackKits standards, add-ons, baselines, auth/routing defaults, generated infrastructure artifacts, and a service URL summary.
+
+## Next steps
 
 <CardGroup cols={2}>
-  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-kit">
-    Full documentation for the Base Kit
+  <Card title="CLI or TechStack" icon="route" href="/guides/stackkits/deploy-with-cli-or-techstack">
+    Compare the Install Engine, CLI Tool, and kombify-TechStack UI.
   </Card>
-  <Card title="Add Services" icon="plus">
-    Expand your homelab with more services
+  <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-kit">
+    Learn what BaseKit deploys and how its defaults work.
   </Card>
 </CardGroup>
