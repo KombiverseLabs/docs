@@ -53,6 +53,7 @@ A SvelteKit app deployment needs the same core information in either path:
 Example intent:
 
 The CLI canonical file is `stack-spec.yaml`. For TechStack handoff, the CLI also accepts `kombination.yaml` as a read alias when `stack-spec.yaml` is not present.
+When `apps:` is present, `stackkit generate` writes the user app resources to `deploy/apps.tf`.
 
 ```yaml stack-spec.yaml
 stackkit: base-kit
@@ -72,6 +73,8 @@ apps:
       path: /health
     env:
       PUBLIC_APP_NAME: "My App"
+    secrets:
+      SESSION_SECRET: env:SESSION_SECRET
 ```
 
 ## Roll out with the Install Engine
