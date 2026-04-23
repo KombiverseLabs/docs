@@ -16,9 +16,9 @@ Use this guide when you want to deploy a standard SvelteKit app with StackKits a
 | Decision | CLI + one-liner | kombify-TechStack |
 |----------|-----------------|-------------------|
 | First user decision | Where does the one-liner run? | What outcome or use case do you want? |
-| StackKit standard | You choose `base-kit`, `modern-homelab`, or `ha-kit`. | TechStack recommends the standard from intent and target evaluation. |
+| StackKit standard | You choose `base-kit`, `modern-homelab`, or `ha-kit`; StackKits resolves the defaults. | TechStack asks StackKits to resolve the standard from intent and target evaluation. |
 | User input style | Commands and spec values. | Use-case clicks, intent text, target selection, confirmation. |
-| System help | Defaults and validation. | Pre-evaluation, recommendation, plan risk, post-deployment health. |
+| System help | StackKits standards, add-ons, baselines, defaults, and validation. | The same StackKits intelligence, plus TechStack pre-evaluation, plan risk, job status, and post-deployment health. |
 | Best fit | Technical operator path. | Guided user experience. |
 
 ## Required decisions
@@ -30,7 +30,7 @@ Use this guide when you want to deploy a standard SvelteKit app with StackKits a
 | Enter technical values: domain/access mode, app image, port, hostname, health path, env, and secret references. | Provide only missing facts: domain preference, app artifact, secret source, or approval. |
 | Review `stackkit plan` and run `stackkit apply`. | Review TechStack's recommendation and click apply. |
 
-TechStack takes over the standard selection. It evaluates the intent, node resources, port/DNS/security fit, generated plan, route health, login path, and app health after rollout.
+TechStack does not own the homelab standards. StackKits owns standards, add-ons, baselines, defaults, and validation in both paths. TechStack turns that StackKits resolution into a guided recommendation and adds target evaluation, plan risk, job status, route checks, login checks, and app health after rollout.
 
 ## Standard SvelteKit app contract
 
@@ -130,7 +130,7 @@ apps:
   </Step>
 
   <Step title="Let TechStack evaluate">
-    TechStack evaluates the intent, target resources, DNS/access model, security baseline, and plan risk. It recommends the StackKit standard and add-ons instead of forcing you to choose them.
+    TechStack evaluates the intent, target resources, DNS/access model, and plan risk. It asks StackKits to resolve the standard, add-ons, auth baseline, and route defaults instead of forcing you to choose those technical details directly.
   </Step>
 
   <Step title="Connect the target">
