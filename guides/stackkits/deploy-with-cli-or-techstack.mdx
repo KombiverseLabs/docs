@@ -13,12 +13,24 @@ Use this guide when you want to deploy a standard SvelteKit app with StackKits a
 
 ## Choose a rollout path
 
-| Use the CLI when... | Use kombify-TechStack when... |
-|---------------------|-------------------------------|
-| You are comfortable with a terminal and a spec file. | You want a guided web UI. |
-| You are deploying a single homelab, dev server, or small VPS. | You want node inventory, job status, retries, and day-2 operations. |
-| You want the smallest standalone path. | You want a managed workflow for non-technical users or teams. |
-| You can run `stackkit` directly on the target or from your workstation. | You want TechStack to coordinate workers or agents. |
+| Decision | CLI + one-liner | kombify-TechStack |
+|----------|-----------------|-------------------|
+| First user decision | Where does the one-liner run? | What outcome or use case do you want? |
+| StackKit standard | You choose `base-kit`, `modern-homelab`, or `ha-kit`. | TechStack recommends the standard from intent and target evaluation. |
+| User input style | Commands and spec values. | Use-case clicks, intent text, target selection, confirmation. |
+| System help | Defaults and validation. | Pre-evaluation, recommendation, plan risk, post-deployment health. |
+| Best fit | Technical operator path. | Guided user experience. |
+
+## Required decisions
+
+| CLI user must decide | TechStack user must decide |
+|----------------------|----------------------------|
+| Run the one-liner on the target server, on a local Docker host, or from a workstation with SSH access. | Select use cases such as app hosting, media, vault, files, smart home, or describe the desired homelab in plain language. |
+| Choose the StackKit standard explicitly. Start with `base-kit` for the first SvelteKit app rollout. | Select or connect the target server/agent. |
+| Enter technical values: domain/access mode, app image, port, hostname, health path, env, and secret references. | Provide only missing facts: domain preference, app artifact, secret source, or approval. |
+| Review `stackkit plan` and run `stackkit apply`. | Review TechStack's recommendation and click apply. |
+
+TechStack takes over the standard selection. It evaluates the intent, node resources, port/DNS/security fit, generated plan, route health, login path, and app health after rollout.
 
 ## Standard SvelteKit app contract
 
@@ -60,16 +72,20 @@ apps:
 ## Roll out with the CLI
 
 <Steps>
+  <Step title="Choose where the one-liner runs">
+    Decide whether you run the installer on the target server, on a local Docker host, or on a workstation that can reach the target over SSH.
+  </Step>
+
   <Step title="Install StackKits">
-    Install the `stackkit` CLI with the one-line installer:
+    Paste the one-line installer into that shell:
 
     ```bash
     curl -sSL https://raw.githubusercontent.com/kombifyio/stackKits/main/install.sh | bash
     ```
   </Step>
 
-  <Step title="Create a BaseKit spec">
-    Start from the BaseKit because it is the default single-environment StackKit:
+  <Step title="Choose the StackKit standard">
+    Choose the technical standard yourself. For the first SvelteKit app rollout, start with BaseKit:
 
     ```bash
     mkdir my-sveltekit-stack
@@ -109,20 +125,24 @@ apps:
     Open the kombify-TechStack dashboard and create a new stack.
   </Step>
 
-  <Step title="Select BaseKit">
-    Choose **BaseKit** for the first standard SvelteKit rollout. BaseKit is the StackKit for one trust domain, from a single machine to several co-managed nodes.
+  <Step title="Describe the outcome">
+    Select use cases or write the intent, for example "deploy my SvelteKit app with login and a working route".
   </Step>
 
-  <Step title="Add a SvelteKit app">
-    Enter the same app contract fields: image, port, hostname, health path, auth policy, environment, and secret references.
+  <Step title="Let TechStack evaluate">
+    TechStack evaluates the intent, target resources, DNS/access model, security baseline, and plan risk. It recommends the StackKit standard and add-ons instead of forcing you to choose them.
   </Step>
 
   <Step title="Connect the target">
     Select an existing node or connect a worker/agent so TechStack can run prechecks and apply the StackKits deployment.
   </Step>
 
+  <Step title="Provide missing facts">
+    Add only the facts TechStack cannot infer: app image or repository, domain preference, and secret source.
+  </Step>
+
   <Step title="Review and apply">
-    Review the generated plan, apply it, and follow the job status until the route and health check pass.
+    Review the recommendation, apply it, and follow the job status until route, login, and health evaluations pass.
   </Step>
 </Steps>
 
