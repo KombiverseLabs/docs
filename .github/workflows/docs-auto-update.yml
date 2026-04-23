@@ -299,6 +299,8 @@ jobs:
         continue-on-error: true
       
       - name: Upload suggestions report
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: ai-suggestions
@@ -376,6 +378,8 @@ jobs:
         run: node scripts/reports/generate-health-report.js
       
       - name: Upload report
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: docs-health-report

@@ -10,6 +10,13 @@ on:
       - 'snippets/**'
       - 'api-reference/**'
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   validate:
     runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}

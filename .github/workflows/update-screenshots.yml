@@ -79,6 +79,8 @@ jobs:
         continue-on-error: true  # Don't fail if some screenshots can't be captured
       
       - name: Upload screenshot artifacts
+        if: failure()
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: screenshots-${{ github.run_id }}
