@@ -79,7 +79,7 @@ jobs:
         with:
           name: screenshots-${{ github.run_id }}
           path: images/screenshots/
-          retention-days: 30
+          retention-days: 1
       
       - name: Check for changes
         id: changes

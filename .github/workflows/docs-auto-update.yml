@@ -299,7 +299,7 @@ jobs:
         with:
           name: ai-suggestions
           path: reports/ai-suggestions.md
-          retention-days: 30
+          retention-days: 1
 
   # ============================================
   # CHANGELOG & VERSION TRACKING
@@ -376,7 +376,7 @@ jobs:
         with:
           name: docs-health-report
           path: reports/health-report.md
-          retention-days: 90
+          retention-days: 1
       
       - name: Post to Slack
         if: ${{ secrets.SLACK_WEBHOOK }}
