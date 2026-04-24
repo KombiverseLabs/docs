@@ -6,7 +6,7 @@ Geplante Arbeiten. Ist-Zustand lebt in `STATUS.md`.
 
 ### Content-Aktualitaet nach Auth0- und Cloudflare-Cutover
 - **Auth0:** Alle Guides unter `guides/auth/*` gegen aktuellen Auth0-Flow pruefen. Universal Login als Default dokumentiert? SSO-Integration aktuell?
-- **Cloudflare Edge:** Concepts und Deployment-Guides auf Cloudflare-Edge-Routing aktualisieren. Alte Kong-Referenzen bereinigen.
+- **Cloudflare Edge:** Public docs bleiben Cloudflare-Edge-first. Keine aktiven MDX-Seiten duerfen Kong als aktuellen Public-API-Pfad darstellen.
 - **Verantwortlich:** koordiniert mit Core-Standards-Aenderungen (siehe PLATFORM-ARCHITECTURE §2 Decisions 1+2).
 - **Aufwand:** 3-5h.
 

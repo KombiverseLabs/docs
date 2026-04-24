@@ -49,7 +49,7 @@ Kein Render, kein eigenes Hosting. Mintlify-SaaS.
   - StackKits: `quickstart.mdx` vorhanden — historisch TODO, vermutlich inzwischen erledigt. Pruefen.
   - API Reference: existiert fuer alle 4 Tools, Detailtiefe unterschiedlich.
   - Einzelne Auth-/Deployment-Guides: Inhalt und Aktualitaet nach Auth0-Cutover pruefen.
-- **Concept-Layer und Kong/Cloudflare:** Concepts-Seiten (hybrid-infrastructure, simulation-first, spec-driven, stackkits) nicht systematisch gegen Cloudflare-Edge-Migration abgeglichen.
+- **Concept-Layer und Cloudflare Edge:** Aktive MDX-Seiten enthalten keine aktuelle Kong-Pfadbeschreibung; neue Public-API-Doku muss Cloudflare Edge als kanonisch darstellen.
 - **Altes README (bis 2026-04-18):** hatte massive Pfad-Drifts (referenzierte `tools/`, `saas/` Ordner, die nicht existieren). Ersetzt.
 
 ## Tests
