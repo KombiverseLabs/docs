@@ -27,9 +27,7 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
 ## Commit- und Push-Policy
 
 - Commits sind erwuenscht und muessen Konventionen folgen (Conventional Commits).
-- **`git push` auf `main` nur auf explizite User-Anweisung.** Siehe User-Global-CLAUDE.md.
-- Kein automatisches Push am Ende einer Session. Lokal committen und bei User rueckfragen oder warten.
-- Bei Push-Freigabe: `git pull --rebase` + `bd sync` + `git push`.
+- Nach verifizierten Aenderungen: `git pull --rebase` + `bd sync` + `git push`.
 
 ## Do / Dont
 
