@@ -33,10 +33,6 @@ Repo-lokale Mintlify-Automation:
 - `/fill-navigation-gaps` — fehlende Seiten in Nav identifizieren
 - `/sync-from-notes` — aus internen Notes publikationsreife MDX ableiten
 
-## Push-Policy
-
-Explizite Freigabe-Regel (User-Global-CLAUDE.md): `git push` auf `main` nur auf explizite User-Anweisung. AI-Agenten committen lokal und warten auf Push-Freigabe. Keine "mandatory push"-Mechanik.
-
 ## Out-of-Scope
 
 - Keine Source-Code-Dokumentation (die gehoert in Tool-Repos `docs/`)
