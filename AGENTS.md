@@ -24,11 +24,6 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
   bd sync                         # vor Commit
   ```
 
-## Commit- und Push-Policy
-
-- Commits sind erwuenscht und muessen Konventionen folgen (Conventional Commits).
-- Nach verifizierten Aenderungen: `git pull --rebase` + `bd sync` + `git push`.
-
 ## Do / Dont
 
 **Do:**
@@ -43,4 +38,3 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
 - Keine Duplikate von Core-Standards (lokale DOCS_STANDARDS.md-Kopie wurde 2026-04-18 geloescht).
 - Keine Business-Content (Pricing-Strategie, Customer-Daten) — gehoert nach Notion.
 - Keine internal-only Flows, Secrets oder URLs publizieren.
-- Nie automatisch pushen.
