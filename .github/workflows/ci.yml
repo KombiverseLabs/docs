@@ -7,8 +7,28 @@ name: CI
 on:
   push:
     branches: [main, develop]
+    paths:
+      - "**/*.md"
+      - "**/*.mdx"
+      - "docs.json"
+      - "snippets/**"
+      - "api-reference/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/**"
   pull_request:
     branches: [main]
+    paths:
+      - "**/*.md"
+      - "**/*.mdx"
+      - "docs.json"
+      - "snippets/**"
+      - "api-reference/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,10 +51,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
       
       - name: Install dependencies
-        run: npm ci || npm install
-        continue-on-error: true
+        run: npm ci
       
       - name: Check MDX files have frontmatter
         run: |
@@ -62,11 +82,12 @@ jobs:
       
       - name: Validate frontmatter (if script exists)
         run: npm run validate:frontmatter --if-present
-        continue-on-error: true
       
       - name: Check internal links (if script exists)
         run: npm run validate:links --if-present
-        continue-on-error: true
+
+      - name: Check navigation references (if script exists)
+        run: npm run validate:navigation --if-present
 
   check-brand-guidelines:
     name: Check Brand Guidelines
@@ -82,10 +103,17 @@ jobs:
           echo "Checking brand guidelines..."
           
           # Check for uppercase "Kombify" (should be lowercase "kombify")
-          VIOLATIONS=$(grep -r "Kombify" --include="*.mdx" --include="*.md" . | grep -v "node_modules" | wc -l || echo "0")
+          VIOLATIONS=$(grep -r "Kombify" --include="*.mdx" --include="*.md" . \
+            | grep -v "node_modules" \
+            | grep -vE "^[^:]+:[[:space:]]*(subgraph|style)[[:space:]]+Kombify[A-Za-z]*" \
+            | wc -l || echo "0")
           if [ "$VIOLATIONS" -gt "0" ]; then
             echo "⚠️ Found $VIOLATIONS uses of 'Kombify' - should be lowercase 'kombify'"
-            grep -r "Kombify" --include="*.mdx" --include="*.md" . | grep -v "node_modules" | head -10
+            grep -r "Kombify" --include="*.mdx" --include="*.md" . \
+              | grep -v "node_modules" \
+              | grep -vE "^[^:]+:[[:space:]]*(subgraph|style)[[:space:]]+Kombify[A-Za-z]*" \
+              | head -10
+            exit 1
           else
             echo "✅ Brand guidelines followed"
           fi
@@ -102,5 +130,10 @@ jobs:
         run: |
           if [ "${{ needs.validate-content.result }}" != "success" ]; then
             echo "❌ Content validation had issues"
+            exit 1
+          fi
+          if [ "${{ needs.check-brand-guidelines.result }}" != "success" ]; then
+            echo "❌ Brand guideline validation had issues"
+            exit 1
           fi
           echo "✅ Documentation CI complete"
