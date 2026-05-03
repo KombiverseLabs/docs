@@ -40,12 +40,12 @@ jobs:
   
   validate-structure:
     name: 📋 Validate Documentation Structure
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -71,12 +71,12 @@ jobs:
 
   validate-content-quality:
     name: 📝 Validate Content Quality
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -102,7 +102,7 @@ jobs:
   
   update-screenshots:
     name: 📸 Update Screenshots
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 10
     if: |
       github.event_name == 'schedule' ||
@@ -110,9 +110,9 @@ jobs:
       (inputs.action == 'update-screenshots' || inputs.action == 'full-refresh')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
       
@@ -149,7 +149,7 @@ jobs:
       
       - name: Create Pull Request
         if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'docs(screenshots): automated update'
@@ -171,16 +171,16 @@ jobs:
 
   generate-diagrams:
     name: 🎨 Generate Diagrams
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: |
       github.event_name == 'workflow_dispatch' &&
       (inputs.action == 'generate-diagrams' || inputs.action == 'full-refresh')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -208,7 +208,7 @@ jobs:
       
       - name: Create Pull Request
         if: steps.changes.outputs.changed == 'true'
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@c5a7806660adbe173f04e3e038b0ccdcd758773c
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'docs(diagrams): regenerate from sources'
@@ -222,14 +222,14 @@ jobs:
 
   check-external-links:
     name: 🔗 Check External Links
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: github.event_name == 'schedule'
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -243,7 +243,7 @@ jobs:
       
       - name: Create issue for broken links
         if: failure()
-        uses: peter-evans/create-issue-from-file@v5
+        uses: peter-evans/create-issue-from-file@e8ef132d6df98ed982188e460ebb3b5d4ef3a9cd
         with:
           title: '🔗 Broken external links detected'
           content-filepath: ./reports/broken-links.md
@@ -255,16 +255,16 @@ jobs:
   
   ai-content-review:
     name: 🤖 AI Content Review
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: |
       github.event_name == 'workflow_dispatch' &&
       (inputs.action == 'ai-suggestions' || inputs.action == 'full-refresh')
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -287,7 +287,7 @@ jobs:
       - name: Upload suggestions report
         if: failure()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ai-suggestions
           path: reports/ai-suggestions.md
@@ -299,17 +299,17 @@ jobs:
   
   update-changelog:
     name: 📝 Update Changelog
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [validate-structure]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
         with:
           fetch-depth: 0
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -344,15 +344,15 @@ jobs:
   
   generate-health-report:
     name: 📊 Generate Health Report
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: github.event_name == 'schedule'
     needs: [validate-structure, validate-content-quality, check-external-links]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
@@ -366,7 +366,7 @@ jobs:
       - name: Upload report
         if: failure()
         continue-on-error: true
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: docs-health-report
           path: reports/health-report.md

@@ -40,15 +40,15 @@ permissions:
 jobs:
   validate-content:
     name: Validate Documentation Content
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
       - name: Setup Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
           node-version: '20'
           cache: 'npm'
@@ -91,12 +91,12 @@ jobs:
 
   check-brand-guidelines:
     name: Check Brand Guidelines
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
       
       - name: Check for brand violations
         run: |
@@ -122,7 +122,7 @@ jobs:
   ci-passed:
     name: ✅ CI Passed
     needs: [validate-content, check-brand-guidelines]
-    runs-on: ${{ vars.CI_RUNNER || 'blacksmith-4vcpu-ubuntu-2204' }}
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
     timeout-minutes: 5
     if: always()
     steps:

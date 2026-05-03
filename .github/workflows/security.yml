@@ -1,0 +1,159 @@
+name: Security
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: "17 3 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  actions: read
+  contents: read
+  security-events: write
+
+jobs:
+  secret-scan:
+    name: Secret scan
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+        with:
+          fetch-depth: 0
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@47e7b7cd74f578e1e3145d48f669f22fd1330ca6
+        with:
+          extra_args: --results=verified,unknown
+
+  osv-scan:
+    name: OSV dependency scan
+    uses: google/osv-scanner-action/.github/workflows/osv-scanner-reusable.yml@c51854704019a247608d928f370c98740469d4b5
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    with:
+      scan-args: |-
+        --recursive
+        --skip-git=true
+        ./
+
+  trivy-repo-scan:
+    name: Trivy repository scan
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Run Trivy filesystem scan
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1
+        with:
+          scan-type: fs
+          scan-ref: .
+          scanners: vuln,misconfig,secret
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          hide-progress: true
+          skip-dirs: .git,node_modules,dist,build,.next,coverage,.turbo,.cache,vendor
+
+  go-static-security:
+    name: Go security/static checks
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
+
+      - name: Discover Go modules
+        id: modules
+        shell: bash
+        run: |
+          find . -path "*/vendor/*" -prune -o -name go.mod -print | sort > go-modules.txt
+          if [ ! -s go-modules.txt ]; then
+            echo "has_go=false" >> "$GITHUB_OUTPUT"
+            echo "No Go modules found."
+            exit 0
+          fi
+          echo "has_go=true" >> "$GITHUB_OUTPUT"
+          cat go-modules.txt
+
+      - name: Set up Go
+        if: steps.modules.outputs.has_go == 'true'
+        uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff
+        with:
+          go-version: "1.26.2"
+          cache: true
+
+      - name: Configure private Go modules
+        if: steps.modules.outputs.has_go == 'true'
+        shell: bash
+        env:
+          GH_AUTH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          go env -w 'GOPRIVATE=github.com/KombiverseLabs/*'
+          go env -w 'GONOSUMDB=github.com/KombiverseLabs/*'
+          if [ -n "$GH_AUTH_TOKEN" ]; then
+            git config --global url."https://x-access-token:${GH_AUTH_TOKEN}@github.com/".insteadOf "https://github.com/"
+          fi
+
+      - name: Install Go security tools
+        if: steps.modules.outputs.has_go == 'true'
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.3.0
+          go install github.com/securego/gosec/v2/cmd/gosec@v2.26.1
+          go install honnef.co/go/tools/cmd/staticcheck@v0.7.0
+
+      - name: Run Go checks
+        if: steps.modules.outputs.has_go == 'true'
+        shell: bash
+        env:
+          GIT_TERMINAL_PROMPT: "0"
+        run: |
+          while IFS= read -r modfile; do
+            module_dir="$(dirname "$modfile")"
+            echo "::group::${module_dir}"
+            (
+              cd "$module_dir"
+              go mod download
+              govulncheck ./...
+              staticcheck ./...
+              gosec -quiet -severity high -confidence medium ./...
+            )
+            echo "::endgroup::"
+          done < go-modules.txt
+
+  security-passed:
+    name: security-passed
+    if: always()
+    needs:
+      - secret-scan
+      - osv-scan
+      - trivy-repo-scan
+      - go-static-security
+    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    steps:
+      - name: Verify security gates
+        shell: bash
+        run: |
+          for result in \
+            "${{ needs.secret-scan.result }}" \
+            "${{ needs.osv-scan.result }}" \
+            "${{ needs.trivy-repo-scan.result }}" \
+            "${{ needs.go-static-security.result }}"; do
+            if [ "$result" != "success" ] && [ "$result" != "skipped" ]; then
+              echo "A required security gate finished with status: $result"
+              exit 1
+            fi
+          done
