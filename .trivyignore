@@ -1,0 +1,16 @@
+# Trivy ignore list for docs (Mintlify) repo.
+# Format: one CVE ID per line, optional `# comment` after.
+# Each entry should track an upstream fixed version + a Beads issue.
+#
+# Workflow: when adding an entry here, also create a Beads issue to track the
+# real fix (dependency upgrade) and revisit before the upstream-fix-version
+# is more than 30 days old.
+
+# All entries below are HIGH-severity transitive vulns surfaced by Trivy on
+# 2026-05-07. Real fix is a coordinated bun update of @hono/* deps and
+# @modelcontextprotocol/sdk inside the Mintlify dev-tooling chain.
+
+CVE-2026-29087  # @hono/node-server 1.19.9 -> 1.19.10 (auth bypass via encoded slashes)
+CVE-2026-25536  # @modelcontextprotocol/sdk 1.25.3 -> 1.26.0 (cross-client data leak)
+CVE-2026-29045  # hono 4.11.5 -> 4.12.4 (arbitrary file access via serveStatic)
+CVE-2026-4926   # path-to-regexp 8.3.0 -> 8.4.0 (DoS via crafted regex)
