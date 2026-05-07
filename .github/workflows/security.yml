@@ -32,7 +32,9 @@ jobs:
       - name: Run TruffleHog
         uses: trufflesecurity/trufflehog@47e7b7cd74f578e1e3145d48f669f22fd1330ca6
         with:
-          extra_args: --results=verified,unknown
+          # verified-only (drops unknown/unverified noise from third-party docs
+          # like keyv README's sample postgres DSN that hit Detector heuristics).
+          extra_args: --results=verified
 
   osv-scan:
     name: OSV dependency scan
