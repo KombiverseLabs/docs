@@ -46,6 +46,7 @@ jobs:
         --recursive
         --skip-git=true
         ./
+      upload-sarif: false
 
   trivy-repo-scan:
     name: Trivy repository scan
