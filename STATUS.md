@@ -1,6 +1,6 @@
 # STATUS — mintlify-docs
 
-Last verified: 2026-04-18
+Last verified: 2026-05-07
 
 Ist-Zustand der Public-Documentation-Site. Plaene gehoeren in `ROADMAP.md`.
 
@@ -11,14 +11,15 @@ Tier 1 Public Documentation der kombify-Plattform, gebaut mit Mintlify. Deployed
 ## Features (was auf der Live-Site existiert)
 
 ### Tabs (aus `docs.json`)
-- **Overview** — Introduction, Quickstart, Ecosystem, Comparisons
-- **Guides** — Getting Started, Auth, Deployment, Self-Hosting, Troubleshooting
-- **Stack** (kombify-TechStack) — Overview, Quickstart, How-To, Explanations, Reference
-- **Sim** (kombify-Sim) — Overview, Quickstart, How-To, Explanations, Reference
-- **StackKits** (kombify-StackKits) — Overview, Quickstart, Kits (base/ha/modern-homelab), CUE-Architecture, Spec-Format
-- **Cloud** (kombify Cloud) — Overview, Getting Started, Dashboard, Team-Management, Tool-Launcher, Pricing, Subscriptions, Enterprise
-- **Concepts** — Hybrid Infrastructure, Simulation-first, Spec-driven, StackKits-Modell
-- **API Reference** — `api/kombifyai/`, `api/kombifycloud/`, `api/kombifysim/`, `api/kombifytechstack/`
+- **Overview** — Welcome (Introduction, Ecosystem, Changelog), Comparisons (vs-portainer, vs-proxmox)
+- **Guides** — Getting Started (incl. Quickstart + Self-hosted Quickstart), Self-Hosting, Integrations (Auth0/Proxmox/Coolify), Authentication, AI-Assisted Setup (Cursor/Claude Code/Windsurf), Help (Troubleshooting/FAQ/Glossary/Community)
+- **TechStack** (kombify-TechStack) — Overview, Quickstart, How-To, Explanations, Reference
+- **Simulate** (kombify-Sim) — Overview, Quickstart, How-To, Explanations, Reference
+- **StackKits** (kombify-StackKits) — Overview, Quickstart, Kits (base/ha/modern-homelab), How-To, CUE-Architecture, Spec-Format, Monitoring
+- **Cloud** (kombify Cloud) — Overview, Getting Started, How-To (Dashboard, Tool-Launcher, Team-Management), Reference (Pricing, Subscriptions, Enterprise)
+- **AI** (kombify-AI) — Overview, Quickstart, How-To (Chat, Companions, Guard, BYOK, Voice, SpeechKit), Explanations (Architecture, Trust-Model, Memory-System), Reference (Models, Configuration, API)
+- **Concepts** — Platform (Spec-driven, Hybrid Infrastructure, Simulation-first), StackKits
+- **API Reference** — `api/kombifytechstack/`, `api/kombifysim/`, `api/kombifycloud/`, `api/kombifyai/`
 
 ### AI-Tools-Integration
 - `ai-tools/claude-code.mdx`, `cursor.mdx`, `windsurf.mdx`
@@ -38,9 +39,9 @@ Kein Render, kein eigenes Hosting. Mintlify-SaaS.
 
 ## Dependencies
 
-- Mintlify CLI (Dev-Preview)
-- Node 22 (fuer Playwright, lokale Scripts)
-- `package.json` sehr schlank (nur Playwright als test-Dep)
+- Mintlify CLI (Dev-Preview, via `npm run dev`)
+- Node 24 (`mise.toml` + `package.json` engines `>=24.0.0`), Bun 1.3.13 (siehe `mise.toml`)
+- `package.json` enthaelt Playwright + Validation/Quality-Toolchain (typescript, eslint, prettier, gray-matter, glob, dotenv) fuer `npm run validate` / `npm run quality`
 
 ## Known Issues
 
@@ -49,7 +50,7 @@ Kein Render, kein eigenes Hosting. Mintlify-SaaS.
   - StackKits: `quickstart.mdx` vorhanden — historisch TODO, vermutlich inzwischen erledigt. Pruefen.
   - API Reference: existiert fuer alle 4 Tools, Detailtiefe unterschiedlich.
   - Einzelne Auth-/Deployment-Guides: Inhalt und Aktualitaet nach Auth0-Cutover pruefen.
-- **Concept-Layer und Cloudflare Edge:** Aktive MDX-Seiten enthalten keine aktuelle Kong-Pfadbeschreibung; neue Public-API-Doku muss Cloudflare Edge als kanonisch darstellen.
+- **Concept-Layer und Cloudflare Edge:** Aktive MDX-Seiten enthalten keine aktuelle Edge-Pfadbeschreibung; neue Public-API-Doku muss Cloudflare Edge als kanonisch darstellen.
 - **Altes README (bis 2026-04-18):** hatte massive Pfad-Drifts (referenzierte `tools/`, `saas/` Ordner, die nicht existieren). Ersetzt.
 
 ## Tests

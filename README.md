@@ -34,20 +34,27 @@ Einstiegsseiten: `index.mdx`, `introduction.mdx`, `quickstart.mdx`, `quickstart-
 
 ## Dev-Setup
 
-```bash
-# Mintlify CLI installieren
-npm install -g mintlify
+Voraussetzungen: Node `>=24` (siehe `package.json` engines / `mise.toml`).
 
-# Lokalen Preview-Server starten
-mintlify dev
+```bash
+# Dependencies installieren
+npm install
+
+# Lokalen Preview-Server starten (Mintlify CLI als devDep / npx)
+npm run dev
 # laeuft auf http://localhost:3000
+
+# Validierung & Quality-Checks
+npm run validate   # frontmatter, links, navigation
+npm run quality    # readability, SEO, code examples
+npm test           # Playwright E2E
 ```
 
 Bei 404-Fehlern Cache leeren:
 ```bash
-mintlify dev --clear-cache
+npx mintlify dev --clear-cache
 # oder
-rm -rf .mintlify && mintlify dev
+rm -rf .mintlify && npm run dev
 ```
 
 ## Schreibkonventionen
