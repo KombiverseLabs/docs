@@ -1,0 +1,20 @@
+name: roadmap-sync
+
+on:
+  push:
+    branches: [main]
+    paths: [ROADMAP.md]
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sync:
+    uses: KombiverseLabs/kombify-Core/.github/workflows/roadmap-sync.yml@main
+    with:
+      repo: KombiverseLabs/docs
+    secrets: inherit
