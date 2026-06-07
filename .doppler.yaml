@@ -1,0 +1,6 @@
+# Doppler Configuration for kombify docs / E2E tests
+# Commit this file to version control
+
+setup:
+  project: kombify-io
+  config: prd_internal_docs
