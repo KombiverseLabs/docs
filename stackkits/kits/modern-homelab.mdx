@@ -24,7 +24,7 @@ graph TB
         Traefik["Traefik<br/>Reverse Proxy + TLS"]
         Coolify["Coolify<br/>PaaS / Multi-Node Manager"]
         Headscale["Headscale<br/>VPN Control Server"]
-        MonCloud["Prometheus + Grafana"]
+        MonCloud["OTLP Gateway + optional VictoriaMetrics"]
     end
 
     subgraph VPN["VPN Overlay (Headscale/Tailscale)"]
@@ -63,7 +63,7 @@ graph TB
     Headscale/Tailscale for secure inter-node communication
   </Card>
   <Card title="Full Observability" icon="chart-line">
-    Prometheus, Grafana, Loki (PLG) monitoring stack
+    OTLP collector baseline with optional central gateway, retention, and dashboards
   </Card>
   <Card title="Automatic TLS" icon="shield">
     Let's Encrypt certificates via Traefik
@@ -146,40 +146,36 @@ graph LR
 ```mermaid
 graph TB
     subgraph Collection["Data Collection"]
-        NE["Node Exporter<br/>(per node)"]
-        PT["Promtail<br/>(per node)"]
-        CT["cAdvisor<br/>(per node)"]
+    OTel["OTel Collector<br/>(per node)"]
+    Logs["Optional log lane<br/>(per node)"]
     end
 
-    subgraph Storage["Metric Storage"]
-        Prom["Prometheus<br/>15d retention"]
-        Loki["Loki<br/>7d retention"]
+  subgraph Gateway["Central Fan-In"]
+    GW["monitoring-core gateway<br/>OTLP fan-in"]
     end
 
-    subgraph Viz["Visualization"]
-        Graf["Grafana<br/>Dashboards + Alerts"]
+  subgraph Backend["Optional retention tier"]
+    VM["VictoriaMetrics<br/>retention + PromQL"]
+    Graf["Optional Grafana<br/>dashboards"]
     end
 
-    NE --> Prom
-    CT --> Prom
-    PT --> Loki
-    Prom --> Graf
-    Loki --> Graf
+  OTel --> GW
+  Logs --> GW
+  GW --> VM
+  VM --> Graf
 
     style Collection fill:#1e293b,stroke:#38bdf8,color:#f8fafc
-    style Storage fill:#1e293b,stroke:#fbbf24,color:#f8fafc
-    style Viz fill:#1e293b,stroke:#4ade80,color:#f8fafc
+  style Gateway fill:#1e293b,stroke:#fbbf24,color:#f8fafc
+  style Backend fill:#1e293b,stroke:#4ade80,color:#f8fafc
 ```
 
 | Component | Purpose | Default Config |
 |-----------|---------|----------------|
-| Prometheus | Metrics collection | 15d retention, 15s scrape interval |
-| Grafana | Visualization | Pre-built dashboards |
-| Loki | Log aggregation | 7d retention |
-| Promtail | Log shipping | Per-node agent |
-| Node Exporter | Hardware metrics | Per-node agent |
-| cAdvisor | Container metrics | Per-node agent |
-| Alertmanager | Alert routing | Discord/Email |
+| OTel Collector | Metrics baseline | Per-node collector, OTLP export |
+| monitoring-core gateway | Fan-in | Optional central OTLP gateway |
+| VictoriaMetrics | Metrics retention | Optional backend for multi-node or longer retention |
+| Grafana | Visualization | Optional dashboard surface when backend tier is enabled |
+| Logs lane | Log forwarding | Opt-in; only enable when the deployment needs it |
 
 ## Quick start
 
@@ -234,17 +230,20 @@ graph TB
       headscale:
         enabled: true
 
-      # Monitoring
-      prometheus:
-        enabled: true
-        retention: 15d
+    addons:
+      - monitoring-core
 
-      grafana:
-        enabled: true
-
-      loki:
-        enabled: true
-        retention: 7d
+    observability:
+      monitoring:
+        signals:
+          metrics: true
+          logs: true
+        gateway:
+          enabled: true
+        backend:
+          enabled: true
+          grafana:
+            enabled: true
     ```
   </Step>
 
@@ -327,27 +326,19 @@ The VPN overlay creates an encrypted mesh between all nodes. Headscale is the se
 
 ```yaml
 observability:
-  prometheus:
-    retention: 15d
-    storage: 50Gi
-    scrapeInterval: 15s
-
-  grafana:
-    dashboards:
-      - node-health
-      - docker-containers
-      - traefik-traffic
-      - coolify-deployments
-
-  loki:
-    retention: 7d
-
-  alertmanager:
-    receivers:
-      - name: discord
-        webhook: https://discord.com/api/webhooks/xxx
-      - name: email
-        to: alerts@example.com
+  monitoring:
+    signals:
+      metrics: true
+      logs: true
+    collector:
+      profile: full
+    gateway:
+      enabled: true
+    backend:
+      enabled: true
+      retentionPeriod: 30d
+      grafana:
+        enabled: true
 ```
 
 ## Platform components
@@ -449,7 +440,7 @@ The StackKit configures firewall rules automatically:
 | **Platform** | Docker + Dokploy | Docker Swarm | Docker + Coolify |
 | **Network** | Local only | Local LAN | VPN overlay (Headscale) |
 | **Public Access** | Optional (Cloudflare Tunnel) | Optional | Default |
-| **Monitoring** | Basic (Uptime Kuma) | Prometheus + Grafana | Full PLG stack |
+| **Monitoring** | OTLP collector baseline | OTLP collector + gateway planning | Collector baseline + monitoring-core |
 | **Domain Required** | No | No | Yes |
 | **Complexity** | Low | Medium | High |
 | **Status** | v1.0 (production) | vision-only | schema-only |
@@ -479,10 +470,10 @@ The StackKit configures firewall rules automatically:
   </Accordion>
 
   <Accordion title="Monitoring gaps">
-    1. Verify Promtail and Node Exporter are running on all nodes
-    2. Check Prometheus targets: navigate to `prometheus.yourdomain.com/targets`
-    3. Ensure VPN tunnel is stable (metrics travel over VPN)
-    4. Check Grafana data source configuration
+    1. Verify OTel Collector is running on all nodes
+    2. Check the OTLP receiver or gateway endpoint is reachable over the VPN path
+    3. Inspect TechStack `/api/v1/monitor/health` for ingest-lane and backend diagnostics
+    4. If enabled, verify VictoriaMetrics and Grafana separately from the collector baseline
   </Accordion>
 </AccordionGroup>
 

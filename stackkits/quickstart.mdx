@@ -1,7 +1,7 @@
 ---
-title: StackKits Quickstart
-description: Deploy your first StackKit with the one-line installer or the CLI
-sidebarTitle: Quickstart
+title: "StackKits quickstart"
+description: "Deploy your first StackKit with the one-line installer or the CLI"
+sidebarTitle: "Quickstart"
 icon: rocket
 ---
 
@@ -9,20 +9,20 @@ The fastest StackKits path is the Install Engine: one short command on the host 
 
 ## Fastest path
 
-Run the BaseKit one-liner on a Linux or macOS host with root/sudo access:
+Run the Base Kit one-liner on a Linux or macOS host with root/sudo access:
 
 ```bash
 curl -sSL base.stackkit.cc | sh
 ```
 
-This installs the `stackkit` CLI, installs the BaseKit definitions, prepares Docker and OpenTofu, initializes the stack, generates deployment artifacts, applies the stack, and prints the service URLs.
+This installs the `stackkit` CLI, installs the Base Kit definitions, prepares Docker and OpenTofu, initializes the stack, generates deployment artifacts, applies the stack, and prints the service URLs.
 
 ## Per-kit one-liners
 
 Use a kit-specific one-liner when you already know the StackKit standard:
 
 ```bash
-curl -sSL base.stackkit.cc | sh      # BaseKit
+curl -sSL base.stackkit.cc | sh      # Base Kit
 curl -sSL modern.stackkit.cc | sh    # Modern Homelab
 curl -sSL ha.stackkit.cc | sh        # High Availability
 ```
@@ -75,15 +75,18 @@ Use the CLI-only installer when you want to make the technical choices yourself:
 
 ## What you get
 
-The BaseKit default provisions a homelab foundation with StackKits standards, add-ons, baselines, auth/routing defaults, generated infrastructure artifacts, and a service URL summary.
+The Base Kit default provisions a homelab foundation with StackKits standards, add-ons, baselines, auth/routing defaults, generated infrastructure artifacts, and a service URL summary.
 
 ## Next steps
 
 <CardGroup cols={2}>
   <Card title="CLI or TechStack" icon="route" href="/guides/stackkits/deploy-with-cli-or-techstack">
-    Compare the Install Engine, CLI Tool, and kombify-TechStack UI.
+    Compare the Install Engine, CLI tool, and kombify-TechStack UI.
   </Card>
   <Card title="Base Kit details" icon="house" href="/stackkits/kits/base-kit">
-    Learn what BaseKit deploys and how its defaults work.
+    Learn what Base Kit deploys and how its defaults work.
+  </Card>
+  <Card title="Node Hub" icon="grid-2" href="/guides/stackkits/node-hub">
+    Use the default dashboard at `base.<domain>` after rollout.
   </Card>
 </CardGroup>

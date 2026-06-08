@@ -9,8 +9,17 @@ const failures = [];
 for (const file of markdownFiles(root)) {
   const relative = path.relative(root, file).replaceAll("\\", "/");
   const source = fs.readFileSync(file, "utf8");
-  const fenceMatches = [...source.matchAll(/```([^\n`]*)\n/g)];
-  for (const match of fenceMatches) {
+  let insideFence = false;
+  for (const line of source.split(/\r?\n/)) {
+    const match = line.match(/^\s*```([^`]*)$/);
+    if (!match) continue;
+
+    if (insideFence) {
+      insideFence = false;
+      continue;
+    }
+
+    insideFence = true;
     const info = match[1].trim();
     if (info === "") {
       failures.push(`${relative}: code fence without language`);

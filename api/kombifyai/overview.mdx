@@ -11,7 +11,7 @@ The AI API provides programmatic access to kombify's AI features — chat, compa
 
 ## Authentication
 
-All endpoints (except health and A2A federation) require authentication via Auth0 JWT token or API key. Requests are validated at the Cloudflare edge (`api.kombify.io`) before reaching the origin services.
+All endpoints (except health and A2A federation discovery) require an Auth0 access token from Universal Login / SSO. Requests are validated at the Cloudflare edge (`api.kombify.io`) before reaching the origin services. Legacy API-key compatibility is restricted to approved service integrations and is not a user-auth path.
 
 ```bash
 curl -H "Authorization: Bearer $TOKEN" \

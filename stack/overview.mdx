@@ -1,7 +1,7 @@
 ---
-title: kombify TechStack
-description: The brain of your homelab — orchestration made simple
-sidebarTitle: Overview
+title: "kombify TechStack"
+description: "The brain of your homelab — orchestration made simple"
+sidebarTitle: "Overview"
 icon: server
 ---
 
@@ -10,7 +10,9 @@ icon: server
 ## The simple version
 
 <Card title="What does Stack do?" icon="lightbulb">
-  Imagine you want a private photo cloud for your family. Instead of spending days researching Docker, reverse proxies, and SSL certificates, you write a simple configuration file describing *what* you want. Stack handles *everything else* — validation, setup, deployment, and ongoing maintenance.
+  Imagine you want a private photo cloud for your family. Instead of spending days researching Docker, reverse proxies, and SSL certificates, you write a simple configuration file describing *what* you want.
+
+  Stack handles *everything else* — validation, setup, deployment, and ongoing maintenance.
 </Card>
 
 ```yaml kombination.yaml
@@ -49,6 +51,9 @@ Stack transforms this into hundreds of lines of configuration and deploys it to 
   <Card title="Self-healing" icon="shield-check">
     Detects when reality drifts from your configuration and can fix it automatically
   </Card>
+  <Card title="Wallet-first access" icon="key">
+    Daily access and recovery are split into `Tools`, `Access`, and `Recovery` so operators open services first and reveal credentials only when necessary
+  </Card>
 </CardGroup>
 
 ## How it works
@@ -71,7 +76,7 @@ flowchart LR
 
     subgraph Result["🏠 Your Homelab"]
         S1["📸 Immich<br/>Photo Cloud"]
-        S2["🔐 Authelia<br/>Login Portal"]
+      S2["🔐 TinyAuth + Pocket ID<br/>Access Layer"]
         S3["📊 Homepage<br/>Dashboard"]
     end
 
@@ -301,7 +306,7 @@ nodes:
 
 services:
   - traefik      # Reverse proxy with auto-SSL
-  - authelia     # Single sign-on
+  - tinyauth     # Access gateway
   - homepage     # Dashboard
   - immich       # Photo management
 ```

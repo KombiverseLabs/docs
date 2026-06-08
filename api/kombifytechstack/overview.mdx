@@ -15,13 +15,16 @@ The Stack API lets you automate everything you can do in the dashboard — creat
 ### 1. Get an authentication token
 
 ```bash
-# Authenticate via Auth0 OIDC
-# 1. Obtain a token from your Auth0 instance
-TOKEN=$(curl -s -X POST https://auth.kombify.dev/oauth/v2/token \
-  -d "grant_type=client_credentials" \
-  -d "client_id=YOUR_CLIENT_ID" \
-  -d "client_secret=YOUR_CLIENT_SECRET" \
-  -d "scope=openid" | jq -r '.access_token')
+# Approved M2M integrations obtain Auth0 access tokens from the kombify authorization server.
+# Interactive users sign in through Universal Login / SSO at https://login.kombify.io/.
+TOKEN=$(curl -s -X POST https://login.kombify.io/oauth/token \
+  -H "Content-Type: application/json" \
+  -d '{
+    "grant_type": "client_credentials",
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "audience": "https://api.kombify.io"
+  }' | jq -r '.access_token')
 
 # 2. Use the token in API requests
 curl https://api.kombify.io/v1/orchestrator/stacks \
@@ -34,7 +37,7 @@ Response:
   "access_token": "eyJhbGciOiJSUzI1NiIs...",
   "token_type": "Bearer",
   "expires_in": 3600,
-  "scope": "openid"
+  "audience": "https://api.kombify.io"
 }
 ```
 

@@ -1,5 +1,5 @@
 /**
- * Playwright Configuration for Kong-Auth0 E2E Tests
+ * Playwright Configuration for Edge-Auth0 E2E Tests
  */
 
 import { defineConfig, devices } from '@playwright/test';

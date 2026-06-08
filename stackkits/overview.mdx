@@ -50,8 +50,8 @@ A StackKit is a **smart configuration system** that:
   <Tab title="The challenge">
     You want to set up a homelab. You've heard of:
     - Traefik (or Caddy? or nginx?)
-    - Authelia (or Authentik? or Keycloak?)
-    - Portainer (or Dockge? or Coolify?)
+    - TinyAuth + Pocket ID (or Authentik? or Keycloak?)
+    - Dokploy (or Dockge? or Coolify?)
     - Immich (or Photoprism?)
 
     **Questions that keep you stuck:**
@@ -162,10 +162,12 @@ Add-Ons replace the old monolithic variant system. They are stackable and declar
 
 ```yaml kombination.yaml
 addons:
-  - monitoring       # Prometheus + Grafana + Alertmanager
+  - monitoring       # OTLP collector baseline
   - backup           # Restic + configurable targets
   - media            # Jellyfin + *arr stack
 ```
+
+For the current monitoring contract, see [/stackkits/reference/monitoring](/stackkits/reference/monitoring).
 
 ## Progressive capability model
 

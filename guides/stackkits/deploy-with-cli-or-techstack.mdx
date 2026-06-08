@@ -1,5 +1,5 @@
 ---
-title: "Deploy with Installer, CLI, or TechStack"
+title: "Deploy with installer, CLI, or TechStack"
 description: "Choose the StackKits one-line installer, the standalone CLI tool, or the guided kombify-TechStack UI for a SvelteKit app deployment."
 sidebarTitle: "Rollout paths"
 icon: route
@@ -33,7 +33,9 @@ First choose the experience: direct StackKits execution or guided TechStack outc
 | Pick the generic/default one-liner or a kit-specific one-liner. | Enter technical values: domain/access mode, app image, port, hostname, health path, env, and secret references. | Provide only missing facts: domain preference, app artifact, secret source, or approval. |
 | Read the generated URLs and login output. | Review `stackkit plan` and run `stackkit apply`. | Review TechStack's recommendation and click apply. |
 
-TechStack does not own the homelab standards. StackKits owns standards, add-ons, baselines, defaults, and validation in all paths. TechStack turns that StackKits resolution into a guided recommendation and adds target evaluation, plan risk, job status, route checks, login checks, and app health after rollout.
+TechStack does not own the homelab standards. StackKits owns standards, add-ons, baselines, defaults, and validation in all paths.
+
+TechStack turns that StackKits resolution into a guided recommendation and adds target evaluation, plan risk, job status, route checks, login checks, and app health after rollout.
 
 ## Standard SvelteKit app contract
 
@@ -85,7 +87,7 @@ apps:
   </Step>
 
   <Step title="Run the short one-liner">
-    For the default BaseKit path promoted on stackkit.cc:
+    For the default Base Kit path promoted on stackkit.cc:
 
     ```bash
     curl -sSL base.stackkit.cc | sh
@@ -96,7 +98,7 @@ apps:
     The direct per-kit command contract is:
 
     ```bash
-    curl -sSL base.stackkit.cc | sh      # BaseKit
+    curl -sSL base.stackkit.cc | sh      # Base Kit
     curl -sSL modern.stackkit.cc | sh    # Modern Homelab
     curl -sSL ha.stackkit.cc | sh        # High Availability
     ```
@@ -123,7 +125,7 @@ apps:
   </Step>
 
   <Step title="Choose the StackKit standard">
-    Choose the technical standard yourself. For the first SvelteKit app rollout, start with BaseKit:
+    Choose the technical standard yourself. For the first SvelteKit app rollout, start with Base Kit:
 
     ```bash
     mkdir my-sveltekit-stack
@@ -220,6 +222,9 @@ Expected result:
     Create and deploy your first StackKit.
   </Card>
   <Card title="Choose a kit" icon="list" href="/guides/stackkits/choosing-a-kit">
-    Compare BaseKit, Modern Homelab, and High Availability Kit.
+    Compare Base Kit, Modern Homelab, and High Availability Kit.
+  </Card>
+  <Card title="Node Hub" icon="grid-2" href="/guides/stackkits/node-hub">
+    Use the standard dashboard and service how-to links after rollout.
   </Card>
 </CardGroup>

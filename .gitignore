@@ -5,3 +5,5 @@ logs.zip
 # Repo-hygiene working artifacts
 AUDIT-REPORT.md
 _export/
+# RepoWise local development index/cache
+.repowise/

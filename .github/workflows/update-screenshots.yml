@@ -35,7 +35,7 @@ permissions:
 
 jobs:
   capture-screenshots:
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 10
 
     steps:
@@ -43,7 +43,7 @@ jobs:
       
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'npm'
           cache-dependency-path: scripts/screenshots/package-lock.json
       

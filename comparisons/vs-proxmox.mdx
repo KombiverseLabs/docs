@@ -27,7 +27,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
 
 ### Layer Model
 
-```
+```text
 ┌─────────────────────────────────────────────┐
 │              Your Services                   │  ← kombify manages this
 │  (Traefik, Immich, Home Assistant, etc.)    │
@@ -214,7 +214,7 @@ kombify and Proxmox VE are both popular in the homelab community but serve funda
 
 ### Architecture 1: Single Proxmox Host
 
-```
+```text
 Physical Server
 └── Proxmox VE
     ├── VM: kombify-controller
@@ -226,7 +226,7 @@ Physical Server
 
 ### Architecture 2: Proxmox Cluster + kombify
 
-```
+```text
 Proxmox Cluster (3 nodes)
 ├── Node 1
 │   ├── VM: kombify-stack
@@ -242,7 +242,7 @@ Proxmox Cluster (3 nodes)
 
 ### Architecture 3: Bare Metal + kombify (No Proxmox)
 
-```
+```text
 Physical Servers
 ├── Server 1: kombify TechStack + Docker
 ├── Server 2: Docker worker

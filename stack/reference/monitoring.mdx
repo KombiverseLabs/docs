@@ -5,289 +5,113 @@ sidebarTitle: Monitoring
 icon: chart-line
 ---
 
-
-kombify TechStack provides comprehensive monitoring for your infrastructure through built-in metrics, health checks, and integrations with popular observability tools.
+kombify TechStack uses **Monitoring 2.0**, an OTLP-first observability contract built around OpenTelemetry Collector and API-first monitoring surfaces.
 
 <Note>
-  **Monitoring 2.0:** TechStack now includes an embedded Prometheus TSDB with a PromQL-compatible API, enabling built-in metric storage and querying without external Prometheus. External Prometheus integration remains supported.
+  OTLP metrics ingest is the canonical path. The legacy `PushMetrics` lane and the embedded TSDB remain available as migration and fallback compatibility layers.
 </Note>
 
-## Built-in health checks
+## Current operating model
 
-### API health endpoint
+TechStack monitoring is intentionally split into two concerns:
 
-```bash
-curl https://api.kombify.io/v1/orchestrator/health
-```
+- **Ingest**: OTLP metrics arrive from collectors or OTLP-capable agents
+- **Query and diagnostics**: operators and AI assistants inspect the monitoring plane through stable HTTP APIs
+
+The default path is:
+
+1. Node or gateway collectors export metrics via OTLP
+2. TechStack ingests them through the OTLP metrics service
+3. Monitoring APIs expose status, health, queries, and alert state
+
+## Health and diagnostics
+
+Use the normal service health endpoint for runtime availability and the monitoring endpoints for observability health.
+
+| Endpoint | Purpose |
+|---|---|
+| `/api/v1/health` | service health for the TechStack runtime |
+| `/api/v1/monitor/status` | query backend, ingest backend, and compatibility-mode metadata |
+| `/api/v1/monitor/health` | live OTLP and legacy ingest diagnostics, queue status, parse errors, and backend health |
 
 <Tip>
-  **Self-hosted:** Replace the base URL with `http://localhost:5260/api/v1` when running TechStack locally.
+  `GET /api/v1/monitor/health` is the best debugging surface during rollout because it stays available even when the remote query backend is degraded.
 </Tip>
 
-Response:
-```json
-{
-  "status": "healthy",
-  "version": "1.0.0",
-  "uptime": "72h15m30s",
-  "checks": {
-    "database": "ok",
-    "grpc": "ok",
-    "workers": "ok"
-  }
-}
-```
+## Query APIs
 
-### Health probes
+TechStack exposes PromQL-style query surfaces through the monitoring API.
 
-Stack exposes standard health probes (compatible with Kubernetes, Docker healthchecks, and load balancers):
+| Endpoint | Purpose |
+|---|---|
+| `/api/v1/monitor/metrics/instant` | instant query |
+| `/api/v1/monitor/metrics/query` | range query |
+| `/api/v1/monitor/metrics/names` | known metric names |
+| `/api/v1/monitor/metrics/labels` | label names |
+| `/api/v1/monitor/metrics/values` | values for a label |
+| `/api/v1/monitor/alerts` | active alerts |
+| `/api/v1/monitor/alerts/rules` | alert rules and state |
 
-| Endpoint | Purpose | When to use |
-|----------|---------|-------------|
-| `/health/live` | Liveness probe | Is the process running? |
-| `/health/ready` | Readiness probe | Can it handle traffic? |
-| `/health/startup` | Startup probe | Has it started successfully? |
+## Ingest paths
 
-```yaml
-# Docker Compose healthcheck example
-healthcheck:
-  test: ["CMD", "curl", "-f", "http://localhost:5260/health/ready"]
-  interval: 30s
-  timeout: 10s
-  retries: 3
-```
+### Canonical path
 
-## Prometheus metrics
+- `opentelemetry.proto.collector.metrics.v1.MetricsService`
+- OTLP collectors on nodes or gateways
+- standard path for the StackKits collector baseline
 
-Stack exposes metrics in Prometheus format at `/metrics`:
+### Compatibility path
 
-```bash
-curl http://localhost:5260/metrics
-```
+- legacy gRPC `PushMetrics`
+- kept during migration for older agents
+- writes into the same monitoring backend contract
 
-### Key metrics
+## Storage and backends
 
-| Metric | Type | Description |
-|--------|------|-------------|
-| `kombistack_api_requests_total` | Counter | Total API requests |
-| `kombistack_api_request_duration_seconds` | Histogram | Request latency |
-| `kombistack_workers_connected` | Gauge | Connected agent count |
-| `kombistack_workers_healthy` | Gauge | Healthy agent count |
-| `kombistack_jobs_total` | Counter | Jobs by type and status |
-| `kombistack_jobs_duration_seconds` | Histogram | Job execution time |
-| `kombistack_stacks_total` | Gauge | Total stacks managed |
-| `kombistack_drift_detected_total` | Counter | Drift detections |
+TechStack can operate against:
 
-### Prometheus configuration
+- the embedded TSDB compatibility path
+- a remote PromQL-compatible backend such as VictoriaMetrics
 
-```yaml prometheus.yml
-scrape_configs:
-  - job_name: 'kombistack'
-    static_configs:
-      - targets: ['localhost:5260']
-    metrics_path: /metrics
-    scheme: http
-```
+That means you can keep the simple built-in path for smaller deployments or move query and retention to a dedicated backend without changing the operator-facing monitoring APIs.
 
-## Worker (node) monitoring
+## StackKits alignment
 
-Each connected agent reports metrics about its node:
+StackKits and TechStack share the same monitoring direction:
 
-```bash
-# Get worker status
-curl https://api.kombify.io/v1/orchestrator/workers
-```
+- OpenTelemetry Collector is the standard deployment primitive
+- OTLP metrics are the default transport
+- VictoriaMetrics is an optional add-on tier for retention and fan-in
+- older Prometheus-default wording should be treated as historical context only
 
-Response:
-```json
-{
-  "workers": [
-    {
-      "id": "worker_abc123",
-      "name": "main-server",
-      "status": "healthy",
-      "last_heartbeat": "2026-02-03T10:30:00Z",
-      "metrics": {
-        "cpu_percent": 25.5,
-        "memory_percent": 45.2,
-        "disk_percent": 62.0,
-        "containers_running": 12
-      }
-    }
-  ]
-}
-```
+If you want the StackKits-side contract, see `/stackkits/reference/monitoring`.
 
-### Worker health states
+## Typical deployment patterns
 
-| State | Description |
-|-------|-------------|
-| `healthy` | All checks passing |
-| `degraded` | Some non-critical issues |
-| `unhealthy` | Critical issues detected |
-| `unreachable` | No heartbeat received |
-| `pending` | Awaiting approval |
+### Direct-to-TechStack baseline
 
-## Grafana dashboards
+Best for single-node or lightweight homelabs.
 
-Import our pre-built Grafana dashboards:
+- collector on the node
+- OTLP export to TechStack
+- TechStack diagnostics and queries stay local and simple
 
-<Tabs>
-  <Tab title="Stack Overview">
-    Dashboard ID: `kombistack-overview`
-    
-    Shows:
-    - API request rates
-    - Error rates
-    - Active workers
-    - Job queue status
-  </Tab>
-  <Tab title="Workers">
-    Dashboard ID: `kombistack-workers`
-    
-    Shows:
-    - CPU/memory per worker
-    - Container counts
-    - Network traffic
-    - Heartbeat status
-  </Tab>
-  <Tab title="Jobs">
-    Dashboard ID: `kombistack-jobs`
-    
-    Shows:
-    - Job success/failure rates
-    - Duration by type
-    - Queue depth
-    - Recent failures
-  </Tab>
-</Tabs>
+### Monitoring-core / retention tier
 
-## Alerting
+Best for multi-node or longer-retention setups.
 
-### Example alert rules
-
-```yaml alerting-rules.yml
-groups:
-  - name: kombistack
-    rules:
-      - alert: WorkerUnhealthy
-        expr: kombistack_workers_healthy < kombistack_workers_connected
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Worker unhealthy"
-          
-      - alert: HighErrorRate
-        expr: rate(kombistack_api_requests_total{status=~"5.."}[5m]) > 0.1
-        for: 2m
-        labels:
-          severity: critical
-        annotations:
-          summary: "High API error rate"
-          
-      - alert: DriftDetected
-        expr: increase(kombistack_drift_detected_total[1h]) > 0
-        labels:
-          severity: warning
-        annotations:
-          summary: "Configuration drift detected"
-```
-
-## Log aggregation
-
-Stack outputs structured JSON logs that can be collected by any log aggregator:
-
-```json
-{
-  "time": "2026-02-03T10:30:00Z",
-  "level": "INFO",
-  "msg": "Job completed",
-  "job_id": "job_abc123",
-  "job_type": "provision",
-  "duration_ms": 45230,
-  "worker_id": "worker_xyz789"
-}
-```
-
-### Loki configuration
-
-```yaml loki-config.yml
-scrape_configs:
-  - job_name: kombistack
-    docker_sd_configs:
-      - host: unix:///var/run/docker.sock
-    relabel_configs:
-      - source_labels: ['__meta_docker_container_name']
-        regex: '/kombistack'
-        action: keep
-```
-
-## Service monitoring
-
-Monitor deployed services via Stack's built-in checks:
-
-```bash
-# Get service health for a stack
-curl https://api.kombify.io/v1/orchestrator/stacks/{stack-id}/health
-```
-
-Response:
-```json
-{
-  "stack_id": "stack_abc123",
-  "overall": "healthy",
-  "services": [
-    {
-      "name": "traefik",
-      "status": "healthy",
-      "uptime": "72h",
-      "health_check": {
-        "url": "http://traefik:8080/ping",
-        "status_code": 200,
-        "latency_ms": 5
-      }
-    },
-    {
-      "name": "dokploy",
-      "status": "healthy",
-      "uptime": "71h55m"
-    }
-  ]
-}
-```
-
-## Monitoring stack deployment
-
-Deploy a complete monitoring stack with Prometheus, Grafana, and Loki:
-
-```yaml kombination.yaml
-stackkit: base-kit
-variant: default
-
-services:
-  # ... your services
-
-monitoring:
-  enabled: true
-  prometheus:
-    retention: 15d
-    storage: 50Gi
-  grafana:
-    enabled: true
-    admin_password: ${GRAFANA_PASSWORD}
-  loki:
-    enabled: true
-    retention: 7d
-```
+- collector on each node
+- optional gateway / fan-in tier
+- optional VictoriaMetrics backend
+- TechStack keeps the same monitoring APIs while querying the remote backend
 
 ## Next steps
 
 <CardGroup cols={2}>
+  <Card title="Wallet reference" icon="key" href="/stack/reference/wallet">
+    Understand the wallet-first access and recovery model
+  </Card>
   <Card title="Troubleshooting" icon="bug" href="/stack/reference/troubleshooting">
     Debug common issues
-  </Card>
-  <Card title="Drift detection" icon="arrows-rotate" href="/concepts/spec-driven">
-    Understand drift detection
   </Card>
 </CardGroup>

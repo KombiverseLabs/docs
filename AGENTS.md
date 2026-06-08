@@ -38,3 +38,12 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
 - Keine Duplikate von Core-Standards (lokale DOCS_STANDARDS.md-Kopie wurde 2026-04-18 geloescht).
 - Keine Business-Content (Pricing-Strategie, Customer-Daten) — gehoert nach Notion.
 - Keine internal-only Flows, Secrets oder URLs publizieren.
+
+Kombify standards live in the parent workspace `kombify` root: `../ARCH_STANDARD.md`, `../ARCH_STANDARD.schema.json`, `../ARCH_UI_GENERATION_PROMPT.md`.
+
+## RepoWise Code-Wiki Policy
+
+- This repo participates in the kombify RepoWise Dual-Index model (`kombify-Core/standards/CODE-INTELLIGENCE-STANDARD.md`): local indices are valid for active development; the IONOS Dev server index is the shared 24/7 baseline for Daily Drops, remote agents, and gateway-backed queries.
+- Local `.repowise/` data is a development cache. Keep it out of Git and do not treat its presence as a docs-hygiene or repo-audit finding.
+- Local sessions may use local `repowise` MCP output for branch-aware work (`source=local`). Scheduled routines, shared reports, and remote-agent context must use `kombify-tools` / `kombify-knowledge` or the server baseline (`source=server`).
+- When using RepoWise as evidence, include the source (`local` or `server`), repo, branch/SHA, and `indexed_at` when available. If local and server disagree, read the cited files directly and report the drift.

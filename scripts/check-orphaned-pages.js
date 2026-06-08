@@ -17,7 +17,7 @@ collectPages(JSON.parse(fs.readFileSync(docsJsonPath, "utf8")).navigation, refer
 
 const publicPages = markdownFiles(root)
   .map((file) => path.relative(root, file).replaceAll("\\", "/").replace(/\.(md|mdx)$/, ""))
-  .filter((file) => !file.startsWith("internal-notes/") && !file.startsWith("_"));
+  .filter((file) => file !== "index" && !file.startsWith("internal-notes/") && !file.startsWith("_"));
 
 const orphans = publicPages.filter((file) => !referenced.has(file));
 if (orphans.length > 0) {

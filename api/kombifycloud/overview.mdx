@@ -15,27 +15,22 @@ The Cloud API provides programmatic access to kombify's managed SaaS platform. U
 
 ## Authentication
 
-Cloud supports two authentication methods:
+Cloud uses Auth0 Universal Login and SSO for users. API requests use the resulting Auth0 access token at the Cloudflare API Gateway.
 
-### JWT token (recommended)
+### Auth0 access token
 
-Obtain a token via OAuth 2.0 flow or the login endpoint:
+Interactive users sign in through Universal Login at `https://login.kombify.io/`. Approved machine-to-machine integrations use Auth0 client credentials against the same authorization server:
 
 ```bash
-# Login to get token
-curl -X POST https://api.kombify.io/v1/auth/login \
+# Approved M2M integrations only
+TOKEN=$(curl -s -X POST https://login.kombify.io/oauth/token \
   -H "Content-Type: application/json" \
-  -d '{"email": "you@example.com", "password": "your-password"}'
-```
-
-**Response:**
-
-```json
-{
-  "token": "eyJhbGciOiJSUzI1NiIs...",
-  "expires_at": "2026-01-27T10:00:00Z",
-  "refresh_token": "refresh_abc123..."
-}
+  -d '{
+    "grant_type": "client_credentials",
+    "client_id": "YOUR_CLIENT_ID",
+    "client_secret": "YOUR_CLIENT_SECRET",
+    "audience": "https://api.kombify.io"
+  }' | jq -r '.access_token')
 ```
 
 Use the token in subsequent requests:
@@ -45,27 +40,20 @@ curl -H "Authorization: Bearer $TOKEN" \
   https://api.kombify.io/v1/me
 ```
 
-### API key
+### Service credential compatibility
 
-For server-to-server integrations, use an API key:
+Legacy `X-Api-Key` support exists only for approved service integrations during the gateway migration. It is not a user-auth contract and should not be used for new integrations.
 
 ```bash
 curl -H "X-API-Key: $API_KEY" \
   https://api.kombify.io/v1/tools
 ```
 
-<Note>
-  Generate API keys in your [kombify dashboard](https://app.kombify.io/settings/api-keys). Keys inherit your account permissions.
-</Note>
-
 ## Endpoint reference
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| **Authentication** |||
-| POST | `/auth/login` | Login and get JWT |
-| POST | `/auth/refresh` | Refresh JWT token |
-| POST | `/auth/logout` | Invalidate token |
+| **Identity** |||
 | GET | `/me` | Get current user |
 | **Subscriptions** |||
 | GET | `/subscriptions` | List your subscriptions |

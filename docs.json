@@ -164,6 +164,7 @@
             "icon": "book-bookmark",
             "pages": [
               "stack/reference/monitoring",
+              "stack/reference/wallet",
               "stack/reference/troubleshooting"
             ]
           }
@@ -232,7 +233,27 @@
             "icon": "book-open",
             "pages": [
               "guides/stackkits/choosing-a-kit",
-              "guides/stackkits/deploy-with-cli-or-techstack"
+              "guides/stackkits/deploy-with-cli-or-techstack",
+              "guides/stackkits/node-hub"
+            ]
+          },
+          {
+            "group": "Service guides",
+            "icon": "list-check",
+            "pages": [
+              "guides/stackkits/services/homepage",
+              "guides/stackkits/services/pocketid",
+              "guides/stackkits/services/tinyauth",
+              "guides/stackkits/services/traefik",
+              "guides/stackkits/services/dokploy",
+              "guides/stackkits/services/uptime-kuma",
+              "guides/stackkits/services/whoami",
+              "guides/stackkits/services/vaultwarden",
+              "guides/stackkits/services/jellyfin",
+              "guides/stackkits/services/immich",
+              "guides/stackkits/services/dockge",
+              "guides/stackkits/services/coolify",
+              "guides/stackkits/services/kombify-point"
             ]
           },
           {
@@ -246,7 +267,8 @@
             "group": "Reference",
             "icon": "book-bookmark",
             "pages": [
-              "stackkits/reference/spec-format"
+              "stackkits/reference/spec-format",
+              "stackkits/reference/monitoring"
             ]
           }
         ]

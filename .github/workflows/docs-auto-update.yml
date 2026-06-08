@@ -31,7 +31,7 @@ permissions:
   issues: write
 
 env:
-  NODE_VERSION: '20'
+  NODE_VERSION: '24'
 
 jobs:
   # ============================================
@@ -40,7 +40,7 @@ jobs:
   
   validate-structure:
     name: 📋 Validate Documentation Structure
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -71,7 +71,7 @@ jobs:
 
   validate-content-quality:
     name: 📝 Validate Content Quality
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5
@@ -102,7 +102,7 @@ jobs:
   
   update-screenshots:
     name: 📸 Update Screenshots
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 10
     if: |
       github.event_name == 'schedule' ||
@@ -171,7 +171,7 @@ jobs:
 
   generate-diagrams:
     name: 🎨 Generate Diagrams
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     if: |
       github.event_name == 'workflow_dispatch' &&
@@ -222,7 +222,7 @@ jobs:
 
   check-external-links:
     name: 🔗 Check External Links
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     if: github.event_name == 'schedule'
 
@@ -255,7 +255,7 @@ jobs:
   
   ai-content-review:
     name: 🤖 AI Content Review
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     if: |
       github.event_name == 'workflow_dispatch' &&
@@ -299,7 +299,7 @@ jobs:
   
   update-changelog:
     name: 📝 Update Changelog
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     needs: [validate-structure]
@@ -344,7 +344,7 @@ jobs:
   
   generate-health-report:
     name: 📊 Generate Health Report
-    runs-on: ${{ vars.DOCS_RUNNER || 'kombi' }}
+    runs-on: ${{ vars.GHA_HOSTED_RUNNER || 'ubuntu-24.04' }}
     timeout-minutes: 5
     if: github.event_name == 'schedule'
     needs: [validate-structure, validate-content-quality, check-external-links]
