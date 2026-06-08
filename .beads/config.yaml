@@ -60,3 +60,7 @@
 # - linear.api-key
 # - github.org
 # - github.repo
+
+export.git-add: false
+
+sync.remote: "git+https://github.com/KombiverseLabs/docs.git"
