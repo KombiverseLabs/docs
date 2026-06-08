@@ -42,3 +42,12 @@ sync_base.jsonl
 # contributors to accidentally commit upstream issue databases.
 # The JSONL files (issues.jsonl, interactions.jsonl) and config files
 # are tracked by git by default since no pattern above ignores them.
+
+# Embedded Dolt local database/runtime
+embeddeddolt/
+backup/
+export-state.json
+dolt-server.lock
+.local_version
+last-touched
+daemon-error
