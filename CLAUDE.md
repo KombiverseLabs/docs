@@ -38,3 +38,22 @@ Repo-lokale Mintlify-Automation:
 - Keine Source-Code-Dokumentation (die gehoert in Tool-Repos `docs/`)
 - Keine interne Architektur-Diskussion (das ist Tier 2 in Core/internal-docs)
 - Keine Business-Content (Pricing-Strategie, Markt-Analyse) im Repo — lebt in Notion/Craft
+
+## Linear (High-Level Planning)
+
+This repo maps to Linear label `area:websites` in the **Development** project.
+Check `list_issues --label area:websites` for active high-level tasks before
+starting significant work. Create Linear issues for cross-repo decisions,
+blockers, or feature-level planning. Granular execution stays in Beads.
+
+Workspace: [Kombiverse Labs](https://linear.app/kombiverse-labs)
+Standard: `LINEAR-PLANNING-STANDARD.md` in the kombify workspace root.
+
+## RepoWise Code-Wiki Policy
+
+This repo participates in the kombify RepoWise Dual-Index model (`kombify-Core/standards/CODE-INTELLIGENCE-STANDARD.md` v1.2): local indices are valid for active development; the IONOS Dev server index is the shared 24/7 baseline for Daily Drops, remote agents, and gateway-backed queries.
+
+- Use local `repowise` MCP output for branch-aware local implementation work (`source=local`).
+- Use `kombify-tools` / `kombify-knowledge` or `https://repowise.kombify.dev` for scheduled routines, shared reports, and remote-agent context (`source=server`).
+- Keep `.repowise/` as an ignored development cache. Its presence is not a hygiene finding; committing it is.
+- When citing RepoWise output, include source, repo, branch/SHA, and `indexed_at` when available. If local and server disagree, read the cited files directly and state the drift.
