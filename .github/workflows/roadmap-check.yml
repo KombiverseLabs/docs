@@ -1,8 +1,3 @@
-# Roadmap Check — kombify-roadmap@v1
-#
-# This repo already uses GitHub Actions, so the roadmap validator stays on the
-# established CI platform.
-
 name: roadmap-check
 
 on:
@@ -20,25 +15,5 @@ permissions:
 
 jobs:
   roadmap-check:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v6
-
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Fetch roadmap-check from kombify-MCP
-        env:
-          GH_TOKEN: ${{ secrets.REPO_SYNC_PAT || secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          mkdir -p .roadmap-check
-          gh api -H "Accept: application/vnd.github.raw" \
-            repos/KombiverseLabs/kombify-MCP/contents/cowork-plugins/kombify-plugin/tools/roadmap-check.py \
-            > .roadmap-check/roadmap-check.py
-
-      - name: Validate ROADMAP.md
-        run: python .roadmap-check/roadmap-check.py --repo .
+    uses: KombiverseLabs/.github/.github/workflows/roadmap-check.yml@main
+    secrets: inherit
