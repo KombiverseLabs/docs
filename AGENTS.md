@@ -39,7 +39,7 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
 - Keine Business-Content (Pricing-Strategie, Customer-Daten) — gehoert nach Notion.
 - Keine internal-only Flows, Secrets oder URLs publizieren.
 
-Kombify standards live in the parent workspace `kombify` root: `../ARCH_STANDARD.md`, `../ARCH_STANDARD.schema.json`, `../ARCH_UI_GENERATION_PROMPT.md`.
+kombify standards live in the parent workspace `kombify` root: `../ARCH_STANDARD.md`, `../ARCH_STANDARD.schema.json`, `../ARCH_UI_GENERATION_PROMPT.md`.
 
 ## RepoWise Code-Wiki Policy
 

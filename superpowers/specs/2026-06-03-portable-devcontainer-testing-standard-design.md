@@ -1,4 +1,4 @@
-# Kombify Portable Dev/Test-Container & Runtime-Testing-Standard — Design Spec
+# kombify Portable Dev/Test-Container & Runtime-Testing-Standard — Design Spec
 
 - **Status:** Design / Draft (zur Review)
 - **Datum:** 2026-06-03
@@ -6,7 +6,7 @@
 - **Typ:** Design-Spec für einen neuen kombify-Standard (der publizierte Standard ist ein Plan-Deliverable, nicht dieses Dokument)
 - **Verwandte Standards:** `LOCAL-E2E-DEPLOYMENT-STANDARD.md` (Root), `.github/docs/local-development-deployment.md`, `.github/docs/ci-cd-cost-and-deployment-strategy.md`, `PACKAGE_MANAGER_STANDARDIZATION.md`
 
-> Diese Fassung merged zwei Achsen: (1) das **portable Substrat** (devcontainer + mise + Engine-Entkopplung, SOTA-recherchiert) und (2) die **Runtime-Typ-Taxonomie** (4 Standards + AI-Overlay) aus dem internen "Kombify Development-Testing Standards"-Vorschlag.
+> Diese Fassung merged zwei Achsen: (1) das **portable Substrat** (devcontainer + mise + Engine-Entkopplung, SOTA-recherchiert) und (2) die **Runtime-Typ-Taxonomie** (4 Standards + AI-Overlay) aus dem internen "kombify Development-Testing Standards"-Vorschlag.
 
 ---
 
