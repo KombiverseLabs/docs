@@ -5,14 +5,23 @@ sidebarTitle: API
 icon: code
 ---
 
+<Warning>
+**Being updated to the post-rebuild contract (2026-06).** The canonical AI API is
+served by **kombify-Gateway** under `https://api.kombify.io/v1/ai/*` (note: `/v1/ai`,
+not `/ai/v1`), with chat completions at `POST /v1/ai/responses`. The endpoint paths in
+the **Endpoints** section below still document the pre-rebuild `/api/v1/chat` scheme and
+are being migrated. Treat the **Base URL** block as authoritative; the per-endpoint
+paths will follow.
+</Warning>
+
 kombify AI exposes a REST API for programmatic interaction. All endpoints require JWT authentication via Auth0 OIDC.
 
 ## Base URL
 
 | Mode | URL |
 |------|-----|
-| **SaaS** | `https://api.kombify.io/ai/v1` |
-| **Self-hosted** | `http://your-server:5270/api/v1` |
+| **SaaS** | `https://api.kombify.io/v1/ai` |
+| **Self-hosted** | `http://your-server:5270/v1/ai` |
 
 ## Authentication
 
@@ -20,7 +29,7 @@ All requests require a valid JWT token in the `Authorization` header:
 
 ```bash
 curl -H "Authorization: Bearer <your-jwt-token>" \
-  https://api.kombify.io/ai/v1/chat
+  https://api.kombify.io/v1/ai/responses
 ```
 
 ## Endpoints
