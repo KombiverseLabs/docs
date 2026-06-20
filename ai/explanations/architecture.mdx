@@ -5,6 +5,16 @@ sidebarTitle: Architecture
 icon: sitemap
 ---
 
+<Warning>
+**Superseded — describes the pre-2026-06-08 architecture.** The Brain/Companions/Managers
+model and the "Google Genkit Go + ADK Go as default framework" stack below no longer
+reflect the target. Post-rebuild: agents run in **kombify-Agents** on **Mastra + the
+Cloudflare Agents SDK as the first-class default** (Durable Objects/Workflows/WebSockets),
+with **ADK Go/Kotlin/Python + Gemini Enterprise as exception-only** paths. See the
+`AI-AGENT-ARCHITECTURE-TARGET.md` / `AI-REPO-TOPOLOGY-MIGRATION-PLAN.md` workspace docs
+for the authoritative topology. This page is being rewritten to match.
+</Warning>
+
 kombify AI is not a single monolithic assistant. It is an orchestrated system of specialized agents coordinated by a central Brain router.
 
 ## System overview
