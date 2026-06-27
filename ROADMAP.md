@@ -26,7 +26,7 @@ track: v0-expansion
 | v0.5.0 | Release And Rebuild Reliability | planned | Docs validation, screenshots, redirects, orphan checks, and deploy metadata are reliable. |
 | v0.6.0 | API Reference Integration | planned | Gateway and service OpenAPI specs feed docs instead of hand-maintained stale API prose. |
 | v0.7.0 | Self Hosting And Monthly Runtime Proof | planned | Self-hosting and Monthly Runtime guides are validated from real internal E2E evidence. |
-| v0.8.0 | Discovery And Search Quality | planned | Search analytics, sitemap, redirects, and content gaps drive repeatable docs maintenance. |
+| v0.8.0 | Discovery And Search Quality | later | Search analytics, sitemap, redirects, and content gaps drive repeatable docs maintenance. |
 
 ## v0.4.0 - Public Docs Content Contract Repair
 

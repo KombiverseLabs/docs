@@ -32,6 +32,11 @@ description = "Local preview gate with Docker, Wrangler, Aspire, or repository b
 depends = ["build"]
 run = 'echo "local preview complete"'
 
+[tasks."e2e:local"]
+description = "Start Mintlify locally and smoke the docs HTTP boundary"
+depends = ["build"]
+run = "node scripts/local-e2e.mjs"
+
 [tasks."preflight:quick"]
 description = "Quick preflight without external deploy"
 depends = ["check"]
@@ -46,9 +51,9 @@ run = 'echo "release preflight complete"'
 description = "Hard deploy gate: requires clean git state and writes local preflight receipt"
 shell = "powershell -NoProfile -Command"
 depends = ["preflight:release"]
-run = 'python "../kombify Core/scripts/kombify_preflight.py" deploy --repo .'
+run = 'python "../kombify-Core/scripts/kombify_preflight.py" deploy --repo .'
 
 [tasks."release:dispatch"]
 description = "Dispatch remote release/deploy workflow for the current preflighted SHA"
 shell = "powershell -NoProfile -Command"
-run = 'python "../kombify Core/scripts/kombify_preflight.py" dispatch --repo .'
+run = 'python "../kombify-Core/scripts/kombify_preflight.py" dispatch --repo .'
