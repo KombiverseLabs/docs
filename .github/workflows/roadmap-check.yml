@@ -15,5 +15,5 @@ permissions:
 
 jobs:
   roadmap-check:
-    uses: KombiverseLabs/.github/.github/workflows/roadmap-check.yml@main
+    uses: KombiverseLabs/.github/.github/workflows/roadmap-check.yml@79192214c2a2bbea8852907777c50a6ff0096c2f
     secrets: inherit
