@@ -9,6 +9,13 @@ track: v0-expansion
 
 # docs Roadmap
 
+> **RETIREMENT NOTICE (2026-08-02):** This repository is `extracting` per
+> `PLATFORM-STRATEGY.md` (Extract and retire) and Decision Record 2026-07-27 #3.
+> The canonical public documentation source is `mintlify-docs`
+> (docs.kombify.io); migration is tracked in Beads `platform-el87`.
+> This roadmap is frozen as a historical reference — do not plan or execute
+> new feature work here. The milestones below (v0.4.0–v0.8.0) are superseded.
+
 ## Current Focus
 - **Target:** v0.4.0 - Public Docs Content Contract Repair
 - **Outcome:** Public Mintlify docs reflect the current Auth0, Cloudflare Edge, Tool naming, StackKits, Techstack, and Simulate contracts without mixing in legacy planning prose.
