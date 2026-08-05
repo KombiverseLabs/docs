@@ -46,4 +46,4 @@ for navigation. See [README.md](README.md) for the repo structure and
 Every new `.mdx` page MUST be registered in `docs.json` → `navigation`, or it
 404s. Use the `_templates/` MDX templates and the repo slash-commands
 (`.claude/commands/`: `/new-page`, `/update-nav`). Brand naming is `kombify`
-(lowercase k); writing rules live in `kombify Core/standards/DOCS_STANDARDS.md`.
+(lowercase k); writing rules live in `DOCUMENTATION-STANDARD.md` at the workspace root.

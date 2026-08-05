@@ -51,13 +51,13 @@ Tier-1 Public Documentation fuer die kombify-Plattform (Mintlify). Kein Source-C
 **Do:**
 - Neue Seiten ueber `_templates/` starten.
 - `docs.json` mit aktualisieren (Nav registrieren, sonst 404).
-- Brand-Naming pruefen (siehe DOCS_STANDARDS §6).
+- Brand-Naming pruefen (siehe DOCUMENTATION-STANDARD).
 - Bei API-Aenderungen: `redirects`-Array in `docs.json` pflegen.
 - Tier-Disziplin halten: nur Public-Content hier.
 
 **Dont:**
 - Keine alten Produkt-Namen einfuehren (`kombistack`, `kombisim`, `kombisphere`).
-- Keine Duplikate von Core-Standards (lokale DOCS_STANDARDS.md-Kopie wurde 2026-04-18 geloescht).
+- Keine Duplikate von Workspace-Standards (die lokale Doku-Standard-Kopie wurde 2026-04-18 geloescht).
 - Keine Business-Content (Pricing-Strategie, Customer-Daten) — gehoert nach Notion.
 - Keine internal-only Flows, Secrets oder URLs publizieren.
 

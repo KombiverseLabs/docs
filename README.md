@@ -4,7 +4,7 @@ Tier-1 Public Documentation fuer die kombify-Plattform, gebaut mit [Mintlify](ht
 
 **Live:** https://docs.kombify.io
 
-Teil der 3-Tier-Doku-Architektur (siehe `kombify Core/standards/DOCS_STANDARDS.md`):
+Teil der 3-Tier-Doku-Architektur (siehe `DOCUMENTATION-STANDARD.md` im Workspace-Root):
 - **Tier 1 (dieses Repo):** Public Docs fuer Endnutzer und Selbst-Hoster
 - **Tier 2:** `kombify Core/internal-docs/` (interne technische Doku, MkDocs)
 - **Tier 3:** Per-Repo `docs/` je Tool (tool-spezifische Interna)
@@ -59,7 +59,7 @@ rm -rf .mintlify && npm run dev
 
 ## Schreibkonventionen
 
-Folgt `kombify Core/standards/DOCS_STANDARDS.md` Section 1 (Tier 1):
+Folgt `DOCUMENTATION-STANDARD.md` (Workspace-Root) Section 1 (Tier 1):
 - Diataxis-inspiriertes 4-Level-Modell pro Tool (Overview / How-To / Explanation / Reference)
 - MDX-Frontmatter (`title`, `description`) Pflicht
 - Second-person Voice ("you", nicht "we")

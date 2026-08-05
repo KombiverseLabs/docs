@@ -8,7 +8,7 @@ Tier-1 Public Documentation fuer die kombify-Plattform, gebaut mit Mintlify. Con
 
 ## Normative Quellen (Core)
 
-- `../kombify Core/standards/DOCS_STANDARDS.md` — 3-Tier-Doku-Modell, Diataxis-4-Level, Writing-Rules
+- `../DOCUMENTATION-STANDARD.md` — 3-Tier-Doku-Modell, Diataxis-4-Level, Writing-Rules
 - `../kombify Core/standards/PRODUCT-SEGMENTATION.md` — Tools/SaaS/Homelab-Trennung, bindend fuer Content
 - `../kombify Core/standards/DEVELOPMENT-STANDARDS.md` — Repo-Konventionen
 
